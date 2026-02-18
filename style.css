@@ -1,0 +1,70 @@
+:root {
+    --bg-color: #f8f8f8;
+    --text-color: #333;
+    --primary: #111;
+    --border: #ddd;
+}
+
+body { margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--bg-color); color: var(--text-color); }
+
+/* LAYOUT */
+.app-container { display: flex; flex-direction: column; height: 100vh; }
+
+header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+
+main { display: flex; flex: 1; overflow: hidden; }
+
+/* VIEWER (GAUCHE) */
+.viewer { flex: 1; background: #e5e5e5; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: relative; }
+.grid-controls { position: absolute; top: 20px; left: 20px; z-index: 10; display: flex; gap: 10px; }
+.grid-controls button { background: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+/* GRID SYSTEM */
+#grid-container { 
+    display: grid; 
+    gap: 0; 
+    transition: all 0.5s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* Mode Solo : 1 seul gros carreau */
+.solo { width: 400px; height: 400px; grid-template-columns: 1fr; }
+/* Mode Tapis : 4x4 carreaux */
+.tapis { width: 600px; height: 600px; grid-template-columns: repeat(2, 1fr); }
+
+/* SVG STYLES */
+svg { width: 100%; height: 100%; display: block; }
+
+/* L'EFFET BLOP (Micro-interaction) */
+/* Quand on survole une zone active, elle pulse légèrement */
+path[data-active="true"] {
+    transition: fill 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: center;
+    cursor: pointer;
+}
+path[data-active="true"]:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02); /* Le petit blop */
+    z-index: 10;
+}
+
+/* SIDEBAR (DROITE) */
+.sidebar { width: 320px; background: white; border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+
+/* PALETTE */
+.palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.color-swatch { 
+    width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s; 
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.selected { border-color: #333; transform: scale(0.9); }
+
+/* BOUTONS */
+button { cursor: pointer; padding: 10px 20px; border-radius: 4px; font-weight: bold; border: none; }
+.primary { background: var(--primary); color: white; }
+.secondary { background: transparent; border: 1px solid var(--primary); }
+
+/* LOADER */
+.loader { color: #888; font-style: italic; }

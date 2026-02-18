@@ -1,0 +1,38 @@
+[
+  {
+    "id": "CB-01",
+    "nom": "Bleu Nuit (César)",
+    "hex": "#1d355f",
+    "famille": "Bleus"
+  },
+  {
+    "id": "CB-02",
+    "nom": "Beige Rosé",
+    "hex": "#d9c4b8",
+    "famille": "Neutres"
+  },
+  {
+    "id": "CB-03",
+    "nom": "Terracotta",
+    "hex": "#d59a7c",
+    "famille": "Terres"
+  },
+  {
+    "id": "CB-04",
+    "nom": "Rouge Brique",
+    "hex": "#b25a44",
+    "famille": "Rouges"
+  },
+  {
+    "id": "CB-05",
+    "nom": "Vert Forêt",
+    "hex": "#2d4a3e",
+    "famille": "Verts"
+  },
+  {
+    "id": "CB-06",
+    "nom": "Jaune Moutarde",
+    "hex": "#e0ac00",
+    "famille": "Jaunes"
+  }
+]

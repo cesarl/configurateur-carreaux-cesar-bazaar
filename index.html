@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurateur César Bazaar (Alpha)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>Simulateur <span id="collection-title">...</span></h1>
+            <div class="actions">
+                <button id="btn-save" class="secondary">Sauvegarder</button>
+                <button id="btn-cart" class="primary">Ajouter au panier (min 3)</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="viewer">
+                <div class="grid-controls">
+                    <button onclick="setGridMode('solo')">Vue Solo</button>
+                    <button onclick="setGridMode('tapis')">Vue Tapis</button>
+                </div>
+                <div id="grid-container" class="grid-view solo">
+                    <div class="loader">Chargement...</div>
+                </div>
+            </section>
+
+            <aside class="sidebar">
+                <h3>Personnalisation</h3>
+                
+                <div id="zone-selector">
+                    <p class="instruction">Cliquez sur une zone du dessin pour la modifier.</p>
+                    <div id="zones-list">
+                        </div>
+                </div>
+
+                <hr>
+
+                <h3>Nuancier</h3>
+                <div id="color-palette" class="palette-grid">
+                    </div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
