@@ -46,28 +46,37 @@ async function loadCollection(id) {
 const svgCache = {};
 
 async function loadSVG(type, collectionId) {
-    // 1. Gestion de la Casse (Case Insensitive)
-    // On force tout en minuscule.
-    // Donc si le JSON dit "Medina" et le type est "ROOT", on cherchera "medina-root.svg"
-    const safeId = collectionId.toLowerCase().trim();
-    const safeType = type.toLowerCase().trim();
+    // 1. ON FORCE TOUT EN MAJUSCULE
+    // Si le JSON dit "Medina", on le transforme en "MEDINA"
+    const safeId = collectionId.toUpperCase().trim();
+    
+    // Si le type est "root" ou "Var1", on le transforme en "ROOT" ou "VAR1"
+    const safeType = type.toUpperCase().trim();
 
-    // 2. Construction du nouveau nom de fichier (Nom-Type.svg)
+    // 2. Construction du nom de fichier : "MEDINA-ROOT.svg"
     const filename = `${safeId}-${safeType}.svg`;
 
-    console.log(`Chargement du fichier : ${filename}`); // Petit log pour vérifier
+    console.log(`🔍 Tentative de chargement : ${filename}`); 
 
     try {
+        // Note : Sur le web, on utilise toujours des slashs "/", jamais d'antislash "\"
         const res = await fetch(`${REPO_URL}/assets/svg/${filename}`);
-        if (!res.ok) throw new Error(`Fichier introuvable : ${filename}`);
+        
+        if (!res.ok) {
+            throw new Error(`Erreur 404 : Le fichier ${filename} n'existe pas.`);
+        }
         
         const text = await res.text();
         
-        // On stocke dans le cache avec la clé d'origine (ex: "ROOT") pour que le reste du script s'y retrouve
+        // On stocke le SVG dans le cache
+        // Important : on garde la clé 'type' d'origine (ROOT/VAR1) pour que le reste du script fonctionne
         svgCache[type] = text; 
+        console.log(`✅ Succès : ${filename} chargé.`);
+
     } catch (e) {
-        console.error(`Erreur chargement SVG (${filename})`, e);
-        // Optionnel : on pourrait charger un placeholder ici si le fichier manque
+        console.error(`❌ Échec chargement SVG`, e);
+        // Affiche une alerte pour t'aider à debugger visuellement
+        alert(`Impossible de trouver le fichier : ${filename}\nVérifie qu'il est bien dans le dossier /assets/svg/ sur GitHub et qu'il est bien en MAJUSCULES.`);
     }
 }
 
