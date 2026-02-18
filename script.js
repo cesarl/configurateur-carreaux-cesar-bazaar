@@ -9,9 +9,12 @@ const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("🚀 Initialisation de l'application...");
+    // Afficher la Gallery et cacher le Workspace dès le départ
+    document.getElementById("view-gallery").style.display = "flex";
+    document.getElementById("view-workspace").style.display = "none";
     await loadData();
-    // On charge la première collection disponible par défaut
-    await loadFirstCollection();
+    await renderGallery();
+    setupNavigation();
     console.log("✅ Application initialisée");
 });
 
@@ -27,6 +30,96 @@ async function loadData() {
     }
 }
 
+// Navigation entre Gallery et Workspace
+function setupNavigation() {
+    const btnBack = document.getElementById("btn-back");
+    if (btnBack) {
+        btnBack.addEventListener("click", () => {
+            showGallery();
+        });
+    }
+}
+
+function showGallery() {
+    document.getElementById("view-gallery").style.display = "flex";
+    document.getElementById("view-workspace").style.display = "none";
+}
+
+function showWorkspace() {
+    document.getElementById("view-gallery").style.display = "none";
+    document.getElementById("view-workspace").style.display = "flex";
+}
+
+// Générer la Gallery avec les collections
+async function renderGallery() {
+    console.log("🖼️ Génération de la Gallery...");
+    try {
+        const res = await fetch(`${REPO_URL}/data/collections.json`);
+        if (!res.ok) {
+            console.error(`❌ Erreur HTTP: ${res.status} ${res.statusText}`);
+            return;
+        }
+        const collections = await res.json();
+        console.log(`📚 Collections chargées: ${collections.length}`, collections);
+
+        const galleryGrid = document.getElementById("gallery-grid");
+        if (!galleryGrid) {
+            console.error("❌ Élément #gallery-grid introuvable!");
+            return;
+        }
+
+        galleryGrid.innerHTML = "";
+        
+        if (collections.length === 0) {
+            console.warn("⚠️ Aucune collection trouvée dans le JSON");
+            galleryGrid.innerHTML = "<p style='padding: 20px; text-align: center; color: #666;'>Aucune collection disponible</p>";
+            return;
+        }
+
+        collections.forEach((collection) => {
+            console.log(`  📦 Création de la carte pour: ${collection.nom || collection.id}`);
+            const card = document.createElement("div");
+            card.className = "gallery-card";
+            card.onclick = () => {
+                showWorkspace();
+                loadCollection(collection.id);
+            };
+
+            const imageUrl = collection.collection_image || "";
+            const title = collection.nom || collection.id || "";
+
+            // Créer l'élément image
+            const imageDiv = document.createElement("div");
+            imageDiv.className = "gallery-card-image";
+            if (imageUrl) {
+                imageDiv.style.backgroundImage = `url('${imageUrl}')`;
+                console.log(`    🖼️ Image URL: ${imageUrl}`);
+            } else {
+                console.warn(`    ⚠️ Pas d'image pour ${title}`);
+            }
+
+            // Créer l'overlay avec le titre
+            const overlayDiv = document.createElement("div");
+            overlayDiv.className = "gallery-card-overlay";
+            
+            const titleElement = document.createElement("h3");
+            titleElement.className = "gallery-card-title";
+            titleElement.textContent = title;
+            
+            overlayDiv.appendChild(titleElement);
+            imageDiv.appendChild(overlayDiv);
+            card.appendChild(imageDiv);
+
+            galleryGrid.appendChild(card);
+            console.log(`    ✅ Carte créée pour: ${title}`);
+        });
+
+        console.log(`✅ Gallery générée avec ${collections.length} collection(s)`);
+    } catch (e) {
+        console.error("❌ Erreur lors de la génération de la Gallery", e);
+    }
+}
+
 async function loadCollection(id) {
     console.log(`📚 Chargement de la collection: ${id}`);
     
@@ -39,6 +132,7 @@ async function loadCollection(id) {
     if (!currentCollection) {
         if (collections.length === 0) {
             alert("Aucune collection disponible");
+            showGallery();
             return;
         }
         console.warn(`⚠️ Collection "${id}" introuvable. Chargement de la première collection disponible : "${collections[0].id}"`);
@@ -88,22 +182,6 @@ async function loadCollection(id) {
     renderInterface();
 }
 
-// Charge la première collection disponible
-async function loadFirstCollection() {
-    console.log("🔍 Recherche de la première collection disponible...");
-    try {
-        const res = await fetch(`${REPO_URL}/data/collections.json`);
-        const collections = await res.json();
-        console.log(`📚 Collections trouvées: ${collections.length}`);
-        if (collections.length === 0) {
-            alert("Aucune collection disponible");
-            return;
-        }
-        await loadCollection(collections[0].id);
-    } catch (e) {
-        console.error("❌ Erreur chargement collections", e);
-    }
-}
 
 // Cache pour stocker le code SVG texte et éviter de re-télécharger
 const svgCache = {};

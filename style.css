@@ -8,12 +8,14 @@
 body { margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--bg-color); color: var(--text-color); }
 
 /* LAYOUT */
-.app-container { display: flex; flex-direction: column; height: 100vh; }
+.app-container { position: relative; width: 100%; height: 100vh; overflow: hidden; }
 
 header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+header h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
+header .actions { display: flex; gap: 10px; }
 
-main { display: flex; flex: 1; overflow: hidden; }
+/* main dans le Workspace (éditeur) */
+#view-workspace main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 /* VIEWER (GAUCHE) */
 .viewer { flex: 1; background: #e5e5e5; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: relative; }
@@ -173,4 +175,131 @@ h3 { text-transform: uppercase; font-size: 0.8rem; margin-bottom: 15px; letter-s
     display: grid;
     /* C'est la ligne MAGIQUE qui crée les 25 cases */
     grid-template-columns: repeat(5, 1fr); 
-    grid-template-rows: repeat
+    grid-template-rows: repeat(5, 1fr);
+}
+
+/* NAVIGATION SINGLE PAGE */
+.view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.view.hidden {
+    display: none;
+}
+
+/* GALLERY */
+.gallery-main {
+    flex: 1;
+    min-height: 0; /* permet au flex de rétrécir et au scroll de fonctionner */
+    overflow-y: auto;
+    padding: 30px;
+    background: var(--bg-color);
+}
+
+#view-gallery {
+    z-index: 1;
+}
+
+#view-workspace {
+    z-index: 0;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 200px;
+}
+
+.gallery-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-card-image {
+    position: relative;
+    width: 100%;
+    /* Ratio 4:3 pour les vignettes */
+    padding-top: 75%;
+    background-color: #e5e5e5;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.gallery-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent 60%);
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+}
+
+.gallery-card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* BOUTON RETOUR */
+.back-button {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 8px 15px;
+    margin-right: 15px;
+    transition: opacity 0.2s ease;
+}
+
+.back-button:hover {
+    opacity: 0.7;
+}
+
+/* HEADER AVEC BOUTON RETOUR */
+#view-workspace header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* RESPONSIVE GALLERY */
+@media (max-width: 900px) {
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .gallery-main {
+        padding: 20px;
+    }
+}

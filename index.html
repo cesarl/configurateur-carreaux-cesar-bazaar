@@ -9,39 +9,55 @@
 <body>
 
     <div class="app-container">
-        <header>
-            <h1>Simulateur <span id="collection-title">...</span></h1>
-            <div class="actions">
-                <button id="btn-save" class="secondary">Sauvegarder</button>
-                <button id="btn-cart" class="primary">Ajouter au panier (min 3)</button>
-            </div>
-        </header>
+        <!-- Vue Gallery -->
+        <div id="view-gallery" class="view">
+            <header>
+                <h1>Collections</h1>
+            </header>
+            <main class="gallery-main">
+                <div id="gallery-grid" class="gallery-grid">
+                    <!-- Les cartes seront générées dynamiquement -->
+                </div>
+            </main>
+        </div>
 
-        <main>
-            <div class="workspace">
-                
-                <div class="editor-area">
-                    <h3>1. ÉDITEUR (ROOT)</h3>
-                    <div id="editor-container" class="single-tile" style="border: 2px solid red; min-height: 300px;">
-                        </div>
+        <!-- Vue Workspace -->
+        <div id="view-workspace" class="view" style="display: none;">
+            <header>
+                <button id="btn-back" class="back-button">← Retour</button>
+                <h1>Simulateur <span id="collection-title">...</span></h1>
+                <div class="actions">
+                    <button id="btn-save" class="secondary">Sauvegarder</button>
+                    <button id="btn-cart" class="primary">Ajouter au panier (min 3)</button>
                 </div>
-        
-                <div class="preview-area">
-                    <h3>2. SIMULATION (5x5)</h3>
-                    <div id="grid-container" class="grid-5x5" style="border: 2px solid blue; min-height: 300px;">
-                        </div>
+            </header>
+
+            <main>
+                <div class="workspace">
+                    
+                    <div class="editor-area">
+                        <h3>1. ÉDITEUR (ROOT)</h3>
+                        <div id="editor-container" class="single-tile" style="border: 2px solid red; min-height: 300px;">
+                            </div>
+                    </div>
+            
+                    <div class="preview-area">
+                        <h3>2. SIMULATION (5x5)</h3>
+                        <div id="grid-container" class="grid-5x5" style="border: 2px solid blue; min-height: 300px;">
+                            </div>
+                    </div>
+            
                 </div>
-        
-            </div>
-        
-            <aside class="sidebar">
-                <h3>Personnalisation</h3>
-                <div id="zone-selector"></div>
-                <hr>
-                <h3>Nuancier</h3>
-                <div id="color-palette" class="palette-grid"></div>
-            </aside>
-        </main>
+            
+                <aside class="sidebar">
+                    <h3>Personnalisation</h3>
+                    <div id="zone-selector"></div>
+                    <hr>
+                    <h3>Nuancier</h3>
+                    <div id="color-palette" class="palette-grid"></div>
+                </aside>
+            </main>
+        </div>
     </div>
 
     <script src="script.js"></script>
