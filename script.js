@@ -1,45 +1,108 @@
-// CONFIGURATEUR CÉSAR BAZAAR - ALPHA V1
+// CONFIGURATEUR CÉSAR BAZAAR - ALPHA V2 (TAPIS dynamique)
 const REPO_URL = "."; // Pour GitHub Pages, "." suffit
 let currentCollection = null;
 let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
 let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];
+const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
 
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
+    console.log("🚀 Initialisation de l'application...");
     await loadData();
-    // On charge la collection "liz" par défaut pour la démo
-    loadCollection("liz");
+    // On charge la première collection disponible par défaut
+    await loadFirstCollection();
+    console.log("✅ Application initialisée");
 });
 
 async function loadData() {
+    console.log("📦 Chargement du nuancier...");
     try {
         const res = await fetch(`${REPO_URL}/data/nuancier.json`);
         nuancierData = await res.json();
+        console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs disponibles`);
         renderPalette(nuancierData);
     } catch (e) {
-        console.error("Erreur chargement données", e);
+        console.error("❌ Erreur chargement données", e);
     }
 }
 
 async function loadCollection(id) {
+    console.log(`📚 Chargement de la collection: ${id}`);
+    
     // 1. Charger les infos de la collection
     const res = await fetch(`${REPO_URL}/data/collections.json`);
     const collections = await res.json();
     currentCollection = collections.find(c => c.id === id);
 
-    if (!currentCollection) return alert("Collection introuvable");
+    // Si la collection n'est pas trouvée, charger la première disponible
+    if (!currentCollection) {
+        if (collections.length === 0) {
+            alert("Aucune collection disponible");
+            return;
+        }
+        console.warn(`⚠️ Collection "${id}" introuvable. Chargement de la première collection disponible : "${collections[0].id}"`);
+        currentCollection = collections[0];
+    }
+
+    console.log(`✅ Collection trouvée: ${currentCollection.nom}`);
+    console.log(`📋 Variations déclarées:`, currentCollection.variations);
 
     document.getElementById("collection-title").innerText = currentCollection.nom;
 
-    // 2. Charger les SVGs (ROOT et VAR1)
-    await loadSVG("ROOT", currentCollection.id);
-    if (currentCollection.variations.includes("VAR1")) {
-        await loadSVG("VAR1", currentCollection.id);
+    // 2. Parser les variations (peut être une chaîne "VAR1, VAR2, VAR3" ou un tableau)
+    let variationsList = [];
+    if (Array.isArray(currentCollection.variations)) {
+        // Si c'est un tableau, vérifier si c'est une chaîne unique ou plusieurs éléments
+        if (currentCollection.variations.length === 1 && typeof currentCollection.variations[0] === 'string' && currentCollection.variations[0].includes(',')) {
+            // Parser la chaîne "VAR1, VAR2, VAR3"
+            variationsList = currentCollection.variations[0].split(',').map(v => v.trim().toUpperCase());
+        } else {
+            // Tableau normal
+            variationsList = currentCollection.variations.map(v => typeof v === 'string' ? v.trim().toUpperCase() : v);
+        }
+    } else if (typeof currentCollection.variations === 'string') {
+        variationsList = currentCollection.variations.split(',').map(v => v.trim().toUpperCase());
     }
 
-    // 3. Afficher la grille par défaut
-    setGridMode("solo");
+    console.log(`🔄 Variations parsées:`, variationsList);
+
+    // 3. Réinitialiser le cache et les couleurs
+    Object.keys(svgCache).forEach(key => delete svgCache[key]);
+    currentColors = {};
+    activeZone = null;
+
+    // 4. Charger ROOT (obligatoire)
+    await loadSVG("ROOT", currentCollection.id);
+    
+    // 5. Charger toutes les variations disponibles
+    for (const variant of variationsList) {
+        if (variant && variant !== "ROOT") {
+            await loadSVG(variant, currentCollection.id);
+        }
+    }
+
+    console.log(`📦 SVG chargés dans le cache:`, Object.keys(svgCache));
+
+    // 6. Afficher l'interface: éditeur dans square 1, simulation 5x5 dans square 2
+    renderInterface();
+}
+
+// Charge la première collection disponible
+async function loadFirstCollection() {
+    console.log("🔍 Recherche de la première collection disponible...");
+    try {
+        const res = await fetch(`${REPO_URL}/data/collections.json`);
+        const collections = await res.json();
+        console.log(`📚 Collections trouvées: ${collections.length}`);
+        if (collections.length === 0) {
+            alert("Aucune collection disponible");
+            return;
+        }
+        await loadCollection(collections[0].id);
+    } catch (e) {
+        console.error("❌ Erreur chargement collections", e);
+    }
 }
 
 // Cache pour stocker le code SVG texte et éviter de re-télécharger
@@ -47,110 +110,196 @@ const svgCache = {};
 
 async function loadSVG(type, collectionId) {
     // 1. ON FORCE TOUT EN MAJUSCULE
-    // Si le JSON dit "Medina", on le transforme en "MEDINA"
     const safeId = collectionId.toUpperCase().trim();
-    
-    // Si le type est "root" ou "Var1", on le transforme en "ROOT" ou "VAR1"
     const safeType = type.toUpperCase().trim();
-
-    // 2. Construction du nom de fichier : "MEDINA-ROOT.svg"
     const filename = `${safeId}-${safeType}.svg`;
 
     console.log(`🔍 Tentative de chargement : ${filename}`); 
 
     try {
-        // Note : Sur le web, on utilise toujours des slashs "/", jamais d'antislash "\"
         const res = await fetch(`${REPO_URL}/assets/svg/${filename}`);
-        
         if (!res.ok) {
             throw new Error(`Erreur 404 : Le fichier ${filename} n'existe pas.`);
         }
-        
         const text = await res.text();
-        
-        // On stocke le SVG dans le cache
-        // Important : on garde la clé 'type' d'origine (ROOT/VAR1) pour que le reste du script fonctionne
         svgCache[type] = text; 
         console.log(`✅ Succès : ${filename} chargé.`);
-
     } catch (e) {
         console.error(`❌ Échec chargement SVG`, e);
-        // Affiche une alerte pour t'aider à debugger visuellement
         alert(`Impossible de trouver le fichier : ${filename}\nVérifie qu'il est bien dans le dossier /assets/svg/ sur GitHub et qu'il est bien en MAJUSCULES.`);
     }
 }
 
 function setGridMode(mode) {
+    console.log(`🎨 setGridMode appelé avec mode: ${mode}`);
     const container = document.getElementById("grid-container");
     container.innerHTML = ""; // Vider
     container.className = `grid-view ${mode}`;
 
     if (mode === "solo") {
         // Juste le ROOT
-        container.innerHTML = prepareSVG(svgCache["ROOT"]);
-    } else if (mode === "tapis") {
-        // Un damier simple pour la démo (ROOT / VAR1 / VAR1 / ROOT)
-        container.innerHTML += prepareSVG(svgCache["ROOT"]);
-        container.innerHTML += prepareSVG(svgCache["VAR1"] || svgCache["ROOT"]);
-        container.innerHTML += prepareSVG(svgCache["VAR1"] || svgCache["ROOT"]);
-        container.innerHTML += prepareSVG(svgCache["ROOT"]);
+        console.log("📐 Mode solo: affichage d'une seule tuile ROOT");
+        container.innerHTML = prepareSVG(svgCache["ROOT"], 0, "ROOT");
+    } else if (mode === "tapis" || mode === "simulation") {
+        // Générer une vraie grille 5x5 pour la simulation
+        console.log(`📐 Mode ${mode}: génération d'une grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE}`);
+        // Set CSS grid dynamique
+        container.style.display = "grid";
+        container.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+        container.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+
+        const variantes = [];
+        if(svgCache["ROOT"]) variantes.push("ROOT");
+        if(svgCache["VAR1"]) variantes.push("VAR1");
+        if(svgCache["VAR2"]) variantes.push("VAR2");
+        if(svgCache["VAR3"]) variantes.push("VAR3");
+
+        console.log(`🎲 Variantes disponibles pour la grille:`, variantes);
+
+        // Alternance ou random possible. Ici : alternance sur damier (ligne+col pair/impair)
+        for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+            for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+                // Choix du SVG (alterné ou random)
+                let variante;
+                if(variantes.length > 1) {
+                    // Utiliser toutes les variantes de manière équilibrée
+                    const index = (row * SIMULATION_GRID_SIZE + col) % variantes.length;
+                    variante = variantes[index];
+                } else {
+                    variante = variantes[0];
+                }
+                // Rotation aléatoire parmi 0, 90, 180, 270
+                const angles = [0, 90, 180, 270];
+                const rot = angles[Math.floor(Math.random() * angles.length)];
+                // Pour garantir appli couleur, on injecte une "zone-générale" (shared)
+                container.innerHTML += prepareSVG(svgCache[variante], rot, variante, true, row, col);
+            }
+        }
+        console.log(`✅ Grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} générée avec ${variantes.length} variante(s)`);
+    } else {
+        // fallback
+        container.innerHTML = "";
     }
-    
-    // Une fois le SVG injecté, on scanne les zones
+
     scanZones();
-    // On réapplique les couleurs choisies
     applyCurrentColors();
 }
 
-function prepareSVG(svgString) {
-    // Nettoyage basique si besoin
-    return `<div class="tile-wrapper">${svgString}</div>`;
-}
+// Ajoute une classe partagée pour chaque zone-id trouvée dans le SVG pour garantir l'appli des couleurs sur tous les carreaux
+function prepareSVG(svgString, rotation = 0, varianteName = "ROOT", isTapisMode = false, row = 0, col = 0) {
+    if (!svgString) {
+        console.warn(`⚠️ prepareSVG: svgString vide pour ${varianteName}`);
+        return "";
+    }
+    
+    // Crée un DOM temporaire pour manipuler le SVG
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svg = doc.querySelector('svg');
+    if (!svg) {
+        console.warn(`⚠️ prepareSVG: aucun élément <svg> trouvé pour ${varianteName}`);
+        return '';
+    }
 
-// Détecte quelles zones (id="zone-X") existent dans le SVG
-function scanZones() {
-    const zonesFound = new Set();
-    // On regarde dans le premier SVG affiché
-    const rootSvg = document.querySelector("#grid-container svg");
-    if(!rootSvg) return;
-
-    // Cherche tous les groupes avec un ID commençant par 'zone-'
-    rootSvg.querySelectorAll('g[id^="zone-"]').forEach(g => {
-        zonesFound.add(g.id);
-        // Ajout de l'interactivité (le Blop)
-        makeZoneInteractive(g.id);
+    // IMPORTANT: ajouter les classes shared-zone AVANT le préfixe tapis
+    // car après le préfixe, les ids commencent par "tapis-", pas "zone-"
+    svg.querySelectorAll('g[id^="zone-"]').forEach(g => {
+        const zoneId = g.id; // ID original (ex: zone-1)
+        g.classList.add(`shared-zone-${zoneId}`);
     });
 
-    renderZoneSelector(Array.from(zonesFound).sort());
+    // Pour garantir unicité de l'id SVG (évite conflits d'id multiples dans le DOM).
+    // Ajoute un préfixe unique selon la position dans la grille (tapis only)
+    if (isTapisMode) {
+        let prefix = `tapis-${row}-${col}-`;
+        svg.querySelectorAll('[id]').forEach(el => {
+            const oldId = el.id;
+            el.id = prefix + oldId;
+        });
+    }
+
+    // Ajoute une rotation au niveau du wrapper
+    // le style overflow: visible évite que la rotation coupe le SVG
+    const rotStyle = `transform: rotate(${rotation}deg);overflow:visible;`;
+
+    // Donne un index pour debug si besoin
+    return `<div class="tile-wrapper" style="${rotStyle}">${svg.outerHTML}</div>`;
 }
 
+// Détecte les zones existant dans le premier SVG affiché (dans Tapis, il y en a plusieurs!)
+// On scanne TOUTES les zones de tous les SVG pour s'assurer d'interagir avec toutes.
+function scanZones() {
+    console.log("🔍 Scan des zones...");
+    const zonesFound = new Set();
+    
+    // Scanner les zones dans l'éditeur (square 1)
+    document.querySelectorAll("#editor-container svg g[id^='zone-']").forEach(g => {
+        const zoneId = g.id;
+        zonesFound.add(zoneId);
+        makeZoneInteractive(zoneId);
+        console.log(`  ✓ Zone trouvée dans l'éditeur: ${zoneId}`);
+    });
+    
+    // Cherche tous les groupes G de zone dans tous les SVG visibles de la simulation
+    document.querySelectorAll("#grid-container svg g[id^='zone-']").forEach(g => {
+        const zoneId = g.id.replace(/^tapis-\d+-\d+-/, ""); // Ignorer le préfixe tapis
+        zonesFound.add(zoneId);
+        makeZoneInteractive(g.id);
+        console.log(`  ✓ Zone trouvée dans la simulation: ${zoneId}`);
+    });
+    
+    const zonesArray = Array.from(zonesFound).sort();
+    console.log(`✅ Zones détectées (${zonesArray.length}):`, zonesArray);
+    renderZoneSelector(zonesArray);
+}
+
+// Rendez interactif toutes les zones sur tous les carreaux !
 function makeZoneInteractive(zoneId) {
-    // On cible toutes les occurrences de cette zone dans la grille
-    const elements = document.querySelectorAll(`#${zoneId}`);
-    elements.forEach(el => {
-        // On permet le clic sur le groupe SVG
+    // Cibler tous les groupes ayant la classe et l'id correspondants
+    const fullZoneId = zoneId.includes('tapis-') ? zoneId : zoneId;
+    const cleanZoneId = zoneId.replace(/^tapis-\d+-\d+-/, ""); // zone-X pur
+    
+    // Dans l'éditeur
+    document.querySelectorAll(`#editor-container svg g#${cleanZoneId}`).forEach(el => {
         el.style.cursor = "pointer";
         el.onclick = (e) => {
             e.stopPropagation();
-            selectActiveZone(zoneId);
+            selectActiveZone(cleanZoneId);
         };
-        // Pour l'effet CSS
+        el.querySelectorAll('path').forEach(p => p.setAttribute("data-active", "true"));
+    });
+    
+    // Dans la simulation
+    document.querySelectorAll(`g[id$='${cleanZoneId}']`).forEach(el => {
+        el.style.cursor = "pointer";
+        el.onclick = (e) => {
+            e.stopPropagation();
+            selectActiveZone(cleanZoneId);
+        };
         el.querySelectorAll('path').forEach(p => p.setAttribute("data-active", "true"));
     });
 }
 
 function selectActiveZone(zoneId) {
+    console.log(`🎯 Sélection de la zone: ${zoneId}`);
     activeZone = zoneId;
-    // Visuel UI
     document.querySelectorAll(".zone-btn").forEach(b => b.classList.remove("selected"));
     const btn = document.getElementById(`btn-zone-${zoneId}`);
-    if(btn) btn.classList.add("selected");
-    
-    console.log("Zone active :", zoneId);
+    if(btn) {
+        btn.classList.add("selected");
+        console.log(`✅ Bouton de zone mis en surbrillance`);
+    } else {
+        console.warn(`⚠️ Bouton btn-zone-${zoneId} introuvable`);
+    }
 }
 
 function renderZoneSelector(zones) {
-    const container = document.getElementById("zones-list");
+    console.log(`🎯 Rendu du sélecteur de zones (${zones.length} zones)`);
+    const container = document.getElementById("zone-selector");
+    if (!container) {
+        console.error("❌ Élément #zone-selector introuvable dans le DOM!");
+        return;
+    }
     container.innerHTML = "";
     zones.forEach(z => {
         const btn = document.createElement("button");
@@ -160,10 +309,13 @@ function renderZoneSelector(zones) {
         btn.onclick = () => selectActiveZone(z);
         container.appendChild(btn);
     });
+    console.log(`✅ Sélecteur de zones rendu avec ${zones.length} bouton(s)`);
 }
 
 function renderPalette(colors) {
+    console.log(`🎨 Rendu de la palette avec ${colors.length} couleurs`);
     const container = document.getElementById("color-palette");
+    container.innerHTML = "";
     colors.forEach(c => {
         const div = document.createElement("div");
         div.className = "color-swatch";
@@ -172,35 +324,138 @@ function renderPalette(colors) {
         div.onclick = () => applyColorToActiveZone(c.hex);
         container.appendChild(div);
     });
+    console.log(`✅ Palette rendue`);
 }
 
+// Applique la couleur à tous les SVGs de TOUTES les cases du grid (utilise la classe partagée)
 function applyColorToActiveZone(hexColor) {
+    console.log(`🎨 Application de la couleur ${hexColor} à la zone ${activeZone}`);
     if (!activeZone) {
         alert("Sélectionnez d'abord une zone sur le dessin !");
         return;
     }
-    
-    // 1. Mettre à jour la variable CSS (Magie visuelle instantanée)
-    // On cible --color-zone-1, --color-zone-2, etc.
+    // Mettre à jour la variable CSS pour le cas où tu as des styles CSS custom
     const cssVar = `--color-${activeZone}`;
     document.documentElement.style.setProperty(cssVar, hexColor);
 
     // 2. Stocker le choix
     currentColors[activeZone] = hexColor;
+    console.log(`💾 Couleur sauvegardée: ${activeZone} = ${hexColor}`);
 
-    // 3. Forcer la couleur sur les éléments SVG (au cas où le CSS ne suffise pas)
-    // C'est la méthode "brute" qui garantit que ça marche
-    document.querySelectorAll(`#${activeZone} path`).forEach(p => {
+    // 3. Appliquer sur l'éditeur (square 1)
+    const editorPaths = document.querySelectorAll(`#editor-container svg g#${activeZone} path`);
+    console.log(`  📝 Éditeur: ${editorPaths.length} path(s) trouvé(s)`);
+    editorPaths.forEach(p => {
         p.style.fill = hexColor;
     });
+
+    // 4. Par sécurité, force la couleur sur tous les paths correspondants sur tous les carreaux (class shared-zone-zone-X appliquée partout)
+    const simulationPaths = document.querySelectorAll(`.shared-zone-${activeZone} path`);
+    console.log(`  🎲 Simulation: ${simulationPaths.length} path(s) trouvé(s)`);
+    simulationPaths.forEach(p => {
+        p.style.fill = hexColor;
+    });
+    
+    console.log(`✅ Couleur appliquée sur ${editorPaths.length + simulationPaths.length} path(s) au total`);
 }
 
 function applyCurrentColors() {
-    // Réapplique tout (utile quand on change de vue solo/tapis)
+    console.log(`🔄 Réapplication des couleurs actuelles (${Object.keys(currentColors).length} zone(s))`);
+    // Réapplique tout sur tous les SVG
     for (const [zone, color] of Object.entries(currentColors)) {
+        console.log(`  🎨 Application ${zone} = ${color}`);
         document.documentElement.style.setProperty(`--color-${zone}`, color);
-        document.querySelectorAll(`#${zone} path`).forEach(p => {
+        
+        // Appliquer sur l'éditeur
+        const editorPaths = document.querySelectorAll(`#editor-container svg g#${zone} path`);
+        editorPaths.forEach(p => {
+            p.style.fill = color;
+        });
+        
+        // Appliquer sur la simulation
+        document.querySelectorAll(`.shared-zone-${zone} path`).forEach(p => {
             p.style.fill = color;
         });
     }
+    console.log(`✅ Couleurs réappliquées`);
+}
+
+// Nouvelle fonction principale pour rendre l'interface Double Vue
+function renderInterface() {
+    console.log("🎨 Rendu de l'interface complète...");
+    
+    // 1. Injection du SVG éditeur (ROOT) dans #editor-container (SQUARE 1)
+    console.log("📝 Square 1: Rendu de l'éditeur (ROOT)...");
+    const editorContainer = document.getElementById("editor-container");
+    if (!editorContainer) {
+        console.error("❌ Élément #editor-container introuvable!");
+        return;
+    }
+    editorContainer.innerHTML = ""; // Reset possible contents
+
+    // Utiliser svgCache au lieu de SVGs
+    if (!svgCache["ROOT"]) {
+        console.error("❌ SVG ROOT non chargé dans le cache!");
+        editorContainer.innerHTML = "<p style='padding: 20px; color: red;'>Erreur: SVG ROOT non chargé</p>";
+        return;
+    }
+
+    // Préparer le SVG ROOT pour l'éditeur (sans préfixe tapis, sans rotation)
+    const editorSVG = prepareSVG(svgCache["ROOT"], 0, "ROOT", false);
+    editorContainer.innerHTML = editorSVG;
+    console.log("✅ Éditeur (Square 1) rendu");
+
+    // 2. Générer la grille 5x5 dans #grid-container (SQUARE 2)
+    console.log(`🎲 Square 2: Génération de la simulation ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE}...`);
+    const gridContainer = document.getElementById("grid-container");
+    if (!gridContainer) {
+        console.error("❌ Élément #grid-container introuvable!");
+        return;
+    }
+    gridContainer.innerHTML = ""; // Reset grille
+
+    // Récupérer toutes les variantes disponibles
+    const variants = [];
+    if (svgCache["ROOT"]) variants.push("ROOT");
+    if (svgCache["VAR1"]) variants.push("VAR1");
+    if (svgCache["VAR2"]) variants.push("VAR2");
+    if (svgCache["VAR3"]) variants.push("VAR3");
+    
+    console.log(`🎲 Variantes disponibles pour la simulation:`, variants);
+
+    if (variants.length === 0) {
+        console.error("❌ Aucune variante disponible!");
+        gridContainer.innerHTML = "<p style='padding: 20px; color: red;'>Erreur: Aucune variante chargée</p>";
+        return;
+    }
+
+    // Générer la grille 5x5 avec toutes les variantes
+    gridContainer.style.display = "grid";
+    gridContainer.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+    gridContainer.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+
+    for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+        for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+            // Utiliser toutes les variantes de manière équilibrée
+            const variantIndex = (row * SIMULATION_GRID_SIZE + col) % variants.length;
+            const variant = variants[variantIndex];
+            
+            // Rotation aléatoire parmi 0, 90, 180, 270
+            const angles = [0, 90, 180, 270];
+            const rot = angles[Math.floor(Math.random() * angles.length)];
+            
+            // Préparer le SVG avec le préfixe tapis pour éviter les conflits d'ID
+            const tileSVG = prepareSVG(svgCache[variant], rot, variant, true, row, col);
+            gridContainer.innerHTML += tileSVG;
+        }
+    }
+    console.log(`✅ Simulation ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} générée avec ${variants.length} variante(s)`);
+
+    // 3. Scanner les zones éditables pour générer la liste des boutons zones
+    scanZones();
+    
+    // 4. Réappliquer les couleurs si elles existent déjà
+    applyCurrentColors();
+    
+    console.log("✅ Interface complète rendue");
 }

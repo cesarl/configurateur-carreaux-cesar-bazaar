@@ -4,7 +4,7 @@
     "nom": "Medina par Bleu Cobalt",
     "description": "Best-seller de la maison.",
     "tier": "standard_20x20",
-    "variations": ["VAR1, VAR2, VAR3"],
+    "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "tapis"
   }
