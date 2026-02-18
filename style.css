@@ -68,3 +68,109 @@ button { cursor: pointer; padding: 10px 20px; border-radius: 4px; font-weight: b
 
 /* LOADER */
 .loader { color: #888; font-style: italic; }
+
+/* WORKSPACE : Conteneur global */
+.workspace {
+    display: flex;
+    gap: 40px;
+    width: 100%;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap; /* Important pour le mobile : ça passera à la ligne */
+}
+
+/* ZONE ÉDITEUR */
+.editor-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.single-tile {
+    width: 300px;
+    height: 300px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    background: white;
+}
+
+/* ZONE PREVIEW (5x5) */
+.preview-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.grid-5x5 {
+    display: grid;
+    /* La grille magique de 5 colonnes */
+    grid-template-columns: repeat(5, 1fr); 
+    width: 400px;  /* Taille visuelle du tapis */
+    height: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background: white;
+}
+
+/* TITRES */
+h3 { text-transform: uppercase; font-size: 0.8rem; margin-bottom: 15px; letter-spacing: 1px; color: #666; }
+
+/* RESPONSIVE MOBILE */
+@media (max-width: 800px) {
+    .workspace { flex-direction: column; align-items: center; }
+    .grid-5x5 { width: 300px; height: 300px; } /* Plus petit sur mobile */
+}
+
+/* S'assure que le SVG remplit bien la case */
+.tile-wrapper, svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* LA GRILLE 5x5 */
+.grid-5x5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Force 5 colonnes égales */
+    grid-template-rows: repeat(5, 1fr);    /* Force 5 lignes égales */
+    width: 500px;  /* Taille fixe pour bien voir */
+    height: 500px;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* L'ÉDITEUR SINGLE */
+.single-tile {
+    width: 400px;
+    height: 400px;
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+    .grid-5x5 { width: 300px; height: 300px; }
+    .single-tile { width: 300px; height: 300px; }
+}
+
+/* Ajoute ou remplace ceci à la fin de ton CSS */
+
+.workspace {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    align-items: flex-start; /* Important pour ne pas étirer */
+}
+
+/* GAUCHE */
+.single-tile {
+    width: 400px;
+    height: 400px;
+    background: #fff;
+    /* Important : le SVG doit pouvoir prendre la place */
+    display: block; 
+}
+
+/* DROITE */
+.grid-5x5 {
+    display: grid;
+    /* C'est la ligne MAGIQUE qui crée les 25 cases */
+    grid-template-columns: repeat(5, 1fr); 
+    grid-template-rows: repeat

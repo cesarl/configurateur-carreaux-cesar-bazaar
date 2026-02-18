@@ -18,30 +18,28 @@
         </header>
 
         <main>
-            <section class="viewer">
-                <div class="grid-controls">
-                    <button onclick="setGridMode('solo')">Vue Solo</button>
-                    <button onclick="setGridMode('tapis')">Vue Tapis</button>
-                </div>
-                <div id="grid-container" class="grid-view solo">
-                    <div class="loader">Chargement...</div>
-                </div>
-            </section>
-
-            <aside class="sidebar">
-                <h3>Personnalisation</h3>
+            <div class="workspace">
                 
-                <div id="zone-selector">
-                    <p class="instruction">Cliquez sur une zone du dessin pour la modifier.</p>
-                    <div id="zones-list">
+                <div class="editor-area">
+                    <h3>1. ÉDITEUR (ROOT)</h3>
+                    <div id="editor-container" class="single-tile" style="border: 2px solid red; min-height: 300px;">
                         </div>
                 </div>
-
+        
+                <div class="preview-area">
+                    <h3>2. SIMULATION (5x5)</h3>
+                    <div id="grid-container" class="grid-5x5" style="border: 2px solid blue; min-height: 300px;">
+                        </div>
+                </div>
+        
+            </div>
+        
+            <aside class="sidebar">
+                <h3>Personnalisation</h3>
+                <div id="zone-selector"></div>
                 <hr>
-
                 <h3>Nuancier</h3>
-                <div id="color-palette" class="palette-grid">
-                    </div>
+                <div id="color-palette" class="palette-grid"></div>
             </aside>
         </main>
     </div>
