@@ -580,8 +580,10 @@ function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode 
     }
 
     // Rotation au niveau du wrapper. En tapis : overflow hidden pour clipper le SVG "slice" et garder des cellules nettes.
+    // Avec rotation : léger scale(1.02) pour éviter les espaces visuels entre cellules (rendu subpixel / bords).
     const overflow = isTapisMode ? "hidden" : "visible";
-    const rotStyle = `transform: rotate(${rotation}deg);overflow:${overflow};`;
+    const scaleFix = isTapisMode && rotation !== 0 ? " scale(1.02)" : "";
+    const rotStyle = `transform: rotate(${rotation}deg)${scaleFix};overflow:${overflow};transform-origin:center center;`;
 
     // Donne un index pour debug si besoin
     return `<div class="tile-wrapper" style="${rotStyle}">${svg.outerHTML}</div>`;
@@ -621,27 +623,42 @@ function perspectiveMatrix3dFromCorners(corners) {
 
 /**
  * Homographie en espace pixels : map (0,0)-(sourceW,sourceH) vers les 4 coins en pixels.
- * Évite de réduire la grille à 1px (qui fait disparaître le détail 12x8).
+ * On résout en coordonnées normalisées (0-1) pour la stabilité numérique, puis on met à l'échelle.
  */
 function perspectiveMatrix3dFromPixelQuad(sourceW, sourceH, cornersPx) {
-    const [[cx0, cy0], [cx1, cy1], [cx2, cy2], [cx3, cy3]] = cornersPx;
     const W = sourceW;
     const H = sourceH;
+    if (W <= 0 || H <= 0) return "none";
+    const corners01 = cornersPx.map(([x, y]) => [x / W, y / H]);
+    const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = corners01;
     const A = [
-        [1, 0, 0, 0, 0, 0, -cx1, 0],
+        [1, 0, 0, 0, 0, 0, -x1, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, -cx3],
-        [0, 0, 0, 1, 0, 0, -cy1, 0],
+        [0, 1, 0, 0, 0, 0, 0, -x3],
+        [0, 0, 0, 1, 0, 0, -y1, 0],
         [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, -cy3],
-        [W, H, 0, 0, 0, 0, -cx2 * W, -cx2 * H],
-        [0, 0, 0, W, H, 0, -cy2 * W, -cy2 * H]
+        [0, 0, 0, 0, 1, 0, 0, -y3],
+        [1, 1, 0, 0, 0, 0, -x2, -x2],
+        [0, 0, 0, 1, 1, 0, -y2, -y2]
     ];
-    const b = [(cx1 - cx0) / W, cx0, (cx3 - cx0) / H, (cy1 - cy0) / W, cy0, (cy3 - cy0) / H, cx2 - cx0, cy2 - cy0];
+    const b = [x1 - x0, x0, x3 - x0, y1 - y0, y0, y3 - y0, x2 - x0, y2 - y0];
     const x = solve8(A, b);
     if (!x) return "none";
     const [a, bVal, c, d, e, f, g, h] = x;
-    return `matrix3d(${a},${d},0,${g}, ${bVal},${e},0,${h}, 0,0,0,0, ${c},${f},0,1)`;
+    const A_ = a;
+    const B_ = bVal * W / H;
+    const C_ = c * W;
+    const D_ = d * H / W;
+    const E_ = e;
+    const F_ = f * H;
+    const G_ = g / W;
+    const Hout = h / H;
+    if ([A_, B_, C_, D_, E_, F_, G_, Hout].some(v => !Number.isFinite(v))) return "none";
+    const nearAffine = Math.abs(G_) < 1e-6 && Math.abs(Hout) < 1e-6;
+    if (nearAffine) {
+        return `matrix(${A_},${D_},${B_},${E_},${C_},${F_})`;
+    }
+    return `matrix3d(${A_},${D_},0,${G_}, ${B_},${E_},0,${Hout}, 0,0,1,0, ${C_},${F_},0,1)`;
 }
 
 function solve8(A, b) {
@@ -653,8 +670,10 @@ function solve8(A, b) {
             if (Math.abs(M[row][col]) > Math.abs(M[pivot][col])) pivot = row;
         }
         [M[col], M[pivot]] = [M[pivot], M[col]];
-        if (Math.abs(M[col][col]) < 1e-10) return null;
-        const div = M[col][col];
+        const pivotVal = M[col][col];
+        const maxInCol = Math.max(...Array.from({ length: n }, (_, i) => Math.abs(M[i][col])));
+        if (Math.abs(pivotVal) < Math.max(1e-10, maxInCol * 1e-8)) return null;
+        const div = pivotVal;
         for (let j = 0; j <= n; j++) M[col][j] /= div;
         for (let i = 0; i < n; i++) {
             if (i === col) continue;
@@ -662,7 +681,9 @@ function solve8(A, b) {
             for (let j = 0; j <= n; j++) M[i][j] -= factor * M[col][j];
         }
     }
-    return M.map(row => row[n]);
+    const x = M.map(row => row[n]);
+    if (x.some(v => !Number.isFinite(v) || Math.abs(v) > 1e6)) return null;
+    return x;
 }
 
 // Délégation d'événement : clic sur grille (vue plate ou mockup) pour sélectionner une zone.
@@ -1506,9 +1527,11 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     }
     const corners = mockup.corners;
     const perspectiveDisabled = mockup.perspective === false;
+    const hasMatrix3d = Array.isArray(mockup.matrix3d) && mockup.matrix3d.length === 16 && mockup.matrix3d.every(Number.isFinite);
     const corners01 = corners && corners.length === 4 ? corners.map(([x, y]) => [x / 100, y / 100]) : [];
     const identityQuad = isIdentityQuad(corners01);
-    const noPerspective = perspectiveDisabled || !corners || corners.length !== 4 || identityQuad;
+    const hasCorners = corners && corners.length === 4 && !identityQuad;
+    const noPerspective = perspectiveDisabled || (!hasMatrix3d && !hasCorners);
 
     tapisEl.style.transformOrigin = "0 0";
     tapisEl.dataset.mockupSceneW = String(sceneW);
@@ -1517,8 +1540,8 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     if (noPerspective) {
         tapisEl.dataset.noPerspective = "true";
         const gridCols = Math.max(1, mockup.gridCols || 8);
-        // Grille de gridCols colonnes de large, carreaux carrés, sous tout le PNG. Plus de gridRows : on dérive les lignes de la hauteur.
-        const s = sceneW / gridCols;
+        // Grille en pixels entiers pour éviter les espaces subpixel entre carreaux (surtout avec rotation).
+        const s = Math.max(1, Math.floor(sceneW / gridCols));
         const cols = gridCols;
         const rows = Math.max(1, Math.floor(sceneH / s));
         const w = cols * s;
@@ -1546,9 +1569,14 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     tapisEl.removeAttribute("data-no-perspective");
     tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
 
-    // Coins en pixels : la grille (sceneW x sceneH) est mappée sur le quad sans réduire à 1px (préserve 12x8 carreaux).
-    const cornersPx = corners01.map(([x, y]) => [x * sceneW, y * sceneH]);
-    const matrix = perspectiveMatrix3dFromPixelQuad(sceneW, sceneH, cornersPx);
+    let matrix = "none";
+    const raw = mockup.matrix3d;
+    if (Array.isArray(raw) && raw.length === 16 && raw.every(Number.isFinite)) {
+        matrix = "matrix3d(" + raw.join(",") + ")";
+    } else if (corners01.length === 4) {
+        const cornersPx = corners01.map(([x, y]) => [x * sceneW, y * sceneH]);
+        matrix = perspectiveMatrix3dFromPixelQuad(sceneW, sceneH, cornersPx);
+    }
     if (matrix === "none") {
         tapisEl.style.transform = "none";
         return;

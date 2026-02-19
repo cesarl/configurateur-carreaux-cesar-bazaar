@@ -25,9 +25,27 @@ Les carreaux sont donc visibles dans la zone transparente de l’image.
 | `sceneWidth`   | number  | oui         | Largeur de référence de la scène (px), pour le ratio d’affichage. |
 | `sceneHeight`  | number  | oui         | Hauteur de référence (px). |
 | `gridCols`     | number  | oui         | Nombre de carreaux en largeur dans la grille. |
-| `gridRows`     | number  | oui         | Nombre de carreaux en hauteur. |
-| `corners`      | array   | recommandé  | 4 points `[x, y]` en **pourcentage (0–100)** définissant la zone du sol/mur (voir ci‑dessous). |
-| `perspective`  | boolean | non         | Si `false`, la grille s’affiche sans déformation (pleine zone). Utile pour déboguer. |
+| `corners`      | array   | optionnel   | 4 points `[x, y]` en **pourcentage (0–100)** (voir ci‑dessous). Ignoré si `matrix3d` est présent. |
+| `perspective`  | boolean | non         | Si `false`, la grille s’affiche sans déformation (pleine zone). |
+| `matrix3d`     | array   | optionnel   | **16 nombres** (ordre column-major CSS) appliqués tels quels en `transform: matrix3d(...)`. Prioritaire sur `corners`. |
+
+---
+
+## Matrice 3D directe (`matrix3d`)
+
+Si tu préfères fournir la transformation toi-même (ex. export depuis un outil, ou pour éviter les soucis de rendu avec les coins), tu peux mettre un tableau **`matrix3d`** de **16 nombres** dans l’ordre attendu par CSS (column-major) :
+
+- Les 16 valeurs correspondent à `matrix3d(m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16)`.
+- Identité (aucune déformation) : `[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]`.
+
+Exemple dans le JSON :
+
+```json
+"perspective": true,
+"matrix3d": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+```
+
+Si `matrix3d` est présent et valide (16 nombres finis), il est utilisé directement et `corners` est ignoré.
 
 ---
 

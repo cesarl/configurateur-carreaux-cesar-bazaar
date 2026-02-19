@@ -5,9 +5,12 @@
     "overlayPath": "assets/mockups/Sol-1.png",
     "sceneWidth": 720,
     "sceneHeight": 1080,
-    "gridCols": 8,
-    "corners": [[0, 0], [100, 0], [100, 100], [0, 100]],
-    "perspective": true
+    "gridCols": 15,
+    "perspective": true,
+    "matrix3d": [0.8908045977011494,	0,	0,	0,
+    -0.06976744069996367,	0.8908045977011495,	0,	-0.0006348569795494778,
+    0,	0,	1,	0,
+    12,	0,	0,	1]
   },
   {
     "id": "full-mur-1",
@@ -16,7 +19,6 @@
     "sceneWidth": 720,
     "sceneHeight": 1080,
     "gridCols": 8,
-    "corners": [[6.94, 0], [100, 0], [100, 74], [6.94, 74]],
-    "perspective": true
+    "perspective": false
   }
 ]
