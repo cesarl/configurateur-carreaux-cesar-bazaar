@@ -6,6 +6,40 @@ let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];
 const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
 
+const DRAFT_STORAGE_KEY = "cesar-bazaar-draft";
+
+/** Sauvegarde le brouillon en cours en local (réutilisé si on rouvre la même collection sans recharger la page). */
+function saveDraftToLocal() {
+    if (!currentCollection) return;
+    try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+            collectionId: currentCollection.id,
+            colors: { ...currentColors }
+        }));
+    } catch (e) {
+        console.warn("Impossible de sauvegarder le brouillon", e);
+    }
+}
+
+/** Récupère le brouillon local pour une collection, ou null. */
+function getDraftForCollection(collectionId) {
+    try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return null;
+        const draft = JSON.parse(raw);
+        return draft && draft.collectionId === collectionId ? draft.colors : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+/** Supprime le brouillon local (au chargement de la page sur la liste, pour que recharger = repartir de zéro). */
+function clearDraftLocal() {
+    try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch (e) {}
+}
+
 // ——— URL : sauvegarde / chargement de la config (collection + couleurs) ———
 /** Lit les paramètres d'URL. Format human readable : ?collection=medina&zone-1=1d355f&zone-2=d9c4b8 */
 function parseConfigFromUrl() {
@@ -47,6 +81,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (collection) {
         showWorkspace();
         await loadCollection(collection, colors);
+    } else {
+        // Arrivée sur la liste (URL propre ou rechargement) : on oublie le brouillon pour que recharger = modifs perdues
+        clearDraftLocal();
     }
     console.log("✅ Application initialisée");
 });
@@ -123,6 +160,10 @@ function setupMobileViewBar() {
 }
 
 function showGallery() {
+    // Sauvegarder le brouillon en local pour restaurer si on rouvre la même collection (sans recharger)
+    saveDraftToLocal();
+    // Nettoyer l'URL pour que un rechargement ramène bien sur la liste des collections
+    window.history.replaceState({}, "", window.location.pathname || "/");
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
 }
@@ -164,7 +205,8 @@ async function renderGallery() {
             card.className = "gallery-card";
             card.onclick = () => {
                 showWorkspace();
-                loadCollection(collection.id);
+                const draftColors = getDraftForCollection(collection.id);
+                loadCollection(collection.id, draftColors || undefined);
             };
 
             const imageUrl = collection.collection_image || "";
