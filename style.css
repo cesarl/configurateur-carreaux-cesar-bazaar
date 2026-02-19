@@ -51,9 +51,144 @@ path[data-active="true"]:hover {
     z-index: 10;
 }
 
-/* SIDEBAR (DROITE) */
+/* SIDEBAR (DROITE) - Desktop uniquement pour le nuancier */
 .sidebar { width: 320px; background: white; border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
 h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+
+/* Sur mobile, sidebar nuancier masquée (le nuancier est dans le bottom sheet) */
+@media (max-width: 900px) {
+    .sidebar.sidebar-palette-desktop { display: none; }
+}
+
+/* ----- BOTTOM SHEET (Nuancier mobile) ----- */
+.palette-drawer {
+    display: none; /* visible uniquement sur mobile via media query */
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 70vh;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+    z-index: 100;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.35s;
+    visibility: hidden;
+    overflow: hidden;
+}
+.palette-drawer.open {
+    transform: translateY(0);
+    visibility: visible;
+}
+.palette-drawer-body {
+    padding: 12px 16px 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: 80px;
+    -webkit-overflow-scrolling: touch;
+    /* Scroll fluide au doigt type iPhone, sans barre de défilement visible */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.palette-drawer-body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+/* Tiroir : une seule ligne sur l’axe X, scroll au doigt */
+#color-palette-drawer.palette-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    grid-template-columns: unset;
+    width: max-content;
+    padding: 4px 8px;
+}
+#color-palette-drawer .color-swatch {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+}
+
+@media (min-width: 901px) {
+    .palette-drawer { display: none !important; }
+}
+@media (max-width: 900px) {
+    .palette-drawer { display: flex; }
+}
+
+/* Overlay transparent : clic en dehors ferme le tiroir (pas de gris) */
+.palette-drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+.palette-drawer-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+@media (max-width: 900px) {
+    .palette-drawer-overlay.visible { display: block; }
+}
+@media (min-width: 901px) {
+    .palette-drawer-overlay { display: none !important; }
+}
+
+/* ----- BARRE MOBILE : Éditeur / Simulation ----- */
+.mobile-view-bar {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 10px 16px 14px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    flex-direction: row;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+.mobile-view-btn {
+    flex: 1;
+    max-width: 180px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.mobile-view-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+@media (max-width: 900px) {
+    .mobile-view-bar { display: flex; }
+}
+@media (min-width: 901px) {
+    .mobile-view-bar { display: none !important; }
+}
+
+/* Sur mobile : une seule vue visible (Éditeur OU Simulation) */
+@media (max-width: 900px) {
+    .workspace.mobile-view-editor .preview-area { display: none; }
+    .workspace.mobile-view-simulation .editor-area { display: none; }
+}
 
 /* PALETTE */
 .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
@@ -61,7 +196,15 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s; 
 }
 .color-swatch:hover { transform: scale(1.1); }
-.color-swatch.selected { border-color: #333; transform: scale(0.9); }
+/* Surbrillance couleur active : anneau + léger glow visible sur toutes les teintes */
+.color-swatch.selected {
+    border-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 0 14px rgba(0, 0, 0, 0.25);
+    transform: scale(1);
+}
+#color-palette-drawer .color-swatch.selected {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 0, 0, 0.3);
+}
 
 /* BOUTONS */
 button { cursor: pointer; padding: 10px 20px; border-radius: 4px; font-weight: bold; border: none; }

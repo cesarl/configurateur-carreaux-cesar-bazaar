@@ -33,30 +33,43 @@
             </header>
 
             <main>
-                <div class="workspace">
+                <div class="workspace mobile-view-editor" id="workspace">
                     
-                    <div class="editor-area">
-                        <h3>1. ÉDITEUR (ROOT)</h3>
+                    <div class="editor-area" id="editor-area">
+                        <h3 class="editor-label">1. ÉDITEUR (ROOT)</h3>
                         <div id="editor-container" class="single-tile" style="border: 2px solid red; min-height: 300px;">
                             </div>
                     </div>
             
-                    <div class="preview-area">
-                        <h3>2. SIMULATION (5x5)</h3>
+                    <div class="preview-area" id="preview-area">
+                        <h3 class="preview-label">2. SIMULATION (5x5)</h3>
                         <div id="grid-container" class="grid-5x5" style="border: 2px solid blue; min-height: 300px;">
                             </div>
                     </div>
             
                 </div>
             
-                <aside class="sidebar">
-                    <h3>Personnalisation</h3>
-                    <div id="zone-selector"></div>
-                    <hr>
+                <!-- Sidebar desktop : nuancier à droite. Mobile : masqué, palette dans le bottom sheet -->
+                <aside class="sidebar sidebar-palette-desktop">
                     <h3>Nuancier</h3>
                     <div id="color-palette" class="palette-grid"></div>
                 </aside>
             </main>
+
+            <!-- Overlay transparent : clic en dehors ferme le tiroir (sans griser l’écran) -->
+            <div id="palette-drawer-overlay" class="palette-drawer-overlay" aria-hidden="true"></div>
+            <!-- Tiroir minimaliste : uniquement les couleurs -->
+            <div id="palette-drawer" class="palette-drawer" aria-hidden="true">
+                <div class="palette-drawer-body">
+                    <div id="color-palette-drawer" class="palette-grid"></div>
+                </div>
+            </div>
+
+            <!-- Barre mobile : bascule Éditeur / Simulation -->
+            <div class="mobile-view-bar" id="mobile-view-bar" aria-hidden="true">
+                <button type="button" class="mobile-view-btn active" id="mobile-btn-editor" data-view="editor">Éditeur</button>
+                <button type="button" class="mobile-view-btn" id="mobile-btn-simulation" data-view="simulation">Simulation</button>
+            </div>
         </div>
     </div>
 

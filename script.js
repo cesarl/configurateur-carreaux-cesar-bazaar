@@ -18,6 +18,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("✅ Application initialisée");
 });
 
+/** Trie les couleurs pour un ordre progressif type dégradé (HSL : teinte puis luminosité) */
+function sortColorsForGradient(colors) {
+    const hexToHsl = (hex) => {
+        const n = hex.replace("#", "");
+        const r = parseInt(n.slice(0, 2), 16) / 255;
+        const g = parseInt(n.slice(2, 4), 16) / 255;
+        const b = parseInt(n.slice(4, 6), 16) / 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+        return [h * 360, s * 100, l * 100];
+    };
+    return [...colors].sort((a, b) => {
+        const [h1, s1, l1] = hexToHsl(a.hex);
+        const [h2, s2, l2] = hexToHsl(b.hex);
+        if (Math.abs(h1 - h2) > 1) return h1 - h2;
+        return l1 - l2;
+    });
+}
+
 async function loadData() {
     console.log("📦 Chargement du nuancier...");
     try {
@@ -25,6 +53,8 @@ async function loadData() {
         nuancierData = await res.json();
         console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs disponibles`);
         renderPalette(nuancierData);
+        setupPaletteDrawer();
+        setupMobileViewBar();
     } catch (e) {
         console.error("❌ Erreur chargement données", e);
     }
@@ -38,6 +68,25 @@ function setupNavigation() {
             showGallery();
         });
     }
+}
+
+function setupMobileViewBar() {
+    const workspace = document.getElementById("workspace");
+    const btnEditor = document.getElementById("mobile-btn-editor");
+    const btnSimulation = document.getElementById("mobile-btn-simulation");
+    const bar = document.getElementById("mobile-view-bar");
+    if (!workspace || !bar) return;
+
+    const setView = (view) => {
+        workspace.classList.remove("mobile-view-editor", "mobile-view-simulation");
+        workspace.classList.add(view === "editor" ? "mobile-view-editor" : "mobile-view-simulation");
+        bar.setAttribute("aria-hidden", "false");
+        if (btnEditor) btnEditor.classList.toggle("active", view === "editor");
+        if (btnSimulation) btnSimulation.classList.toggle("active", view === "simulation");
+    };
+
+    if (btnEditor) btnEditor.addEventListener("click", () => setView("editor"));
+    if (btnSimulation) btnSimulation.addEventListener("click", () => setView("simulation"));
 }
 
 function showGallery() {
@@ -328,7 +377,6 @@ function scanZones() {
     
     const zonesArray = Array.from(zonesFound).sort();
     console.log(`✅ Zones détectées (${zonesArray.length}):`, zonesArray);
-    renderZoneSelector(zonesArray);
 }
 
 // Rendez interactif toutes les zones sur tous les carreaux !
@@ -361,48 +409,115 @@ function makeZoneInteractive(zoneId) {
 function selectActiveZone(zoneId) {
     console.log(`🎯 Sélection de la zone: ${zoneId}`);
     activeZone = zoneId;
-    document.querySelectorAll(".zone-btn").forEach(b => b.classList.remove("selected"));
-    const btn = document.getElementById(`btn-zone-${zoneId}`);
-    if(btn) {
-        btn.classList.add("selected");
-        console.log(`✅ Bouton de zone mis en surbrillance`);
-    } else {
-        console.warn(`⚠️ Bouton btn-zone-${zoneId} introuvable`);
+    updatePaletteHighlight();
+    if (window.matchMedia("(max-width: 900px)").matches) openPaletteDrawer();
+}
+
+function openPaletteDrawer() {
+    const drawer = document.getElementById("palette-drawer");
+    const overlay = document.getElementById("palette-drawer-overlay");
+    if (drawer) {
+        drawer.classList.add("open");
+        drawer.setAttribute("aria-hidden", "false");
+        if (overlay) {
+            overlay.classList.add("visible");
+            overlay.setAttribute("aria-hidden", "false");
+        }
+        updatePaletteHighlight();
+        // Scroll vers la couleur active après que le tiroir soit visible
+        if (window.matchMedia("(max-width: 900px)").matches) {
+            setTimeout(() => updatePaletteHighlight(), 400);
+        }
     }
 }
 
-function renderZoneSelector(zones) {
-    console.log(`🎯 Rendu du sélecteur de zones (${zones.length} zones)`);
-    const container = document.getElementById("zone-selector");
-    if (!container) {
-        console.error("❌ Élément #zone-selector introuvable dans le DOM!");
-        return;
+function closePaletteDrawer() {
+    const drawer = document.getElementById("palette-drawer");
+    const overlay = document.getElementById("palette-drawer-overlay");
+    if (drawer) {
+        drawer.classList.remove("open");
+        drawer.setAttribute("aria-hidden", "true");
+        if (overlay) {
+            overlay.classList.remove("visible");
+            overlay.setAttribute("aria-hidden", "true");
+        }
     }
-    container.innerHTML = "";
-    zones.forEach(z => {
-        const btn = document.createElement("button");
-        btn.id = `btn-zone-${z}`;
-        btn.className = "zone-btn secondary";
-        btn.innerText = z.replace("zone-", "Zone ");
-        btn.onclick = () => selectActiveZone(z);
-        container.appendChild(btn);
+}
+
+function setupPaletteDrawer() {
+    const overlay = document.getElementById("palette-drawer-overlay");
+    if (overlay) overlay.addEventListener("click", closePaletteDrawer);
+}
+
+/** Normalise un hex pour comparaison (minuscules, 6 caractères, # préfixe) */
+function normalizeHex(hex) {
+    if (!hex || typeof hex !== "string") return "";
+    const h = hex.replace(/#/g, "").trim().toLowerCase();
+    if (h.length === 6) return "#" + h;
+    if (h.length === 3) return "#" + h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    return "#" + h;
+}
+
+/** Met à jour la surbrillance du nuancier (couleur de la zone active) et scroll mobile vers cette couleur */
+function updatePaletteHighlight() {
+    const hex = activeZone ? normalizeHex(currentColors[activeZone]) : null;
+    const swatches = document.querySelectorAll("#color-palette .color-swatch, #color-palette-drawer .color-swatch");
+    let found = false;
+    swatches.forEach(el => {
+        const elHex = normalizeHex(el.getAttribute("data-hex") || "");
+        const isSelected = !!hex && elHex === hex;
+        if (isSelected) found = true;
+        el.classList.toggle("selected", isSelected);
     });
-    console.log(`✅ Sélecteur de zones rendu avec ${zones.length} bouton(s)`);
+    if (hex && !found) {
+        const drawerHexes = Array.from(document.querySelectorAll("#color-palette-drawer .color-swatch"))
+            .map(el => el.getAttribute("data-hex"));
+        console.error(
+            "[Nuancier] Couleur active non trouvée dans la liste.",
+            { zone: activeZone, recherché: hex, dansLeTiroir: drawerHexes }
+        );
+    }
+    // Mobile : scroll du tiroir pour amener la couleur sélectionnée à gauche
+    if (window.matchMedia("(max-width: 900px)").matches && hex) {
+        const drawerBody = document.querySelector(".palette-drawer-body");
+        const selectedSwatch = document.querySelector("#color-palette-drawer .color-swatch.selected");
+        if (drawerBody && selectedSwatch) {
+            requestAnimationFrame(() => {
+                const bodyRect = drawerBody.getBoundingClientRect();
+                const swatchRect = selectedSwatch.getBoundingClientRect();
+                const centerOffset = (bodyRect.width - swatchRect.width) / 2;
+                const newScroll = drawerBody.scrollLeft + (swatchRect.left - bodyRect.left) - centerOffset;
+                drawerBody.scrollLeft = Math.max(0, newScroll);
+            });
+        }
+    }
 }
 
 function renderPalette(colors) {
-    console.log(`🎨 Rendu de la palette avec ${colors.length} couleurs`);
-    const container = document.getElementById("color-palette");
-    container.innerHTML = "";
-    colors.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "color-swatch";
-        div.style.backgroundColor = c.hex;
-        div.title = c.nom;
-        div.onclick = () => applyColorToActiveZone(c.hex);
-        container.appendChild(div);
-    });
-    console.log(`✅ Palette rendue`);
+    const sorted = sortColorsForGradient(colors);
+    console.log(`🎨 Rendu de la palette avec ${sorted.length} couleurs (ordre dégradé)`);
+
+    const renderInto = (containerId) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = "";
+        sorted.forEach(c => {
+            const div = document.createElement("div");
+            div.className = "color-swatch";
+            div.setAttribute("data-hex", normalizeHex(c.hex));
+            div.style.backgroundColor = c.hex;
+            div.title = c.nom;
+            div.onclick = () => {
+                applyColorToActiveZone(c.hex);
+                if (window.matchMedia("(max-width: 900px)").matches) closePaletteDrawer();
+            };
+            container.appendChild(div);
+        });
+        updatePaletteHighlight();
+    };
+    renderInto("color-palette");
+    renderInto("color-palette-drawer");
+    console.log(`✅ Palette rendue (sidebar + drawer)`);
 }
 
 // Applique la couleur à tous les SVGs de TOUTES les cases du grid (utilise la classe partagée)
@@ -419,6 +534,7 @@ function applyColorToActiveZone(hexColor) {
     // 2. Stocker le choix
     currentColors[activeZone] = hexColor;
     console.log(`💾 Couleur sauvegardée: ${activeZone} = ${hexColor}`);
+    updatePaletteHighlight();
 
     // 3. Appliquer sur l'éditeur (square 1)
     const editorPaths = document.querySelectorAll(`#editor-container svg g#${activeZone} path`);
