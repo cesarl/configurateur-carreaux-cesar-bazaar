@@ -8,6 +8,7 @@ let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
 let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
 let currentLayout = "aleatoire"; // Layout de calepinage (id du calepinage ou "solo")
 let calepinagesData = []; // Calepinages chargés depuis data/calepinages.json
+let mockupsData = []; // Mockups en situation (data/mockups.json)
 let carouselIndex = 0; // Index de la slide du carrousel (0 = grille plate)
 let livePreviewRestoreHex = null; // Couleur à restaurer au mouseleave (live preview)
 const SIMULATION_GRID_SIZE = 5;    // Fallback pour setGridMode / legacy
@@ -191,6 +192,17 @@ async function loadData() {
         } catch (e) {
             console.warn("⚠️ Impossible de charger calepinages.json, calepinages désactivés.", e);
             calepinagesData = [];
+        }
+        try {
+            const resMockups = await fetch(`${REPO_URL}/data/mockups.json`);
+            if (resMockups.ok) {
+                const raw = await resMockups.json();
+                mockupsData = Array.isArray(raw) ? raw : [];
+                console.log(`✅ Mockups chargés: ${mockupsData.length}`);
+            }
+        } catch (e) {
+            console.warn("⚠️ Impossible de charger mockups.json, mockups désactivés.", e);
+            mockupsData = [];
         }
     } catch (e) {
         console.error("❌ Erreur chargement données", e);
@@ -584,12 +596,81 @@ function getPreparedTileHTML(variantName, rotation, row, col) {
     return preparedTileCache[key].replace(/tapis-0-0-/g, `tapis-${row}-${col}-`);
 }
 
-// Délégation d'événement : un seul clic sur la grille, on cible la zone d'après l'id du g.
+/**
+ * Calcule la matrice CSS matrix3d (homographie 2D) qui envoie le carré unité (0,0)-(1,1)
+ * sur le quad défini par les 4 coins. corners = [topLeft, topRight, bottomRight, bottomLeft], chaque [x,y] en 0..1.
+ */
+function perspectiveMatrix3dFromCorners(corners) {
+    const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = corners;
+    const A = [
+        [1, 0, 0, 0, 0, 0, -x1, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, -x3],
+        [0, 0, 0, 1, 0, 0, -y1, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, -y3],
+        [1, 1, 0, 0, 0, 0, -x2, -x2],
+        [0, 0, 0, 1, 1, 0, -y2, -y2]
+    ];
+    const b = [x1 - x0, x0, x3 - x0, y1 - y0, y0, y3 - y0, x2 - x0, y2 - y0];
+    const x = solve8(A, b);
+    if (!x) return "none";
+    const [a, bVal, c, d, e, f, g, h] = x;
+    return `matrix3d(${a},${d},0,${g}, ${bVal},${e},0,${h}, 0,0,0,0, ${c},${f},0,1)`;
+}
+
+/**
+ * Homographie en espace pixels : map (0,0)-(sourceW,sourceH) vers les 4 coins en pixels.
+ * Évite de réduire la grille à 1px (qui fait disparaître le détail 12x8).
+ */
+function perspectiveMatrix3dFromPixelQuad(sourceW, sourceH, cornersPx) {
+    const [[cx0, cy0], [cx1, cy1], [cx2, cy2], [cx3, cy3]] = cornersPx;
+    const W = sourceW;
+    const H = sourceH;
+    const A = [
+        [1, 0, 0, 0, 0, 0, -cx1, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, -cx3],
+        [0, 0, 0, 1, 0, 0, -cy1, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, -cy3],
+        [W, H, 0, 0, 0, 0, -cx2 * W, -cx2 * H],
+        [0, 0, 0, W, H, 0, -cy2 * W, -cy2 * H]
+    ];
+    const b = [(cx1 - cx0) / W, cx0, (cx3 - cx0) / H, (cy1 - cy0) / W, cy0, (cy3 - cy0) / H, cx2 - cx0, cy2 - cy0];
+    const x = solve8(A, b);
+    if (!x) return "none";
+    const [a, bVal, c, d, e, f, g, h] = x;
+    return `matrix3d(${a},${d},0,${g}, ${bVal},${e},0,${h}, 0,0,0,0, ${c},${f},0,1)`;
+}
+
+function solve8(A, b) {
+    const n = 8;
+    const M = A.map((row, i) => [...row, b[i]]);
+    for (let col = 0; col < n; col++) {
+        let pivot = col;
+        for (let row = col + 1; row < n; row++) {
+            if (Math.abs(M[row][col]) > Math.abs(M[pivot][col])) pivot = row;
+        }
+        [M[col], M[pivot]] = [M[pivot], M[col]];
+        if (Math.abs(M[col][col]) < 1e-10) return null;
+        const div = M[col][col];
+        for (let j = 0; j <= n; j++) M[col][j] /= div;
+        for (let i = 0; i < n; i++) {
+            if (i === col) continue;
+            const factor = M[i][col];
+            for (let j = 0; j <= n; j++) M[i][j] -= factor * M[col][j];
+        }
+    }
+    return M.map(row => row[n]);
+}
+
+// Délégation d'événement : clic sur grille (vue plate ou mockup) pour sélectionner une zone.
 function setupGridClickDelegation() {
-    const gridContainer = document.getElementById("grid-container");
-    if (!gridContainer || gridContainer._zoneClickDelegation) return;
-    gridContainer._zoneClickDelegation = true;
-    gridContainer.addEventListener("click", (e) => {
+    const carousel = document.getElementById("preview-carousel");
+    if (!carousel || carousel._zoneClickDelegation) return;
+    carousel._zoneClickDelegation = true;
+    carousel.addEventListener("click", (e) => {
         const g = e.target.closest("g[id^='tapis-']");
         if (!g) return;
         const cleanZoneId = g.id.replace(/^tapis-\d+-\d+-/, "");
@@ -824,6 +905,7 @@ function renderLayoutSelector() {
             currentLayout = layoutId;
             renderLayoutSelector();
             renderCalepinageOnly();
+            renderMockupSlides();
         };
         container.appendChild(btn);
     });
@@ -1074,6 +1156,8 @@ function renderInterface() {
     variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v], `[${collName}] ${v}`));
     console.log(`[Ouverture SVG] Couleurs extraites:`, Object.keys(currentColors).sort(), currentColors);
     renderCalepinageOnly();
+    buildCarouselMockupSlides();
+    renderMockupSlides();
     renderActiveColorPills();
     renderLayoutSelector();
     updatePaletteHighlight();
@@ -1197,14 +1281,17 @@ function setupCalepinageZoomControls() {
     window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            if (document.getElementById("view-workspace").style.display !== "flex" || currentLayout === "solo") return;
-            const newRows = getGridRowsForContainer();
-            if (newRows !== gridRows) {
-                renderCalepinageOnly();
-            } else {
-                applyGridSizeFromContainer();
+            if (document.getElementById("view-workspace").style.display !== "flex") return;
+            if (currentLayout !== "solo") {
+                const newRows = getGridRowsForContainer();
+                if (newRows !== gridRows) {
+                    renderCalepinageOnly();
+                } else {
+                    applyGridSizeFromContainer();
+                }
+                debugLogGridResize("resize", document.getElementById("grid-container"), document.querySelector(".carousel-slide[data-slide-index='0']"));
             }
-            debugLogGridResize("resize", document.getElementById("grid-container"), document.querySelector(".carousel-slide[data-slide-index='0']"));
+            updateMockupPerspectives();
         }, 150);
     });
     if (document.getElementById("view-workspace").style.display === "flex" && currentLayout !== "solo") {
@@ -1313,4 +1400,176 @@ function setupCarousel() {
         if (e.key === "ArrowRight") goTo(carouselIndex + 1);
     });
     goTo(carouselIndex);
+}
+
+// ——— Mockups en situation (sandwich : tapis déformé + overlay) ———
+/** Construit les slides mockup dans le carrousel : conserve la slide 0, supprime les autres, ajoute une slide par mockup. */
+function buildCarouselMockupSlides() {
+    const track = document.getElementById("carousel-track");
+    if (!track) return;
+    while (track.children.length > 1) track.removeChild(track.lastChild);
+    mockupsData.forEach((mockup, i) => {
+        const slide = document.createElement("div");
+        slide.className = "carousel-slide";
+        slide.setAttribute("data-slide-index", String(i + 1));
+        slide.innerHTML = `
+            <div class="mockup-scene carousel-slide-mockup-content" style="aspect-ratio: ${mockup.sceneWidth}/${mockup.sceneHeight};">
+                <div class="mockup-tapis" data-mockup-index="${i}"></div>
+                <img class="mockup-overlay" src="${REPO_URL}/${mockup.overlayPath}" alt="${mockup.name}" />
+            </div>`;
+        track.appendChild(slide);
+    });
+}
+
+/** Remplit chaque .mockup-tapis avec la grille (même calepinage que la vue plate) et applique la perspective. */
+function renderMockupSlides() {
+    const variants = getVariantsList();
+    if (!variants.length) return;
+    const calepinage = calepinagesData.find((c) => c.id === currentLayout);
+    preparedTileCache = {};
+    document.querySelectorAll(".mockup-tapis").forEach((tapisEl) => {
+        const idx = parseInt(tapisEl.getAttribute("data-mockup-index"), 10);
+        const mockup = mockupsData[idx];
+        if (!mockup) return;
+        const cols = mockup.gridCols || 8;
+        // Plus de gridRows dans le mockup : on génère assez de lignes pour couvrir la hauteur (ratio scene)
+        const maxRows = Math.ceil(((mockup.sceneHeight || 1080) / (mockup.sceneWidth || 720)) * cols) + 2;
+        const rows = maxRows;
+        tapisEl.className = "mockup-tapis grid-view tapis";
+        tapisEl.style.display = "grid";
+        tapisEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        tapisEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        const parts = [];
+        if (calepinage) {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const { variantName, rotation } = getCellSpec(calepinage, row, col, variants);
+                    parts.push(getPreparedTileHTML(variantName, rotation, row, col));
+                }
+            }
+        } else {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const variant = variants[(row * cols + col) % variants.length];
+                    const angles = [0, 90, 180, 270];
+                    const rot = angles[Math.floor(Math.random() * angles.length)];
+                    parts.push(getPreparedTileHTML(variant, rot, row, col));
+                }
+            }
+        }
+        tapisEl.innerHTML = parts.join("");
+        tapisEl.querySelectorAll("g[id^='tapis-']").forEach((g) => {
+            if (g.id.includes("zone-")) g.style.cursor = "pointer";
+        });
+        applyPerspectiveToMockupTapis(tapisEl, mockup);
+    });
+    applyCurrentColors();
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document.querySelectorAll(".mockup-tapis").forEach((tapisEl) => {
+                const idx = parseInt(tapisEl.getAttribute("data-mockup-index"), 10);
+                const mockup = mockupsData[idx];
+                if (mockup) applyPerspectiveToMockupTapis(tapisEl, mockup);
+            });
+        });
+    });
+}
+
+/** Retourne les dimensions d'une slide du carrousel (toutes les slides ont la même taille que le track). */
+function getCarouselSlideSize() {
+    const track = document.getElementById("carousel-track");
+    if (!track) return { w: 0, h: 0 };
+    const container = track.closest(".carousel-track-container") || track.parentElement;
+    const w = container ? container.offsetWidth : track.offsetWidth;
+    const h = container ? container.offsetHeight : track.offsetHeight;
+    return { w: w || 0, h: h || 0 };
+}
+
+function isIdentityQuad(corners01) {
+    if (!corners01 || corners01.length !== 4) return false;
+    const [[a0, a1], [b0, b1], [c0, c1], [d0, d1]] = corners01;
+    return Math.abs(a0) < 0.01 && Math.abs(a1) < 0.01 &&
+           Math.abs(b0 - 1) < 0.01 && Math.abs(b1) < 0.01 &&
+           Math.abs(c0 - 1) < 0.01 && Math.abs(c1 - 1) < 0.01 &&
+           Math.abs(d0) < 0.01 && Math.abs(d1 - 1) < 0.01;
+}
+
+function applyPerspectiveToMockupTapis(tapisEl, mockup) {
+    const scene = tapisEl.closest(".mockup-scene");
+    let sceneW = scene ? scene.offsetWidth : 0;
+    let sceneH = scene ? scene.offsetHeight : 0;
+    const sceneRaw = { w: scene ? scene.offsetWidth : null, h: scene ? scene.offsetHeight : null };
+    if (sceneW <= 0 || sceneH <= 0) {
+        const slideSize = getCarouselSlideSize();
+        sceneW = sceneW <= 0 ? (slideSize.w || mockup.sceneWidth || 800) : sceneW;
+        sceneH = sceneH <= 0 ? (slideSize.h || mockup.sceneHeight || 600) : sceneH;
+    }
+    const corners = mockup.corners;
+    const perspectiveDisabled = mockup.perspective === false;
+    const corners01 = corners && corners.length === 4 ? corners.map(([x, y]) => [x / 100, y / 100]) : [];
+    const identityQuad = isIdentityQuad(corners01);
+    const noPerspective = perspectiveDisabled || !corners || corners.length !== 4 || identityQuad;
+
+    tapisEl.style.transformOrigin = "0 0";
+    tapisEl.dataset.mockupSceneW = String(sceneW);
+    tapisEl.dataset.mockupSceneH = String(sceneH);
+
+    if (noPerspective) {
+        tapisEl.dataset.noPerspective = "true";
+        const gridCols = Math.max(1, mockup.gridCols || 8);
+        // Grille de gridCols colonnes de large, carreaux carrés, sous tout le PNG. Plus de gridRows : on dérive les lignes de la hauteur.
+        const s = sceneW / gridCols;
+        const cols = gridCols;
+        const rows = Math.max(1, Math.floor(sceneH / s));
+        const w = cols * s;
+        const h = rows * s;
+        tapisEl.style.transform = "none";
+        tapisEl.style.left = "0";
+        tapisEl.style.top = "0";
+        tapisEl.style.width = w + "px";
+        tapisEl.style.height = h + "px";
+        tapisEl.style.gridTemplateColumns = `repeat(${cols}, ${s}px)`;
+        tapisEl.style.gridTemplateRows = `repeat(${rows}, ${s}px)`;
+        tapisEl.style.display = "grid";
+        const inner = tapisEl.querySelector(".mockup-tapis-inner");
+        if (inner) {
+            while (inner.firstChild) tapisEl.appendChild(inner.firstChild);
+            inner.remove();
+        }
+        const children = Array.from(tapisEl.children);
+        children.forEach((child, i) => {
+            child.style.display = i < cols * rows ? "" : "none";
+        });
+        return;
+    }
+
+    tapisEl.removeAttribute("data-no-perspective");
+    tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
+
+    // Coins en pixels : la grille (sceneW x sceneH) est mappée sur le quad sans réduire à 1px (préserve 12x8 carreaux).
+    const cornersPx = corners01.map(([x, y]) => [x * sceneW, y * sceneH]);
+    const matrix = perspectiveMatrix3dFromPixelQuad(sceneW, sceneH, cornersPx);
+    if (matrix === "none") {
+        tapisEl.style.transform = "none";
+        return;
+    }
+
+    tapisEl.style.width = "";
+    tapisEl.style.height = "";
+    tapisEl.style.display = "grid";
+    const inner = tapisEl.querySelector(".mockup-tapis-inner");
+    if (inner) {
+        while (inner.firstChild) tapisEl.appendChild(inner.firstChild);
+        inner.remove();
+    }
+    tapisEl.style.transform = matrix;
+}
+
+/** Recalcule et réapplique la transformation perspective sur chaque mockup (à appeler au resize). */
+function updateMockupPerspectives() {
+    document.querySelectorAll(".mockup-tapis").forEach((tapisEl) => {
+        const idx = parseInt(tapisEl.getAttribute("data-mockup-index"), 10);
+        const mockup = mockupsData[idx];
+        if (mockup) applyPerspectiveToMockupTapis(tapisEl, mockup);
+    });
 }
