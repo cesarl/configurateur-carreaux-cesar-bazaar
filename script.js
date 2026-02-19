@@ -458,6 +458,60 @@ function normalizeHex(hex) {
     return "#" + h;
 }
 
+/** Convertit une valeur fill (hex, rgb, nom) en hex #rrggbb ou null */
+function parseFillToHex(fill) {
+    if (!fill || String(fill).trim() === "" || String(fill).toLowerCase() === "none") return null;
+    const s = String(fill).trim();
+    if (s.startsWith("#")) return normalizeHex(s) || null;
+    const rgbMatch = s.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (rgbMatch) {
+        const r = parseInt(rgbMatch[1], 10).toString(16).padStart(2, "0");
+        const g = parseInt(rgbMatch[2], 10).toString(16).padStart(2, "0");
+        const b = parseInt(rgbMatch[3], 10).toString(16).padStart(2, "0");
+        return "#" + r + g + b;
+    }
+    const div = document.createElement("div");
+    div.style.color = s;
+    div.style.display = "none";
+    document.body.appendChild(div);
+    const computed = getComputedStyle(div).color;
+    document.body.removeChild(div);
+    const m = computed.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (m) {
+        const r = parseInt(m[1], 10).toString(16).padStart(2, "0");
+        const g = parseInt(m[2], 10).toString(16).padStart(2, "0");
+        const b = parseInt(m[3], 10).toString(16).padStart(2, "0");
+        return "#" + r + g + b;
+    }
+    return null;
+}
+
+/** Magic Matching : extrait les couleurs par défaut du SVG ROOT et remplit currentColors */
+function extractDefaultColors() {
+    const zones = document.querySelectorAll("#editor-container svg g[id^='zone-']");
+    if (!zones.length) return;
+    console.log("🪄 Magic Matching: extraction des couleurs par défaut du SVG...");
+    zones.forEach((g) => {
+        const zoneId = g.id;
+        const path = g.querySelector("path");
+        const fillSource = path
+            ? (path.getAttribute("fill") || getComputedStyle(path).fill)
+            : (g.getAttribute("fill") || (g.style && g.style.fill) || "");
+        const extractedHex = parseFillToHex(fillSource);
+        if (!extractedHex) return;
+        const normalized = normalizeHex(extractedHex);
+        const inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
+        if (inNuancier) {
+            currentColors[zoneId] = inNuancier.hex;
+            console.log(`  ✓ ${zoneId} → ${inNuancier.hex} (${inNuancier.nom})`);
+        } else {
+            console.warn(`Couleur ${extractedHex} non trouvée pour la zone ${zoneId}. Conservée pour le visuel.`);
+            currentColors[zoneId] = extractedHex;
+        }
+    });
+    console.log("✅ Magic Matching terminé. currentColors:", currentColors);
+}
+
 /** Met à jour la surbrillance du nuancier (couleur de la zone active) et scroll mobile vers cette couleur */
 function updatePaletteHighlight() {
     const hex = activeZone ? normalizeHex(currentColors[activeZone]) : null;
@@ -477,7 +531,20 @@ function updatePaletteHighlight() {
             { zone: activeZone, recherché: hex, dansLeTiroir: drawerHexes }
         );
     }
-    // Mobile : scroll du tiroir pour amener la couleur sélectionnée à gauche
+    // Desktop : scroll de la sidebar pour mettre la couleur sélectionnée au plus haut
+    if (window.matchMedia("(min-width: 901px)").matches && hex) {
+        const sidebar = document.querySelector(".sidebar");
+        const selectedSwatch = document.querySelector("#color-palette .color-swatch.selected");
+        if (sidebar && selectedSwatch) {
+            requestAnimationFrame(() => {
+                const sidebarRect = sidebar.getBoundingClientRect();
+                const swatchRect = selectedSwatch.getBoundingClientRect();
+                const swatchTopRelative = swatchRect.top - sidebarRect.top + sidebar.scrollTop;
+                sidebar.scrollTop = Math.max(0, swatchTopRelative - 20);
+            });
+        }
+    }
+    // Mobile : scroll du tiroir pour amener la couleur sélectionnée au centre
     if (window.matchMedia("(max-width: 900px)").matches && hex) {
         const drawerBody = document.querySelector(".palette-drawer-body");
         const selectedSwatch = document.querySelector("#color-palette-drawer .color-swatch.selected");
@@ -599,6 +666,8 @@ function renderInterface() {
     editorContainer.innerHTML = editorSVG;
     console.log("✅ Éditeur (Square 1) rendu");
 
+    extractDefaultColors();
+
     // 2. Générer la grille 5x5 dans #grid-container (SQUARE 2)
     console.log(`🎲 Square 2: Génération de la simulation ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE}...`);
     const gridContainer = document.getElementById("grid-container");
@@ -645,11 +714,12 @@ function renderInterface() {
     }
     console.log(`✅ Simulation ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} générée avec ${variants.length} variante(s)`);
 
-    // 3. Scanner les zones éditables pour générer la liste des boutons zones
+    // 3. Scanner les zones éditables
     scanZones();
     
-    // 4. Réappliquer les couleurs si elles existent déjà
+    // 4. Réappliquer les couleurs (éditeur + simulation) et mettre à jour le nuancier
     applyCurrentColors();
+    updatePaletteHighlight();
     
     console.log("✅ Interface complète rendue");
 }

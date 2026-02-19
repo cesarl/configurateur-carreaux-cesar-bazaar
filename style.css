@@ -52,7 +52,38 @@ path[data-active="true"]:hover {
 }
 
 /* SIDEBAR (DROITE) - Desktop uniquement pour le nuancier */
-.sidebar { width: 320px; background: white; border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+.sidebar {
+    width: 320px;
+    min-width: 320px;
+    max-width: 320px;
+    background: white;
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    padding-right: 12px; /* Espace pour la scrollbar décalée */
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Scrollbar discrète et décalée */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    border: none;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
 h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 10px; }
 
 /* Sur mobile, sidebar nuancier masquée (le nuancier est dans le bottom sheet) */
