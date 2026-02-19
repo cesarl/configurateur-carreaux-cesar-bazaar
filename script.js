@@ -6,15 +6,48 @@ let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];
 const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
 
+// ——— URL : sauvegarde / chargement de la config (collection + couleurs) ———
+/** Lit les paramètres d'URL. Format human readable : ?collection=medina&zone-1=1d355f&zone-2=d9c4b8 */
+function parseConfigFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const collection = params.get("collection") || null;
+    const colors = {};
+    params.forEach((value, key) => {
+        if (key.startsWith("zone-") && /^[0-9a-fA-F]{3,6}$/.test(value)) {
+            colors[key] = value.startsWith("#") ? value : "#" + value;
+        }
+    });
+    return { collection, colors };
+}
+
+/** Met à jour l'URL avec la collection et les couleurs (sans # pour lisibilité). */
+function applyConfigToUrl() {
+    if (!currentCollection) return;
+    const params = new URLSearchParams();
+    params.set("collection", currentCollection.id);
+    Object.entries(currentColors).forEach(([zone, hex]) => {
+        const clean = (hex || "").replace(/^#/, "");
+        if (clean) params.set(zone, clean.toLowerCase());
+    });
+    const newSearch = params.toString();
+    const url = newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname;
+    window.history.replaceState({ collection: currentCollection.id, colors: currentColors }, "", url);
+}
+
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("🚀 Initialisation de l'application...");
-    // Afficher la Gallery et cacher le Workspace dès le départ
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
     await loadData();
     await renderGallery();
     setupNavigation();
+
+    const { collection, colors } = parseConfigFromUrl();
+    if (collection) {
+        showWorkspace();
+        await loadCollection(collection, colors);
+    }
     console.log("✅ Application initialisée");
 });
 
@@ -169,13 +202,12 @@ async function renderGallery() {
     }
 }
 
-async function loadCollection(id) {
+async function loadCollection(id, urlColors = null) {
     console.log(`📚 Chargement de la collection: ${id}`);
     
-    // 1. Charger les infos de la collection
     const res = await fetch(`${REPO_URL}/data/collections.json`);
     const collections = await res.json();
-    currentCollection = collections.find(c => c.id === id);
+    currentCollection = collections.find(c => c.id.toLowerCase() === String(id).toLowerCase()) || collections.find(c => c.id === id);
 
     // Si la collection n'est pas trouvée, charger la première disponible
     if (!currentCollection) {
@@ -227,8 +259,17 @@ async function loadCollection(id) {
 
     console.log(`📦 SVG chargés dans le cache:`, Object.keys(svgCache));
 
-    // 6. Afficher l'interface: éditeur dans square 1, simulation 5x5 dans square 2
     renderInterface();
+
+    if (urlColors && Object.keys(urlColors).length > 0) {
+        Object.entries(urlColors).forEach(([zone, hex]) => {
+            const normalized = hex.startsWith("#") ? hex : "#" + hex;
+            if (/^#[0-9a-fA-F]{3,6}$/.test(normalized)) currentColors[zone] = normalized;
+        });
+        applyCurrentColors();
+        updatePaletteHighlight();
+    }
+    applyConfigToUrl();
 }
 
 
@@ -602,6 +643,7 @@ function applyColorToActiveZone(hexColor) {
     currentColors[activeZone] = hexColor;
     console.log(`💾 Couleur sauvegardée: ${activeZone} = ${hexColor}`);
     updatePaletteHighlight();
+    if (currentCollection) applyConfigToUrl();
 
     // 3. Appliquer sur l'éditeur (square 1)
     const editorPaths = document.querySelectorAll(`#editor-container svg g#${activeZone} path`);
