@@ -1,0 +1,24 @@
+[
+  {
+    "id": "sol-1",
+    "name": "Sol cuisine",
+    "overlayPath": "assets/mockups/Sol-1.png",
+    "sceneWidth": 720,
+    "sceneHeight": 1080,
+    "gridCols": 12,
+    "gridRows": 8,
+    "corners": [[0, 0], [100, 0], [100, 100], [0, 100]],
+    "perspective": true
+  },
+  {
+    "id": "full-mur-1",
+    "name": "Full mur",
+    "overlayPath": "assets/mockups/Full-mur-1.png",
+    "sceneWidth": 720,
+    "sceneHeight": 1080,
+    "gridCols": 8,
+    "gridRows": 12,
+    "corners": [[6.94, 0], [100, 0], [100, 74], [6.94, 74]],
+    "perspective": true
+  }
+]
