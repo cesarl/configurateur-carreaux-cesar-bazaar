@@ -33,26 +33,39 @@
             </header>
 
             <main>
-                <div class="workspace mobile-view-editor" id="workspace">
-                    
-                    <div class="editor-area" id="editor-area">
-                        <h3 class="editor-label">1. ÉDITEUR (ROOT)</h3>
-                        <div id="editor-container" class="single-tile" style="border: 2px solid red; min-height: 300px;">
-                            </div>
+                <div class="workspace workspace-preview-first" id="workspace">
+                    <div id="molding-warning-banner" class="molding-warning-banner" aria-live="polite" style="display: none;"></div>
+                    <div class="preview-controls">
+                        <div class="active-colors-row" id="active-colors-row" aria-label="Couleurs des zones du motif"></div>
+                        <div class="layout-selector" id="layout-selector" aria-label="Disposition du calepinage"></div>
                     </div>
-            
                     <div class="preview-area" id="preview-area">
-                        <h3 class="preview-label">2. SIMULATION (5x5)</h3>
-                        <div id="grid-container" class="grid-5x5" style="border: 2px solid blue; min-height: 300px;">
+                        <div class="carousel" id="preview-carousel" role="region" aria-label="Aperçu du calepinage">
+                            <button type="button" class="carousel-btn carousel-btn-prev" id="carousel-prev" aria-label="Vue précédente">&#8249;</button>
+                            <div class="carousel-track-container">
+                                <div class="carousel-track" id="carousel-track">
+                                    <div class="carousel-slide carousel-slide-active" data-slide-index="0">
+                                        <div id="grid-container" class="grid-5x5"></div>
+                                    </div>
+                                    <div class="carousel-slide" data-slide-index="1">
+                                        <div class="carousel-slide-placeholder">Vue Mockup (à venir)</div>
+                                    </div>
+                                </div>
                             </div>
+                            <button type="button" class="carousel-btn carousel-btn-next" id="carousel-next" aria-label="Vue suivante">&#8250;</button>
+                        </div>
                     </div>
-            
                 </div>
             
                 <!-- Sidebar desktop : nuancier à droite. Visible uniquement quand une zone est sélectionnée. Mobile : masqué, palette dans le bottom sheet -->
-                <aside class="sidebar sidebar-palette-desktop sidebar-palette-desktop--no-zone" id="sidebar-palette-desktop" aria-hidden="true">
+                <aside class="sidebar sidebar-palette-desktop" id="sidebar-palette-desktop" aria-hidden="false">
                     <h3>Nuancier</h3>
+                    <p class="sidebar-no-zone-msg" id="sidebar-no-zone-msg">Cliquez sur une zone ou une pastille pour choisir une couleur.</p>
                     <div id="color-palette" class="palette-grid"></div>
+                    <div class="sidebar-recap" id="sidebar-recap">
+                        <h4>Récapitulatif</h4>
+                        <div id="sidebar-recap-list"></div>
+                    </div>
                 </aside>
             </main>
 
@@ -65,11 +78,6 @@
                 </div>
             </div>
 
-            <!-- Barre mobile : bascule Éditeur / Simulation -->
-            <div class="mobile-view-bar" id="mobile-view-bar" aria-hidden="true">
-                <button type="button" class="mobile-view-btn active" id="mobile-btn-editor" data-view="editor">Éditeur</button>
-                <button type="button" class="mobile-view-btn" id="mobile-btn-simulation" data-view="simulation">Simulation</button>
-            </div>
         </div>
     </div>
 

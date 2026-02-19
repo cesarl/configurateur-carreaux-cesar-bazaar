@@ -3,7 +3,10 @@ const REPO_URL = "."; // Pour GitHub Pages, "." suffit
 let currentCollection = null;
 let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
 let activeZone = null;  // La zone qu'on est en train de modifier
-let nuancierData = [];
+let nuancierData = [];  // Catalogue complet (brut)
+let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
+let currentLayout = "tapis"; // Layout de calepinage (tapis, damier, etc.)
+let carouselIndex = 0; // Index de la slide du carrousel (0 = grille plate)
 const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
 
 const DRAFT_STORAGE_KEY = "cesar-bazaar-draft";
@@ -41,7 +44,7 @@ function clearDraftLocal() {
 }
 
 // ——— URL : sauvegarde / chargement de la config (collection + couleurs) ———
-/** Lit les paramètres d'URL. Format human readable : ?collection=medina&zone-1=1d355f&zone-2=d9c4b8 */
+/** Lit les paramètres d'URL. Format human readable : ?collection=medina&zone-1=1d355f&zone-2=d9c4b8 ; ?nuancier=complet ou ?allColors=1 pour toutes les couleurs */
 function parseConfigFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const collection = params.get("collection") || null;
@@ -51,6 +54,9 @@ function parseConfigFromUrl() {
             colors[key] = value.startsWith("#") ? value : "#" + value;
         }
     });
+    const nuancierParam = (params.get("nuancier") || "").toLowerCase();
+    const allColorsParam = params.get("allColors");
+    showAllColors = nuancierParam === "complet" || allColorsParam === "1" || allColorsParam === "true";
     return { collection, colors };
 }
 
@@ -71,13 +77,12 @@ function applyConfigToUrl() {
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("🚀 Initialisation de l'application...");
+    const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
     await loadData();
     await renderGallery();
     setupNavigation();
-
-    const { collection, colors } = parseConfigFromUrl();
     if (collection) {
         showWorkspace();
         await loadCollection(collection, colors);
@@ -116,15 +121,20 @@ function sortColorsForGradient(colors) {
     });
 }
 
+/** Retourne la liste des couleurs à afficher dans le nuancier (publiques seules sauf si showAllColors). */
+function getVisibleNuancier() {
+    if (showAllColors) return nuancierData;
+    return nuancierData.filter(c => c.publique !== false);
+}
+
 async function loadData() {
     console.log("📦 Chargement du nuancier...");
     try {
         const res = await fetch(`${REPO_URL}/data/nuancier.json`);
         nuancierData = await res.json();
-        console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs disponibles`);
-        renderPalette(nuancierData);
+        console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs (affichées: ${getVisibleNuancier().length})`);
+        renderPalette(getVisibleNuancier());
         setupPaletteDrawer();
-        setupMobileViewBar();
     } catch (e) {
         console.error("❌ Erreur chargement données", e);
     }
@@ -288,16 +298,17 @@ async function loadCollection(id, urlColors = null) {
     Object.keys(svgCache).forEach(key => delete svgCache[key]);
     currentColors = {};
     activeZone = null;
+    const layouts = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
+        ? currentCollection.layouts
+        : ["tapis"];
+    currentLayout = currentCollection.defaut_layout && layouts.includes(currentCollection.defaut_layout)
+        ? currentCollection.defaut_layout
+        : layouts[0];
     updateSidebarVisibility();
 
-    // 4. Charger ROOT (obligatoire)
-    await loadSVG("ROOT", currentCollection.id);
-    
-    // 5. Charger toutes les variations disponibles
+    // 4. Charger uniquement les variations déclarées dans le JSON (plus de ROOT)
     for (const variant of variationsList) {
-        if (variant && variant !== "ROOT") {
-            await loadSVG(variant, currentCollection.id);
-        }
+        if (variant) await loadSVG(variant, currentCollection.id);
     }
 
     console.log(`📦 SVG chargés dans le cache:`, Object.keys(svgCache));
@@ -311,6 +322,7 @@ async function loadCollection(id, urlColors = null) {
         });
         applyCurrentColors();
         updatePaletteHighlight();
+        updateMoldingWarning();
     }
     applyConfigToUrl();
 }
@@ -344,26 +356,19 @@ async function loadSVG(type, collectionId) {
 function setGridMode(mode) {
     console.log(`🎨 setGridMode appelé avec mode: ${mode}`);
     const container = document.getElementById("grid-container");
-    container.innerHTML = ""; // Vider
+    container.innerHTML = "";
     container.className = `grid-view ${mode}`;
+    const variantes = getVariantsList();
+    if (!variantes.length) return;
 
     if (mode === "solo") {
-        // Juste le ROOT
-        console.log("📐 Mode solo: affichage d'une seule tuile ROOT");
-        container.innerHTML = prepareSVG(svgCache["ROOT"], 0, "ROOT");
+        console.log("📐 Mode solo: affichage d'une seule tuile (première variante)");
+        container.innerHTML = prepareSVG(svgCache[variantes[0]], 0, variantes[0]);
     } else if (mode === "tapis" || mode === "simulation") {
-        // Générer une vraie grille 5x5 pour la simulation
         console.log(`📐 Mode ${mode}: génération d'une grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE}`);
-        // Set CSS grid dynamique
         container.style.display = "grid";
         container.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
         container.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-
-        const variantes = [];
-        if(svgCache["ROOT"]) variantes.push("ROOT");
-        if(svgCache["VAR1"]) variantes.push("VAR1");
-        if(svgCache["VAR2"]) variantes.push("VAR2");
-        if(svgCache["VAR3"]) variantes.push("VAR3");
 
         console.log(`🎲 Variantes disponibles pour la grille:`, variantes);
 
@@ -397,7 +402,7 @@ function setGridMode(mode) {
 }
 
 // Ajoute une classe partagée pour chaque zone-id trouvée dans le SVG pour garantir l'appli des couleurs sur tous les carreaux
-function prepareSVG(svgString, rotation = 0, varianteName = "ROOT", isTapisMode = false, row = 0, col = 0) {
+function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode = false, row = 0, col = 0) {
     if (!svgString) {
         console.warn(`⚠️ prepareSVG: svgString vide pour ${varianteName}`);
         return "";
@@ -437,70 +442,46 @@ function prepareSVG(svgString, rotation = 0, varianteName = "ROOT", isTapisMode 
     return `<div class="tile-wrapper" style="${rotStyle}">${svg.outerHTML}</div>`;
 }
 
-// Détecte les zones existant dans le premier SVG affiché (dans Tapis, il y en a plusieurs!)
-// On scanne TOUTES les zones de tous les SVG pour s'assurer d'interagir avec toutes.
+// Détecte les zones dans le calepinage (#grid-container) uniquement (preview-first : plus d'éditeur)
 function scanZones() {
     console.log("🔍 Scan des zones...");
     const zonesFound = new Set();
-    
-    // Scanner les zones dans l'éditeur (square 1)
-    document.querySelectorAll("#editor-container svg g[id^='zone-']").forEach(g => {
-        const zoneId = g.id;
-        zonesFound.add(zoneId);
-        makeZoneInteractive(zoneId);
-        console.log(`  ✓ Zone trouvée dans l'éditeur: ${zoneId}`);
+    const gridContainer = document.getElementById("grid-container");
+    if (!gridContainer) return;
+    gridContainer.querySelectorAll("svg g[id^='zone-'], svg g[id^='tapis-']").forEach(g => {
+        const zoneId = g.id.replace(/^tapis-\d+-\d+-/, "");
+        if (zoneId.startsWith("zone-")) {
+            zonesFound.add(zoneId);
+            makeZoneInteractive(g.id);
+        }
     });
-    
-    // Cherche tous les groupes G de zone dans tous les SVG visibles de la simulation
-    document.querySelectorAll("#grid-container svg g[id^='zone-']").forEach(g => {
-        const zoneId = g.id.replace(/^tapis-\d+-\d+-/, ""); // Ignorer le préfixe tapis
-        zonesFound.add(zoneId);
-        makeZoneInteractive(g.id);
-        console.log(`  ✓ Zone trouvée dans la simulation: ${zoneId}`);
-    });
-    
-    const zonesArray = Array.from(zonesFound).sort();
-    console.log(`✅ Zones détectées (${zonesArray.length}):`, zonesArray);
+    console.log(`✅ Zones détectées (${zonesFound.size}):`, [...zonesFound].sort());
 }
 
-// Rendez interactif toutes les zones sur tous les carreaux !
+// Rendez interactif les zones du calepinage (preview-first : uniquement #grid-container)
 function makeZoneInteractive(zoneId) {
-    // Cibler tous les groupes ayant la classe et l'id correspondants
-    const fullZoneId = zoneId.includes('tapis-') ? zoneId : zoneId;
-    const cleanZoneId = zoneId.replace(/^tapis-\d+-\d+-/, ""); // zone-X pur
-    
-    // Dans l'éditeur
-    document.querySelectorAll(`#editor-container svg g#${cleanZoneId}`).forEach(el => {
+    const cleanZoneId = zoneId.replace(/^tapis-\d+-\d+-/, "");
+    document.querySelectorAll(`#grid-container g[id$='${cleanZoneId}']`).forEach(el => {
         el.style.cursor = "pointer";
         el.onclick = (e) => {
             e.stopPropagation();
             selectActiveZone(cleanZoneId);
         };
-        el.querySelectorAll('path').forEach(p => p.setAttribute("data-active", "true"));
-    });
-    
-    // Dans la simulation
-    document.querySelectorAll(`g[id$='${cleanZoneId}']`).forEach(el => {
-        el.style.cursor = "pointer";
-        el.onclick = (e) => {
-            e.stopPropagation();
-            selectActiveZone(cleanZoneId);
-        };
-        el.querySelectorAll('path').forEach(p => p.setAttribute("data-active", "true"));
+        el.querySelectorAll("path").forEach(p => p.setAttribute("data-active", "true"));
     });
 }
 
+// Preview-first : sidebar toujours visible sur desktop ; on affiche/masque le message "aucune zone"
 function updateSidebarVisibility() {
-    const sidebar = document.getElementById("sidebar-palette-desktop");
-    if (!sidebar) return;
-    const hasZone = activeZone != null;
-    sidebar.classList.toggle("sidebar-palette-desktop--no-zone", !hasZone);
-    sidebar.setAttribute("aria-hidden", hasZone ? "false" : "true");
+    const msg = document.getElementById("sidebar-no-zone-msg");
+    const palette = document.getElementById("color-palette");
+    if (msg) msg.style.display = activeZone ? "none" : "block";
+    if (palette) palette.style.display = activeZone ? "grid" : "none";
 }
 
 function selectActiveZone(zoneId) {
-    console.log(`🎯 Sélection de la zone: ${zoneId}`);
     activeZone = zoneId;
+    renderActiveColorPills();
     updateSidebarVisibility();
     updatePaletteHighlight();
     if (window.matchMedia("(max-width: 900px)").matches) openPaletteDrawer();
@@ -579,30 +560,137 @@ function parseFillToHex(fill) {
     return null;
 }
 
-/** Magic Matching : extrait les couleurs par défaut du SVG ROOT et remplit currentColors */
-function extractDefaultColors() {
-    const zones = document.querySelectorAll("#editor-container svg g[id^='zone-']");
-    if (!zones.length) return;
-    console.log("🪄 Magic Matching: extraction des couleurs par défaut du SVG...");
+/** Extrait les couleurs par défaut d'un SVG (une variante, ex. VAR1) en mémoire et remplit currentColors */
+function extractDefaultColorsFromSvg(svgString) {
+    if (!svgString) return;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const zones = doc.querySelectorAll("svg g[id^='zone-']");
     zones.forEach((g) => {
         const zoneId = g.id;
         const path = g.querySelector("path");
-        const fillSource = path
-            ? (path.getAttribute("fill") || getComputedStyle(path).fill)
-            : (g.getAttribute("fill") || (g.style && g.style.fill) || "");
+        const fillSource = path ? (path.getAttribute("fill") || "") : (g.getAttribute("fill") || "");
         const extractedHex = parseFillToHex(fillSource);
         if (!extractedHex) return;
         const normalized = normalizeHex(extractedHex);
         const inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
-        if (inNuancier) {
-            currentColors[zoneId] = inNuancier.hex;
-            console.log(`  ✓ ${zoneId} → ${inNuancier.hex} (${inNuancier.nom})`);
-        } else {
-            console.warn(`Couleur ${extractedHex} non trouvée pour la zone ${zoneId}. Conservée pour le visuel.`);
-            currentColors[zoneId] = extractedHex;
-        }
+        currentColors[zoneId] = inNuancier ? inNuancier.hex : extractedHex;
     });
-    console.log("✅ Magic Matching terminé. currentColors:", currentColors);
+}
+
+/** Retourne la liste des variantes à utiliser : celles du JSON collection présentes dans le cache (plus de ROOT) */
+function getVariantsList() {
+    if (!currentCollection || !currentCollection.variations) return [];
+    let list = [];
+    if (Array.isArray(currentCollection.variations)) {
+        if (currentCollection.variations.length === 1 && typeof currentCollection.variations[0] === "string" && currentCollection.variations[0].includes(",")) {
+            list = currentCollection.variations[0].split(",").map((v) => v.trim().toUpperCase());
+        } else {
+            list = currentCollection.variations.map((v) => (typeof v === "string" ? v.trim().toUpperCase() : v));
+        }
+    } else if (typeof currentCollection.variations === "string") {
+        list = currentCollection.variations.split(",").map((v) => v.trim().toUpperCase());
+    }
+    return list.filter((v) => v && svgCache[v]);
+}
+
+/** Remplit la rangée de pastilles "couleurs actives" (une par zone) */
+function renderActiveColorPills() {
+    const row = document.getElementById("active-colors-row");
+    if (!row) return;
+    row.innerHTML = "";
+    const zoneIds = Object.keys(currentColors).sort();
+    zoneIds.forEach((zoneId) => {
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.className = "active-color-pill" + (activeZone === zoneId ? " active" : "");
+        pill.style.backgroundColor = currentColors[zoneId] || "#ccc";
+        pill.setAttribute("aria-label", `Zone ${zoneId} : choisir couleur`);
+        pill.onclick = () => selectActiveZone(zoneId);
+        row.appendChild(pill);
+    });
+}
+
+/** Remplit le sélecteur de calepinage (boutons pilules Tapis, Damier, etc.) */
+function renderLayoutSelector() {
+    const container = document.getElementById("layout-selector");
+    if (!container) return;
+    const layouts = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
+        ? currentCollection.layouts
+        : ["tapis"];
+    container.innerHTML = "";
+    const labels = { tapis: "Tapis", damier: "Damier", solo: "Grille plate" };
+    layouts.forEach((layoutId) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "layout-pill" + (currentLayout === layoutId ? " active" : "");
+        btn.textContent = labels[layoutId] || layoutId;
+        btn.onclick = () => {
+            currentLayout = layoutId;
+            renderLayoutSelector();
+            renderCalepinageOnly();
+        };
+        container.appendChild(btn);
+    });
+}
+
+/** Reconstruit uniquement le calepinage (grille) selon currentLayout — appelé au changement de layout */
+function renderCalepinageOnly() {
+    const gridContainer = document.getElementById("grid-container");
+    if (!gridContainer) return;
+    const variants = getVariantsList();
+    if (!variants.length) return;
+    gridContainer.innerHTML = "";
+    gridContainer.style.display = "grid";
+    gridContainer.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+    gridContainer.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+    for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+        for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+            const variant = variants[(row * SIMULATION_GRID_SIZE + col) % variants.length];
+            const angles = [0, 90, 180, 270];
+            const rot = angles[Math.floor(Math.random() * angles.length)];
+            gridContainer.innerHTML += prepareSVG(svgCache[variant], rot, variant, true, row, col);
+        }
+    }
+    scanZones();
+    applyCurrentColors();
+    renderActiveColorPills();
+    updateMoldingWarning();
+}
+
+/** Récapitulatif sidebar : pastille + Nom, Code, Pantone, RAL par zone */
+function updateSidebarRecap() {
+    const list = document.getElementById("sidebar-recap-list");
+    if (!list) return;
+    list.innerHTML = "";
+    const zoneIds = Object.keys(currentColors).sort();
+    zoneIds.forEach((zoneId) => {
+        const hex = normalizeHex(currentColors[zoneId]);
+        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
+        const row = document.createElement("div");
+        row.className = "sidebar-recap-row";
+        row.innerHTML = `
+            <span class="sidebar-recap-pill" style="background:${currentColors[zoneId]}"></span>
+            <span class="sidebar-recap-info">
+                <span class="recap-name">${colorInfo ? colorInfo.nom : "—"}</span>
+                <span class="recap-code">${colorInfo ? colorInfo.id : ""} ${colorInfo && colorInfo.pantone ? " · Pantone " + colorInfo.pantone : ""} ${colorInfo && colorInfo.ral ? " · RAL " + colorInfo.ral : ""}</span>
+            </span>`;
+        list.appendChild(row);
+    });
+}
+
+/** Affiche ou masque la bannière warning si deux zones ont la même couleur */
+function updateMoldingWarning() {
+    const banner = document.getElementById("molding-warning-banner");
+    if (!banner) return;
+    const hexValues = Object.values(currentColors).map(normalizeHex).filter(Boolean);
+    const hasDuplicates = hexValues.length !== new Set(hexValues).size;
+    if (hasDuplicates) {
+        banner.textContent = "⚠️ Attention : ce motif est conçu pour des couleurs distinctes par zone. Si deux zones partagent la même couleur, une légère trace peut apparaître sur le carreau final.";
+        banner.style.display = "block";
+    } else {
+        banner.style.display = "none";
+    }
 }
 
 /** Met à jour la surbrillance du nuancier (couleur de la zone active) et scroll mobile vers cette couleur */
@@ -655,9 +743,16 @@ function updatePaletteHighlight() {
 
 function renderPalette(colors) {
     const sorted = sortColorsForGradient(colors);
-    console.log(`🎨 Rendu de la palette avec ${sorted.length} couleurs (ordre dégradé)`);
+    let tooltipEl = document.getElementById("color-swatch-tooltip");
+    if (!tooltipEl && document.getElementById("color-palette")) {
+        tooltipEl = document.createElement("div");
+        tooltipEl.id = "color-swatch-tooltip";
+        tooltipEl.className = "color-swatch-tooltip";
+        tooltipEl.setAttribute("role", "tooltip");
+        document.body.appendChild(tooltipEl);
+    }
 
-    const renderInto = (containerId) => {
+    const renderInto = (containerId, isDesktopSidebar) => {
         const container = document.getElementById(containerId);
         if (!container) return;
         container.innerHTML = "";
@@ -667,153 +762,119 @@ function renderPalette(colors) {
             div.setAttribute("data-hex", normalizeHex(c.hex));
             div.style.backgroundColor = c.hex;
             div.title = c.nom;
+            div.setAttribute("data-nom", c.nom || "");
+            div.setAttribute("data-code", c.id || "");
+            div.setAttribute("data-pantone", c.pantone || "");
+            div.setAttribute("data-ral", c.ral || "");
             div.onclick = () => {
                 applyColorToActiveZone(c.hex);
                 if (window.matchMedia("(max-width: 900px)").matches) closePaletteDrawer();
             };
+            if (isDesktopSidebar && tooltipEl) {
+                div.addEventListener("mouseenter", function () {
+                    const nom = this.getAttribute("data-nom") || "";
+                    const code = this.getAttribute("data-code") || "";
+                    const pantone = this.getAttribute("data-pantone") || "";
+                    const ral = this.getAttribute("data-ral") || "";
+                    tooltipEl.innerHTML = `<span class="tooltip-name">${nom}</span><span class="tooltip-code">Code: ${code}</span>${pantone ? `<span class="tooltip-pantone">Pantone: ${pantone}</span>` : ""}${ral ? `<span class="tooltip-ral">RAL: ${ral}</span>` : ""}`;
+                    const rect = this.getBoundingClientRect();
+                    tooltipEl.style.left = `${rect.left}px`;
+                    tooltipEl.style.top = `${rect.top - 8}px`;
+                    tooltipEl.style.transform = "translateY(-100%)";
+                    tooltipEl.classList.add("visible");
+                    if (activeZone) {
+                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = this.getAttribute("data-hex").startsWith("#") ? this.getAttribute("data-hex") : "#" + this.getAttribute("data-hex"); });
+                    }
+                });
+                div.addEventListener("mouseleave", function () {
+                    tooltipEl.classList.remove("visible");
+                    if (activeZone && currentColors[activeZone]) {
+                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = currentColors[activeZone]; });
+                    }
+                });
+            }
             container.appendChild(div);
         });
         updatePaletteHighlight();
     };
-    renderInto("color-palette");
-    renderInto("color-palette-drawer");
+    renderInto("color-palette", true);
+    renderInto("color-palette-drawer", false);
     console.log(`✅ Palette rendue (sidebar + drawer)`);
 }
 
-// Applique la couleur à tous les SVGs de TOUTES les cases du grid (utilise la classe partagée)
+// Applique la couleur au calepinage (preview-first : uniquement #grid-container)
 function applyColorToActiveZone(hexColor) {
-    console.log(`🎨 Application de la couleur ${hexColor} à la zone ${activeZone}`);
     if (!activeZone) {
-        alert("Sélectionnez d'abord une zone sur le dessin !");
+        alert("Sélectionnez d'abord une zone sur le dessin ou une pastille !");
         return;
     }
-    // Mettre à jour la variable CSS pour le cas où tu as des styles CSS custom
-    const cssVar = `--color-${activeZone}`;
-    document.documentElement.style.setProperty(cssVar, hexColor);
-
-    // 2. Stocker le choix
+    document.documentElement.style.setProperty(`--color-${activeZone}`, hexColor);
     currentColors[activeZone] = hexColor;
-    console.log(`💾 Couleur sauvegardée: ${activeZone} = ${hexColor}`);
     updatePaletteHighlight();
     if (currentCollection) applyConfigToUrl();
-
-    // 3. Appliquer sur l'éditeur (square 1)
-    const editorPaths = document.querySelectorAll(`#editor-container svg g#${activeZone} path`);
-    console.log(`  📝 Éditeur: ${editorPaths.length} path(s) trouvé(s)`);
-    editorPaths.forEach(p => {
-        p.style.fill = hexColor;
-    });
-
-    // 4. Par sécurité, force la couleur sur tous les paths correspondants sur tous les carreaux (class shared-zone-zone-X appliquée partout)
-    const simulationPaths = document.querySelectorAll(`.shared-zone-${activeZone} path`);
-    console.log(`  🎲 Simulation: ${simulationPaths.length} path(s) trouvé(s)`);
-    simulationPaths.forEach(p => {
-        p.style.fill = hexColor;
-    });
-    
-    console.log(`✅ Couleur appliquée sur ${editorPaths.length + simulationPaths.length} path(s) au total`);
+    const paths = document.querySelectorAll(`.shared-zone-${activeZone} path`);
+    paths.forEach(p => { p.style.fill = hexColor; });
+    renderActiveColorPills();
+    updateSidebarRecap();
+    updateMoldingWarning();
 }
 
 function applyCurrentColors() {
-    console.log(`🔄 Réapplication des couleurs actuelles (${Object.keys(currentColors).length} zone(s))`);
-    // Réapplique tout sur tous les SVG
     for (const [zone, color] of Object.entries(currentColors)) {
-        console.log(`  🎨 Application ${zone} = ${color}`);
         document.documentElement.style.setProperty(`--color-${zone}`, color);
-        
-        // Appliquer sur l'éditeur
-        const editorPaths = document.querySelectorAll(`#editor-container svg g#${zone} path`);
-        editorPaths.forEach(p => {
-            p.style.fill = color;
-        });
-        
-        // Appliquer sur la simulation
-        document.querySelectorAll(`.shared-zone-${zone} path`).forEach(p => {
-            p.style.fill = color;
-        });
+        document.querySelectorAll(`.shared-zone-${zone} path`).forEach(p => { p.style.fill = color; });
     }
-    console.log(`✅ Couleurs réappliquées`);
 }
 
-// Nouvelle fonction principale pour rendre l'interface Double Vue
+// Preview-first : calepinage seul, pastilles, sélecteur de layout (uniquement les variantes du JSON, plus de ROOT)
 function renderInterface() {
-    console.log("🎨 Rendu de l'interface complète...");
-    
-    // 1. Injection du SVG éditeur (ROOT) dans #editor-container (SQUARE 1)
-    console.log("📝 Square 1: Rendu de l'éditeur (ROOT)...");
-    const editorContainer = document.getElementById("editor-container");
-    if (!editorContainer) {
-        console.error("❌ Élément #editor-container introuvable!");
+    const variants = getVariantsList();
+    if (!variants.length) {
+        const gridContainer = document.getElementById("grid-container");
+        if (gridContainer) gridContainer.innerHTML = "<p style='padding:20px;color:red;'>Erreur: aucune variante chargée. Vérifiez les fichiers SVG (VAR1, VAR2, …) dans assets/svg/.</p>";
         return;
     }
-    editorContainer.innerHTML = ""; // Reset possible contents
-
-    // Utiliser svgCache au lieu de SVGs
-    if (!svgCache["ROOT"]) {
-        console.error("❌ SVG ROOT non chargé dans le cache!");
-        editorContainer.innerHTML = "<p style='padding: 20px; color: red;'>Erreur: SVG ROOT non chargé</p>";
-        return;
-    }
-
-    // Préparer le SVG ROOT pour l'éditeur (sans préfixe tapis, sans rotation)
-    const editorSVG = prepareSVG(svgCache["ROOT"], 0, "ROOT", false);
-    editorContainer.innerHTML = editorSVG;
-    console.log("✅ Éditeur (Square 1) rendu");
-
-    extractDefaultColors();
-
-    // 2. Générer la grille 5x5 dans #grid-container (SQUARE 2)
-    console.log(`🎲 Square 2: Génération de la simulation ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE}...`);
-    const gridContainer = document.getElementById("grid-container");
-    if (!gridContainer) {
-        console.error("❌ Élément #grid-container introuvable!");
-        return;
-    }
-    gridContainer.innerHTML = ""; // Reset grille
-
-    // Récupérer toutes les variantes disponibles
-    const variants = [];
-    if (svgCache["ROOT"]) variants.push("ROOT");
-    if (svgCache["VAR1"]) variants.push("VAR1");
-    if (svgCache["VAR2"]) variants.push("VAR2");
-    if (svgCache["VAR3"]) variants.push("VAR3");
-    
-    console.log(`🎲 Variantes disponibles pour la simulation:`, variants);
-
-    if (variants.length === 0) {
-        console.error("❌ Aucune variante disponible!");
-        gridContainer.innerHTML = "<p style='padding: 20px; color: red;'>Erreur: Aucune variante chargée</p>";
-        return;
-    }
-
-    // Générer la grille 5x5 avec toutes les variantes
-    gridContainer.style.display = "grid";
-    gridContainer.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-    gridContainer.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-
-    for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
-        for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
-            // Utiliser toutes les variantes de manière équilibrée
-            const variantIndex = (row * SIMULATION_GRID_SIZE + col) % variants.length;
-            const variant = variants[variantIndex];
-            
-            // Rotation aléatoire parmi 0, 90, 180, 270
-            const angles = [0, 90, 180, 270];
-            const rot = angles[Math.floor(Math.random() * angles.length)];
-            
-            // Préparer le SVG avec le préfixe tapis pour éviter les conflits d'ID
-            const tileSVG = prepareSVG(svgCache[variant], rot, variant, true, row, col);
-            gridContainer.innerHTML += tileSVG;
-        }
-    }
-    console.log(`✅ Simulation ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} générée avec ${variants.length} variante(s)`);
-
-    // 3. Scanner les zones éditables
-    scanZones();
-    
-    // 4. Réappliquer les couleurs (éditeur + simulation) et mettre à jour le nuancier
-    applyCurrentColors();
+    extractDefaultColorsFromSvg(svgCache[variants[0]]);
+    renderCalepinageOnly();
+    renderActiveColorPills();
+    renderLayoutSelector();
     updatePaletteHighlight();
-    
-    console.log("✅ Interface complète rendue");
+    updateSidebarRecap();
+    updateSidebarVisibility();
+    updateMoldingWarning();
+    setupCarousel();
+}
+
+// ——— Carrousel (swipe + boutons) ———
+function setupCarousel() {
+    const track = document.getElementById("carousel-track");
+    const prevBtn = document.getElementById("carousel-prev");
+    const nextBtn = document.getElementById("carousel-next");
+    const slides = document.querySelectorAll(".carousel-slide");
+    if (!track || !slides.length) return;
+
+    function goTo(index) {
+        carouselIndex = Math.max(0, Math.min(index, slides.length - 1));
+        track.style.transform = `translateX(-${carouselIndex * 100}%)`;
+        slides.forEach((s, i) => s.classList.toggle("carousel-slide-active", i === carouselIndex));
+    }
+
+    if (prevBtn) prevBtn.onclick = () => goTo(carouselIndex - 1);
+    if (nextBtn) nextBtn.onclick = () => goTo(carouselIndex + 1);
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    track.addEventListener("touchstart", (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    track.addEventListener("touchend", (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) goTo(diff > 0 ? carouselIndex + 1 : carouselIndex - 1);
+    }, { passive: true });
+
+    document.addEventListener("keydown", (e) => {
+        if (document.getElementById("view-workspace").style.display !== "flex") return;
+        if (e.key === "ArrowLeft") goTo(carouselIndex - 1);
+        if (e.key === "ArrowRight") goTo(carouselIndex + 1);
+    });
+    goTo(carouselIndex);
 }
