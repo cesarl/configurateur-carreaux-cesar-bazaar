@@ -4,21 +4,32 @@ let currentCollection = null;
 let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
 let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];  // Catalogue complet (brut)
+let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
 let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
 let currentLayout = "tapis"; // Layout de calepinage (tapis, damier, etc.)
 let carouselIndex = 0; // Index de la slide du carrousel (0 = grille plate)
+let livePreviewRestoreHex = null; // Couleur à restaurer au mouseleave (live preview)
 const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
 
-const DRAFT_STORAGE_KEY = "cesar-bazaar-draft";
+const DRAFT_STORAGE_KEY = "cesar-bazaar-drafts";
 
-/** Sauvegarde le brouillon en cours en local (réutilisé si on rouvre la même collection sans recharger la page). */
+/** Retourne tous les brouillons (par collection). */
+function getAllDrafts() {
+    try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+/** Sauvegarde le brouillon de la collection en cours (un brouillon par collection, on ne perd pas en changeant de collection). */
 function saveDraftToLocal() {
     if (!currentCollection) return;
     try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
-            collectionId: currentCollection.id,
-            colors: { ...currentColors }
-        }));
+        const drafts = getAllDrafts();
+        drafts[currentCollection.id] = { colors: { ...currentColors } };
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
     } catch (e) {
         console.warn("Impossible de sauvegarder le brouillon", e);
     }
@@ -26,17 +37,23 @@ function saveDraftToLocal() {
 
 /** Récupère le brouillon local pour une collection, ou null. */
 function getDraftForCollection(collectionId) {
+    const drafts = getAllDrafts();
+    const draft = drafts[collectionId];
+    return draft && draft.colors ? draft.colors : null;
+}
+
+/** Supprime le brouillon d'une collection (ex. au reset pour repartir du SVG). */
+function clearDraftForCollection(collectionId) {
     try {
-        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
-        if (!raw) return null;
-        const draft = JSON.parse(raw);
-        return draft && draft.collectionId === collectionId ? draft.colors : null;
+        const drafts = getAllDrafts();
+        delete drafts[collectionId];
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
     } catch (e) {
-        return null;
+        console.warn("Impossible de supprimer le brouillon", e);
     }
 }
 
-/** Supprime le brouillon local (au chargement de la page sur la liste, pour que recharger = repartir de zéro). */
+/** Supprime tous les brouillons (ex. au rechargement de la page sur la liste). */
 function clearDraftLocal() {
     try {
         localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -86,10 +103,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (collection) {
         showWorkspace();
         await loadCollection(collection, colors);
-    } else {
-        // Arrivée sur la liste (URL propre ou rechargement) : on oublie le brouillon pour que recharger = modifs perdues
-        clearDraftLocal();
     }
+    // Les brouillons sont conservés par collection (localStorage) : pas de clear pour ne pas perdre les éditions
     console.log("✅ Application initialisée");
 });
 
@@ -132,6 +147,14 @@ async function loadData() {
     try {
         const res = await fetch(`${REPO_URL}/data/nuancier.json`);
         nuancierData = await res.json();
+        // Charger le mapping des noms de couleurs CSS -> hex (ex: "sienna" -> "#a0522d")
+        try {
+            const resColors = await fetch(`${REPO_URL}/data/colorMatch.json`);
+            colorNameMap = await resColors.json();
+            console.log("🎨 colorMatch chargé (noms CSS -> hex).");
+        } catch (e) {
+            console.warn("⚠️ Impossible de charger colorMatch.json, fallback sur le navigateur pour les noms CSS.", e);
+        }
         console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs (affichées: ${getVisibleNuancier().length})`);
         renderPalette(getVisibleNuancier());
         setupPaletteDrawer();
@@ -148,6 +171,35 @@ function setupNavigation() {
             showGallery();
         });
     }
+    const btnReset = document.getElementById("btn-reset-collection");
+    if (btnReset) {
+        btnReset.addEventListener("click", () => {
+            resetCollectionToDefault();
+        });
+    }
+}
+
+/** Réinitialise les couleurs de la collection courante aux valeurs par défaut du SVG. */
+function resetCollectionToDefault() {
+    if (!currentCollection) return;
+    const variants = getVariantsList();
+    if (!variants.length) return;
+    // 1. Supprimer le brouillon de cette collection du localStorage pour ne plus restaurer l'ancien état
+    clearDraftForCollection(currentCollection.id);
+    // 2. Repartir de zéro : re-parse le SVG (toutes variantes) et remplit currentColors
+    currentColors = {};
+    const name = currentCollection.name || currentCollection.id || "?";
+    console.log(`[Reset] Extraction couleurs par défaut — ${name}`);
+    variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v], `[reset ${name}] ${v}`));
+    // 3. Appliquer sur le calepinage et mettre à jour toute l'interface
+    applyCurrentColors();
+    renderActiveColorPills();
+    updateSidebarRecap();
+    updatePaletteHighlight();
+    updateMoldingWarning();
+    applyConfigToUrl();
+    // 4. Sauvegarder cet état "défaut SVG" comme nouveau brouillon
+    saveDraftToLocal();
 }
 
 function setupMobileViewBar() {
@@ -214,6 +266,7 @@ async function renderGallery() {
             const card = document.createElement("div");
             card.className = "gallery-card";
             card.onclick = () => {
+                saveDraftToLocal(); // sauve la collection affichée avant d'ouvrir une autre (brouillon par collection)
                 showWorkspace();
                 const draftColors = getDraftForCollection(collection.id);
                 loadCollection(collection.id, draftColors || undefined);
@@ -321,6 +374,8 @@ async function loadCollection(id, urlColors = null) {
             if (/^#[0-9a-fA-F]{3,6}$/.test(normalized)) currentColors[zone] = normalized;
         });
         applyCurrentColors();
+        renderActiveColorPills();
+        updateSidebarRecap();
         updatePaletteHighlight();
         updateMoldingWarning();
     }
@@ -532,17 +587,32 @@ function normalizeHex(hex) {
     return "#" + h;
 }
 
-/** Convertit une valeur fill (hex, rgb, nom) en hex #rrggbb ou null */
-function parseFillToHex(fill) {
-    if (!fill || String(fill).trim() === "" || String(fill).toLowerCase() === "none") return null;
+/** Convertit une valeur fill (hex, rgb, nom) en hex #rrggbb ou null. Optionnel: log détaillé. */
+function parseFillToHex(fill, logContext = null) {
+    if (!fill || String(fill).trim() === "" || String(fill).toLowerCase() === "none") {
+        if (logContext) console.log(`  [parseFill] ${logContext} fill vide ou "none" → null`);
+        return null;
+    }
     const s = String(fill).trim();
-    if (s.startsWith("#")) return normalizeHex(s) || null;
+    if (s.startsWith("#")) {
+        const hex = normalizeHex(s) || null;
+        if (logContext) console.log(`  [parseFill] ${logContext} type=hex raw="${s}" → ${hex}`);
+        return hex;
+    }
+    const nameKey = s.toLowerCase().replace(/\s+/g, "");
+    if (colorNameMap && colorNameMap[nameKey]) {
+        const hex = normalizeHex(colorNameMap[nameKey]);
+        if (logContext) console.log(`  [parseFill] ${logContext} type=string raw="${s}" → colorMatch.json["${nameKey}"] = ${hex}`);
+        return hex;
+    }
     const rgbMatch = s.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
     if (rgbMatch) {
         const r = parseInt(rgbMatch[1], 10).toString(16).padStart(2, "0");
         const g = parseInt(rgbMatch[2], 10).toString(16).padStart(2, "0");
         const b = parseInt(rgbMatch[3], 10).toString(16).padStart(2, "0");
-        return "#" + r + g + b;
+        const hex = "#" + r + g + b;
+        if (logContext) console.log(`  [parseFill] ${logContext} type=rgb raw="${s}" → ${hex}`);
+        return hex;
     }
     const div = document.createElement("div");
     div.style.color = s;
@@ -555,13 +625,41 @@ function parseFillToHex(fill) {
         const r = parseInt(m[1], 10).toString(16).padStart(2, "0");
         const g = parseInt(m[2], 10).toString(16).padStart(2, "0");
         const b = parseInt(m[3], 10).toString(16).padStart(2, "0");
-        return "#" + r + g + b;
+        const hex = "#" + r + g + b;
+        if (logContext) console.log(`  [parseFill] ${logContext} type=string (navigateur) raw="${s}" → ${hex}`);
+        return hex;
     }
+    if (logContext) console.warn(`  [parseFill] ${logContext} type=string raw="${s}" → non trouvé (ni colorMatch.json, ni rgb, ni navigateur)`);
     return null;
 }
 
-/** Extrait les couleurs par défaut d'un SVG (une variante, ex. VAR1) en mémoire et remplit currentColors */
-function extractDefaultColorsFromSvg(svgString) {
+/** Retourne la nuance du nuancier la plus proche d'un hex (distance RGB). */
+function findClosestNuancierHex(hex) {
+    if (!hex || !nuancierData.length) return null;
+    const norm = normalizeHex(hex);
+    const exact = nuancierData.find((c) => normalizeHex(c.hex) === norm);
+    if (exact) return exact.hex;
+    const hexToRgb = (h) => {
+        const x = h.replace(/^#/, "");
+        const n = x.length === 3 ? x[0] + x[0] + x[1] + x[1] + x[2] + x[2] : x;
+        return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16)];
+    };
+    const [r0, g0, b0] = hexToRgb(norm);
+    let best = null;
+    let bestDist = Infinity;
+    nuancierData.forEach((c) => {
+        const [r, g, b] = hexToRgb(normalizeHex(c.hex));
+        const d = (r - r0) ** 2 + (g - g0) ** 2 + (b - b0) ** 2;
+        if (d < bestDist) {
+            bestDist = d;
+            best = c.hex;
+        }
+    });
+    return best;
+}
+
+/** Extrait les couleurs par défaut d'un SVG (une variante) et les fusionne dans currentColors. logPrefix optionnel pour la console. */
+function extractDefaultColorsFromSvg(svgString, logPrefix = "") {
     if (!svgString) return;
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, "image/svg+xml");
@@ -570,11 +668,22 @@ function extractDefaultColorsFromSvg(svgString) {
         const zoneId = g.id;
         const path = g.querySelector("path");
         const fillSource = path ? (path.getAttribute("fill") || "") : (g.getAttribute("fill") || "");
-        const extractedHex = parseFillToHex(fillSource);
-        if (!extractedHex) return;
+        const ctx = logPrefix ? `${logPrefix} ${zoneId} fill="${fillSource}"` : "";
+        const extractedHex = parseFillToHex(fillSource, ctx || undefined);
+        if (!extractedHex) {
+            if (logPrefix) console.log(`  [extract] ${logPrefix} ${zoneId} ignoré (parseFillToHex → null)`);
+            return;
+        }
         const normalized = normalizeHex(extractedHex);
-        const inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
-        currentColors[zoneId] = inNuancier ? inNuancier.hex : extractedHex;
+        let inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
+        if (!inNuancier) {
+            const closest = findClosestNuancierHex(extractedHex);
+            if (logPrefix) console.log(`  [extract] ${logPrefix} ${zoneId} hex=${extractedHex} pas dans nuancier → plus proche: ${closest || "aucun"}`);
+            currentColors[zoneId] = closest || extractedHex;
+        } else {
+            if (logPrefix) console.log(`  [extract] ${logPrefix} ${zoneId} hex=${extractedHex} trouvé dans nuancier`);
+            currentColors[zoneId] = inNuancier.hex;
+        }
     });
 }
 
@@ -783,13 +892,17 @@ function renderPalette(colors) {
                     tooltipEl.style.transform = "translateY(-100%)";
                     tooltipEl.classList.add("visible");
                     if (activeZone) {
-                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = this.getAttribute("data-hex").startsWith("#") ? this.getAttribute("data-hex") : "#" + this.getAttribute("data-hex"); });
+                        livePreviewRestoreHex = currentColors[activeZone] ? normalizeHex(currentColors[activeZone]) : null;
+                        const hoverHex = (this.getAttribute("data-hex") || "").startsWith("#") ? this.getAttribute("data-hex") : "#" + (this.getAttribute("data-hex") || "");
+                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = hoverHex; });
                     }
                 });
                 div.addEventListener("mouseleave", function () {
                     tooltipEl.classList.remove("visible");
-                    if (activeZone && currentColors[activeZone]) {
-                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = currentColors[activeZone]; });
+                    if (activeZone && livePreviewRestoreHex != null) {
+                        const restoreHex = livePreviewRestoreHex.startsWith("#") ? livePreviewRestoreHex : "#" + livePreviewRestoreHex;
+                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = restoreHex; });
+                        livePreviewRestoreHex = null;
                     }
                 });
             }
@@ -814,6 +927,7 @@ function applyColorToActiveZone(hexColor) {
     if (currentCollection) applyConfigToUrl();
     const paths = document.querySelectorAll(`.shared-zone-${activeZone} path`);
     paths.forEach(p => { p.style.fill = hexColor; });
+    livePreviewRestoreHex = null; // après validation, plus de restauration au survol
     renderActiveColorPills();
     updateSidebarRecap();
     updateMoldingWarning();
@@ -834,7 +948,11 @@ function renderInterface() {
         if (gridContainer) gridContainer.innerHTML = "<p style='padding:20px;color:red;'>Erreur: aucune variante chargée. Vérifiez les fichiers SVG (VAR1, VAR2, …) dans assets/svg/.</p>";
         return;
     }
-    extractDefaultColorsFromSvg(svgCache[variants[0]]);
+    currentColors = {};
+    const collName = currentCollection?.name || currentCollection?.id || "?";
+    console.log(`[Ouverture SVG] Extraction couleurs par défaut — ${collName}`);
+    variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v], `[${collName}] ${v}`));
+    console.log(`[Ouverture SVG] Couleurs extraites:`, Object.keys(currentColors).sort(), currentColors);
     renderCalepinageOnly();
     renderActiveColorPills();
     renderLayoutSelector();
