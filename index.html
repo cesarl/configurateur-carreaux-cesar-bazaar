@@ -41,6 +41,11 @@
                             <button type="button" id="btn-reset-collection" class="reset-button reset-button-icon" title="Réinitialiser les couleurs (défaut SVG)" aria-label="Réinitialiser les couleurs de la collection">↺</button>
                         </div>
                         <div class="layout-selector" id="layout-selector" aria-label="Disposition du calepinage"></div>
+                        <div class="calepinage-zoom-wrap" id="calepinage-zoom-wrap" aria-label="Zoom de la grille">
+                            <button type="button" class="calepinage-zoom-in" title="Zoom avant (moins de carreaux)">−</button>
+                            <span class="calepinage-zoom-label">5×5</span>
+                            <button type="button" class="calepinage-zoom-out" title="Zoom arrière (plus de carreaux)">+</button>
+                        </div>
                     </div>
                     <div class="preview-area" id="preview-area">
                         <div class="carousel" id="preview-carousel" role="region" aria-label="Aperçu du calepinage">
@@ -56,6 +61,7 @@
                                 </div>
                             </div>
                             <button type="button" class="carousel-btn carousel-btn-next" id="carousel-next" aria-label="Vue suivante">&#8250;</button>
+                            <div class="carousel-dots" id="carousel-dots" role="tablist" aria-label="Vues du carrousel"></div>
                         </div>
                     </div>
                 </div>

@@ -10,9 +10,31 @@ let currentLayout = "aleatoire"; // Layout de calepinage (id du calepinage ou "s
 let calepinagesData = []; // Calepinages chargés depuis data/calepinages.json
 let carouselIndex = 0; // Index de la slide du carrousel (0 = grille plate)
 let livePreviewRestoreHex = null; // Couleur à restaurer au mouseleave (live preview)
-const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
+const SIMULATION_GRID_SIZE = 5;    // Fallback pour setGridMode / legacy
+const CALEPINAGE_ZOOM_MIN = 2;     // Zoom max = 2×2 carreaux
+const CALEPINAGE_ZOOM_MAX = 20;    // Zoom min = 20×20 carreaux
+const CALEPINAGE_ZOOM_DEFAULT = 5;
+const CALEPINAGE_ZOOM_STORAGE_KEY = "cesar-bazaar-calepinage-zoom";
+let calepinageZoom = CALEPINAGE_ZOOM_DEFAULT;  // Grille = calepinageZoom × calepinageZoom (persisté au changement)
+let gridCols = CALEPINAGE_ZOOM_DEFAULT;
+let gridRows = CALEPINAGE_ZOOM_DEFAULT;
 
 const DRAFT_STORAGE_KEY = "cesar-bazaar-drafts";
+
+function loadCalepinageZoom() {
+    try {
+        const v = parseInt(localStorage.getItem(CALEPINAGE_ZOOM_STORAGE_KEY), 10);
+        if (Number.isFinite(v) && v >= CALEPINAGE_ZOOM_MIN && v <= CALEPINAGE_ZOOM_MAX) {
+            calepinageZoom = v;
+            gridCols = gridRows = v;
+        }
+    } catch (e) {}
+}
+function saveCalepinageZoom() {
+    try {
+        localStorage.setItem(CALEPINAGE_ZOOM_STORAGE_KEY, String(calepinageZoom));
+    } catch (e) {}
+}
 
 /** Retourne tous les brouillons (par collection). */
 function getAllDrafts() {
@@ -502,6 +524,9 @@ function setGridMode(mode) {
     applyCurrentColors();
 }
 
+/** Cache de tuiles préparées (variantName|rotation) -> HTML avec tapis-0-0-, vidé à chaque rendu. */
+let preparedTileCache = {};
+
 // Ajoute une classe partagée pour chaque zone-id trouvée dans le SVG pour garantir l'appli des couleurs sur tous les carreaux
 function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode = false, row = 0, col = 0) {
     if (!svgString) {
@@ -520,14 +545,21 @@ function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode 
 
     // IMPORTANT: ajouter les classes shared-zone AVANT le préfixe tapis
     // car après le préfixe, les ids commencent par "tapis-", pas "zone-"
+    // Remplir les path avec var(--color-zone-X) et classe zone-path (évite de toucher chaque path dans scanZones).
     svg.querySelectorAll('g[id^="zone-"]').forEach(g => {
         const zoneId = g.id; // ID original (ex: zone-1)
         g.classList.add(`shared-zone-${zoneId}`);
+        const varFill = `var(--color-${zoneId})`;
+        g.querySelectorAll("path").forEach(p => {
+            p.setAttribute("fill", varFill);
+            p.classList.add("zone-path");
+        });
     });
 
     // Pour garantir unicité de l'id SVG (évite conflits d'id multiples dans le DOM).
-    // Ajoute un préfixe unique selon la position dans la grille (tapis only)
+    // En tapis : homothétie (scale uniforme) pour garder les carreaux carrés ; "slice" = couvrir la cellule sans déformer, overflow clippé par le wrapper.
     if (isTapisMode) {
+        svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
         let prefix = `tapis-${row}-${col}-`;
         svg.querySelectorAll('[id]').forEach(el => {
             const oldId = el.id;
@@ -535,41 +567,47 @@ function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode 
         });
     }
 
-    // Ajoute une rotation au niveau du wrapper
-    // le style overflow: visible évite que la rotation coupe le SVG
-    const rotStyle = `transform: rotate(${rotation}deg);overflow:visible;`;
+    // Rotation au niveau du wrapper. En tapis : overflow hidden pour clipper le SVG "slice" et garder des cellules nettes.
+    const overflow = isTapisMode ? "hidden" : "visible";
+    const rotStyle = `transform: rotate(${rotation}deg);overflow:${overflow};`;
 
     // Donne un index pour debug si besoin
     return `<div class="tile-wrapper" style="${rotStyle}">${svg.outerHTML}</div>`;
 }
 
-// Détecte les zones dans le calepinage (#grid-container) uniquement (preview-first : plus d'éditeur)
-function scanZones() {
-    console.log("🔍 Scan des zones...");
-    const zonesFound = new Set();
-    const gridContainer = document.getElementById("grid-container");
-    if (!gridContainer) return;
-    gridContainer.querySelectorAll("svg g[id^='zone-'], svg g[id^='tapis-']").forEach(g => {
-        const zoneId = g.id.replace(/^tapis-\d+-\d+-/, "");
-        if (zoneId.startsWith("zone-")) {
-            zonesFound.add(zoneId);
-            makeZoneInteractive(g.id);
-        }
-    });
-    console.log(`✅ Zones détectées (${zonesFound.size}):`, [...zonesFound].sort());
+/** Retourne le HTML d'une tuile pour (variantName, rotation, row, col) en réutilisant le cache. */
+function getPreparedTileHTML(variantName, rotation, row, col) {
+    const key = `${variantName}|${rotation}`;
+    if (!preparedTileCache[key]) {
+        preparedTileCache[key] = prepareSVG(svgCache[variantName], rotation, variantName, true, 0, 0);
+    }
+    return preparedTileCache[key].replace(/tapis-0-0-/g, `tapis-${row}-${col}-`);
 }
 
-// Rendez interactif les zones du calepinage (preview-first : uniquement #grid-container)
-function makeZoneInteractive(zoneId) {
-    const cleanZoneId = zoneId.replace(/^tapis-\d+-\d+-/, "");
-    document.querySelectorAll(`#grid-container g[id$='${cleanZoneId}']`).forEach(el => {
-        el.style.cursor = "pointer";
-        el.onclick = (e) => {
+// Délégation d'événement : un seul clic sur la grille, on cible la zone d'après l'id du g.
+function setupGridClickDelegation() {
+    const gridContainer = document.getElementById("grid-container");
+    if (!gridContainer || gridContainer._zoneClickDelegation) return;
+    gridContainer._zoneClickDelegation = true;
+    gridContainer.addEventListener("click", (e) => {
+        const g = e.target.closest("g[id^='tapis-']");
+        if (!g) return;
+        const cleanZoneId = g.id.replace(/^tapis-\d+-\d+-/, "");
+        if (cleanZoneId.startsWith("zone-")) {
             e.stopPropagation();
             selectActiveZone(cleanZoneId);
-        };
-        el.querySelectorAll("path").forEach(p => p.setAttribute("data-active", "true"));
+        }
     });
+}
+
+// Marque les groupes de zone comme cliquables (cursor). Les path ont déjà la classe zone-path (template).
+function scanZones() {
+    const gridContainer = document.getElementById("grid-container");
+    if (!gridContainer) return;
+    const zoneGs = gridContainer.querySelectorAll("g[id^='tapis-']");
+    for (let i = 0; i < zoneGs.length; i++) {
+        if (zoneGs[i].id.includes("zone-")) zoneGs[i].style.cursor = "pointer";
+    }
 }
 
 // Preview-first : sidebar toujours visible sur desktop ; on affiche/masque le message "aucune zone"
@@ -791,12 +829,15 @@ function renderLayoutSelector() {
     });
 }
 
-/** Reconstruit uniquement le calepinage (grille) selon currentLayout — appelé au changement de layout */
+/** Reconstruit uniquement le calepinage (grille) selon currentLayout et niveau de zoom. */
 function renderCalepinageOnly() {
     const gridContainer = document.getElementById("grid-container");
     if (!gridContainer) return;
+    setupGridClickDelegation();
     const variants = getVariantsList();
     if (!variants.length) return;
+    gridCols = calepinageZoom;
+    gridRows = currentLayout === "solo" ? calepinageZoom : getGridRowsForContainer();
     gridContainer.innerHTML = "";
     gridContainer.className = "grid-view " + (currentLayout === "solo" ? "solo" : "tapis");
 
@@ -804,32 +845,46 @@ function renderCalepinageOnly() {
         gridContainer.style.display = "block";
         gridContainer.innerHTML = prepareSVG(svgCache[variants[0]], 0, variants[0]);
     } else {
+        preparedTileCache = {};
         gridContainer.style.display = "grid";
-        gridContainer.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-        gridContainer.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+        gridContainer.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
+        gridContainer.style.gridTemplateRows = `repeat(${gridRows}, 1fr)`;
         const calepinage = calepinagesData.find((c) => c.id === currentLayout);
+        const parts = [];
         if (calepinage) {
-            for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
-                for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+            for (let row = 0; row < gridRows; row++) {
+                for (let col = 0; col < gridCols; col++) {
                     const { variantName, rotation } = getCellSpec(calepinage, row, col, variants);
-                    gridContainer.innerHTML += prepareSVG(svgCache[variantName], rotation, variantName, true, row, col);
+                    parts.push(getPreparedTileHTML(variantName, rotation, row, col));
                 }
             }
         } else {
-            for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
-                for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
-                    const variant = variants[(row * SIMULATION_GRID_SIZE + col) % variants.length];
+            for (let row = 0; row < gridRows; row++) {
+                for (let col = 0; col < gridCols; col++) {
+                    const variant = variants[(row * gridCols + col) % variants.length];
                     const angles = [0, 90, 180, 270];
                     const rot = angles[Math.floor(Math.random() * angles.length)];
-                    gridContainer.innerHTML += prepareSVG(svgCache[variant], rot, variant, true, row, col);
+                    parts.push(getPreparedTileHTML(variant, rot, row, col));
                 }
             }
         }
+        gridContainer.innerHTML = parts.join("");
+        requestAnimationFrame(() => applyGridSizeFromContainer());
     }
-    scanZones();
     applyCurrentColors();
     renderActiveColorPills();
     updateMoldingWarning();
+    // #region agent log
+    if (currentLayout !== "solo") {
+        const slide0 = document.querySelector(".carousel-slide[data-slide-index='0']");
+        setTimeout(() => debugLogGridResize("afterRender", document.getElementById("grid-container"), slide0), 100);
+    }
+    // #endregion
+    if (typeof requestIdleCallback !== "undefined") {
+        requestIdleCallback(() => scanZones(), { timeout: 200 });
+    } else {
+        setTimeout(() => scanZones(), 0);
+    }
 }
 
 /** Récapitulatif sidebar : pastille + Nom, Code, Pantone, RAL par zone */
@@ -1001,12 +1056,12 @@ function applyColorToActiveZone(hexColor) {
 function applyCurrentColors() {
     for (const [zone, color] of Object.entries(currentColors)) {
         document.documentElement.style.setProperty(`--color-${zone}`, color);
-        document.querySelectorAll(`.shared-zone-${zone} path`).forEach(p => { p.style.fill = color; });
     }
 }
 
 // Preview-first : calepinage seul, pastilles, sélecteur de layout (uniquement les variantes du JSON, plus de ROOT)
 function renderInterface() {
+    loadCalepinageZoom();
     const variants = getVariantsList();
     if (!variants.length) {
         const gridContainer = document.getElementById("grid-container");
@@ -1026,13 +1081,195 @@ function renderInterface() {
     updateSidebarVisibility();
     updateMoldingWarning();
     setupCarousel();
+    setupCalepinageZoomControls();
+    // Après changement de collection, la slide peut ne pas être encore dimensionnée : on recalcule la disposition dès que le layout est prêt (zoom conservé, max hauteur).
+    if (currentLayout !== "solo") {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const newRows = getGridRowsForContainer();
+                if (newRows !== gridRows) {
+                    gridRows = newRows;
+                    renderCalepinageOnly();
+                } else {
+                    applyGridSizeFromContainer();
+                }
+            });
+        });
+    }
 }
 
-// ——— Carrousel (swipe + boutons) ———
+/** Change le zoom calepinage (2–20), sauvegarde et re-rend. */
+function setCalepinageZoom(newZoom) {
+    const v = Math.max(CALEPINAGE_ZOOM_MIN, Math.min(CALEPINAGE_ZOOM_MAX, newZoom));
+    if (v === calepinageZoom) return;
+    calepinageZoom = v;
+    saveCalepinageZoom();
+    renderCalepinageOnly();
+    updateCalepinageZoomUI();
+}
+
+function updateCalepinageZoomUI() {
+    const wrap = document.getElementById("calepinage-zoom-wrap");
+    if (!wrap) return;
+    const label = wrap.querySelector(".calepinage-zoom-label");
+    if (label) label.textContent = `${calepinageZoom}×${calepinageZoom}`;
+    const btnIn = wrap.querySelector(".calepinage-zoom-in");
+    const btnOut = wrap.querySelector(".calepinage-zoom-out");
+    if (btnIn) btnIn.disabled = calepinageZoom <= CALEPINAGE_ZOOM_MIN;
+    if (btnOut) btnOut.disabled = calepinageZoom >= CALEPINAGE_ZOOM_MAX;
+}
+
+/** Marge autour de la grille calepinage dans la slide (évite le crop, centrage symétrique). */
+const CALEPINAGE_GRID_MARGIN = 40;
+
+/**
+ * Nombre de lignes qui tiennent dans la hauteur disponible (carreaux carrés, largeur = 100% dispo).
+ * Utilisé au rendu et au resize pour afficher plus de lignes quand il y a plus de place.
+ */
+function getGridRowsForContainer() {
+    const slide0 = document.querySelector(".carousel-slide[data-slide-index='0']");
+    if (!slide0) return gridCols || CALEPINAGE_ZOOM_DEFAULT;
+    const slideW = slide0.clientWidth || 0;
+    const slideH = slide0.clientHeight || 0;
+    const cols = gridCols || 1;
+    if (slideW <= 0 || slideH <= 0) return cols;
+    const margin = CALEPINAGE_GRID_MARGIN;
+    const availableW = Math.max(0, slideW - 2 * margin);
+    const availableH = Math.max(0, slideH - 2 * margin);
+    if (availableW <= 0) return cols;
+    const cellWidth = availableW / cols;
+    const rows = Math.max(1, Math.floor(availableH / cellWidth));
+    return rows;
+}
+
+/**
+ * Dimensionne la grille en JS : largeur = 100% dispo, hauteur = autant de lignes que possible,
+ * carreaux carrés et collés.
+ */
+function applyGridSizeFromContainer() {
+    const slide0 = document.querySelector(".carousel-slide[data-slide-index='0']");
+    const gridContainer = document.getElementById("grid-container");
+    if (!slide0 || !gridContainer || currentLayout === "solo") return;
+    if (!gridContainer.classList.contains("tapis")) return;
+    const slideW = slide0.clientWidth || 0;
+    const slideH = slide0.clientHeight || 0;
+    const cols = gridCols || 1;
+    const rows = gridRows || 1;
+    if (slideW <= 0 || slideH <= 0) return;
+    const margin = CALEPINAGE_GRID_MARGIN;
+    const availableW = Math.max(0, slideW - 2 * margin);
+    const availableH = Math.max(0, slideH - 2 * margin);
+    const cellSizePx = Math.floor(availableW / cols);
+    if (cellSizePx <= 0) return;
+    const gridW = cols * cellSizePx;
+    const gridH = rows * cellSizePx;
+    gridContainer.style.width = gridW + "px";
+    gridContainer.style.height = gridH + "px";
+    gridContainer.style.gridTemplateColumns = `repeat(${cols}, ${cellSizePx}px)`;
+    gridContainer.style.gridTemplateRows = `repeat(${rows}, ${cellSizePx}px)`;
+}
+
+// #region agent log
+function debugLogGridResize(source, gridContainer, slide0) {
+    if (!gridContainer || !slide0) return;
+    const gridW = gridContainer.clientWidth || 0;
+    const gridH = gridContainer.clientHeight || 0;
+    const slideW = slide0.clientWidth || 0;
+    const slideH = slide0.clientHeight || 0;
+    const cols = gridCols || 1;
+    const rows = gridRows || 1;
+    const cellW = cols ? gridW / cols : 0;
+    const cellH = rows ? gridH / rows : 0;
+    const ratio = cellH ? cellW / cellH : 0;
+    fetch("http://127.0.0.1:7821/ingest/d7454bc9-ad0c-4438-a272-e193afbc963a", { method: "POST", headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ec90f8" }, body: JSON.stringify({ sessionId: "ec90f8", location: "script.js:debugLogGridResize", message: "Grid resize dimensions", data: { source, slideW, slideH, gridW, gridH, gridCols: cols, gridRows: rows, cellW, cellH, cellRatio: ratio }, timestamp: Date.now(), hypothesisId: "H1" }) }).catch(() => {});
+}
+// #endregion
+
+/** Boutons zoom + molette + pinch sur la vue calepinage. */
+function setupCalepinageZoomControls() {
+    loadCalepinageZoom();
+    const slide0 = document.querySelector(".carousel-slide[data-slide-index='0']");
+    const gridContainer = document.getElementById("grid-container");
+    if (!slide0 || !gridContainer) return;
+
+    // #region agent log
+    let resizeTimer = 0;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (document.getElementById("view-workspace").style.display !== "flex" || currentLayout === "solo") return;
+            const newRows = getGridRowsForContainer();
+            if (newRows !== gridRows) {
+                renderCalepinageOnly();
+            } else {
+                applyGridSizeFromContainer();
+            }
+            debugLogGridResize("resize", document.getElementById("grid-container"), document.querySelector(".carousel-slide[data-slide-index='0']"));
+        }, 150);
+    });
+    if (document.getElementById("view-workspace").style.display === "flex" && currentLayout !== "solo") {
+        setTimeout(() => {
+            applyGridSizeFromContainer();
+            debugLogGridResize("afterSetup", gridContainer, slide0);
+        }, 300);
+    }
+    // #endregion
+
+    const zoomWrap = document.getElementById("calepinage-zoom-wrap");
+    if (zoomWrap) {
+        const btnIn = zoomWrap.querySelector(".calepinage-zoom-in");
+        const btnOut = zoomWrap.querySelector(".calepinage-zoom-out");
+        if (btnIn) btnIn.onclick = () => setCalepinageZoom(calepinageZoom - 1);
+        if (btnOut) btnOut.onclick = () => setCalepinageZoom(calepinageZoom + 1);
+    }
+
+    const zoomTarget = gridContainer;
+    let lastWheelZoomTime = 0;
+    const WHEEL_ZOOM_THROTTLE_MS = 120;
+    zoomTarget.addEventListener("wheel", (e) => {
+        if (carouselIndex !== 0) return;
+        const now = Date.now();
+        if (now - lastWheelZoomTime < WHEEL_ZOOM_THROTTLE_MS) return;
+        lastWheelZoomTime = now;
+        e.preventDefault();
+        if (e.deltaY < 0) setCalepinageZoom(calepinageZoom - 1);
+        else if (e.deltaY > 0) setCalepinageZoom(calepinageZoom + 1);
+    }, { passive: false });
+
+    let pinchStartDist = 0;
+    let pinchStartZoom = 0;
+    let lastPinchDist = 0;
+    zoomTarget.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+            pinchStartDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+            lastPinchDist = pinchStartDist;
+            pinchStartZoom = calepinageZoom;
+        }
+    }, { passive: true });
+    zoomTarget.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 2 && pinchStartDist > 0) {
+            lastPinchDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+            e.preventDefault();
+        }
+    }, { passive: false });
+    zoomTarget.addEventListener("touchend", (e) => {
+        if (e.touches.length < 2 && pinchStartDist > 0) {
+            const ratio = lastPinchDist / pinchStartDist;
+            if (ratio > 1.2) setCalepinageZoom(pinchStartZoom - 1);
+            else if (ratio < 0.8) setCalepinageZoom(pinchStartZoom + 1);
+            pinchStartDist = 0;
+        }
+    }, { passive: true });
+
+    updateCalepinageZoomUI();
+}
+
+// ——— Carrousel (swipe + boutons + indicateurs points) ———
 function setupCarousel() {
     const track = document.getElementById("carousel-track");
     const prevBtn = document.getElementById("carousel-prev");
     const nextBtn = document.getElementById("carousel-next");
+    const dotsContainer = document.getElementById("carousel-dots");
     const slides = document.querySelectorAll(".carousel-slide");
     if (!track || !slides.length) return;
 
@@ -1040,6 +1277,22 @@ function setupCarousel() {
         carouselIndex = Math.max(0, Math.min(index, slides.length - 1));
         track.style.transform = `translateX(-${carouselIndex * 100}%)`;
         slides.forEach((s, i) => s.classList.toggle("carousel-slide-active", i === carouselIndex));
+        if (dotsContainer) {
+            dotsContainer.querySelectorAll(".carousel-dot").forEach((d, i) => d.classList.toggle("active", i === carouselIndex));
+        }
+    }
+
+    if (dotsContainer) {
+        dotsContainer.innerHTML = "";
+        slides.forEach((_, i) => {
+            const dot = document.createElement("button");
+            dot.type = "button";
+            dot.className = "carousel-dot" + (i === 0 ? " active" : "");
+            dot.setAttribute("aria-label", "Vue " + (i + 1));
+            dot.setAttribute("aria-selected", i === 0 ? "true" : "false");
+            dot.addEventListener("click", () => goTo(i));
+            dotsContainer.appendChild(dot);
+        });
     }
 
     if (prevBtn) prevBtn.onclick = () => goTo(carouselIndex - 1);
