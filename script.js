@@ -6,7 +6,8 @@ let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];  // Catalogue complet (brut)
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
 let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
-let currentLayout = "tapis"; // Layout de calepinage (tapis, damier, etc.)
+let currentLayout = "aleatoire"; // Layout de calepinage (id du calepinage ou "solo")
+let calepinagesData = []; // Calepinages chargés depuis data/calepinages.json
 let carouselIndex = 0; // Index de la slide du carrousel (0 = grille plate)
 let livePreviewRestoreHex = null; // Couleur à restaurer au mouseleave (live preview)
 const SIMULATION_GRID_SIZE = 5;    // Taille de la grille simulation (5x5)
@@ -158,6 +159,17 @@ async function loadData() {
         console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs (affichées: ${getVisibleNuancier().length})`);
         renderPalette(getVisibleNuancier());
         setupPaletteDrawer();
+        try {
+            const resCal = await fetch(`${REPO_URL}/data/calepinages.json`);
+            if (resCal.ok) {
+                const raw = await resCal.json();
+                calepinagesData = Array.isArray(raw) ? raw : [];
+                console.log(`✅ Calepinages chargés: ${calepinagesData.length}`);
+            }
+        } catch (e) {
+            console.warn("⚠️ Impossible de charger calepinages.json, calepinages désactivés.", e);
+            calepinagesData = [];
+        }
     } catch (e) {
         console.error("❌ Erreur chargement données", e);
     }
@@ -353,7 +365,7 @@ async function loadCollection(id, urlColors = null) {
     activeZone = null;
     const layouts = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
         ? currentCollection.layouts
-        : ["tapis"];
+        : ["aleatoire"];
     currentLayout = currentCollection.defaut_layout && layouts.includes(currentCollection.defaut_layout)
         ? currentCollection.defaut_layout
         : layouts[0];
@@ -408,6 +420,43 @@ async function loadSVG(type, collectionId) {
     }
 }
 
+/** Résolution (row, col) → { variantName, rotation } à partir d'un calepinage (block_size + matrix). */
+function getCellSpec(calepinage, row, col, variantsList) {
+    if (!variantsList.length) return { variantName: "VAR1", rotation: 0 };
+    const [cols, rows] = calepinage.block_size;
+    const bx = ((col % cols) + cols) % cols;
+    const by = ((row % rows) + rows) % rows;
+    const cell = calepinage.matrix.find((c) => c.x === bx && c.y === by);
+    if (!cell) return { variantName: variantsList[0], rotation: 0 };
+
+    let variantName;
+    const tile = cell.tile;
+    if (typeof tile === "number") {
+        const index = Math.max(0, Math.min(tile - 1, variantsList.length - 1));
+        variantName = variantsList[index];
+    } else if (tile === "any") {
+        variantName = variantsList[Math.floor(Math.random() * variantsList.length)];
+    } else if (Array.isArray(tile)) {
+        const choices = tile
+            .map((n) => variantsList[Math.max(0, n - 1)])
+            .filter(Boolean);
+        variantName = choices.length ? choices[Math.floor(Math.random() * choices.length)] : variantsList[0];
+    } else {
+        variantName = variantsList[0];
+    }
+
+    let rotation = 0;
+    const rot = cell.rot;
+    if (rot === "random") {
+        const angles = [0, 90, 180, 270];
+        rotation = angles[Math.floor(Math.random() * angles.length)];
+    } else if (typeof rot === "number" && [0, 90, 180, 270].includes(rot)) {
+        rotation = rot;
+    }
+
+    return { variantName, rotation };
+}
+
 function setGridMode(mode) {
     console.log(`🎨 setGridMode appelé avec mode: ${mode}`);
     const container = document.getElementById("grid-container");
@@ -420,33 +469,30 @@ function setGridMode(mode) {
         console.log("📐 Mode solo: affichage d'une seule tuile (première variante)");
         container.innerHTML = prepareSVG(svgCache[variantes[0]], 0, variantes[0]);
     } else if (mode === "tapis" || mode === "simulation") {
-        console.log(`📐 Mode ${mode}: génération d'une grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE}`);
+        const calepinage = calepinagesData.find((c) => c.id === currentLayout);
         container.style.display = "grid";
         container.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
         container.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-
-        console.log(`🎲 Variantes disponibles pour la grille:`, variantes);
-
-        // Alternance ou random possible. Ici : alternance sur damier (ligne+col pair/impair)
-        for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
-            for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
-                // Choix du SVG (alterné ou random)
-                let variante;
-                if(variantes.length > 1) {
-                    // Utiliser toutes les variantes de manière équilibrée
-                    const index = (row * SIMULATION_GRID_SIZE + col) % variantes.length;
-                    variante = variantes[index];
-                } else {
-                    variante = variantes[0];
+        if (calepinage) {
+            for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+                for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+                    const { variantName, rotation } = getCellSpec(calepinage, row, col, variantes);
+                    container.innerHTML += prepareSVG(svgCache[variantName], rotation, variantName, true, row, col);
                 }
-                // Rotation aléatoire parmi 0, 90, 180, 270
-                const angles = [0, 90, 180, 270];
-                const rot = angles[Math.floor(Math.random() * angles.length)];
-                // Pour garantir appli couleur, on injecte une "zone-générale" (shared)
-                container.innerHTML += prepareSVG(svgCache[variante], rot, variante, true, row, col);
             }
+            console.log(`✅ Grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} (calepinage: ${calepinage.id})`);
+        } else {
+            for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+                for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+                    const index = (row * SIMULATION_GRID_SIZE + col) % variantes.length;
+                    const variante = variantes[index];
+                    const angles = [0, 90, 180, 270];
+                    const rot = angles[Math.floor(Math.random() * angles.length)];
+                    container.innerHTML += prepareSVG(svgCache[variante], rot, variante, true, row, col);
+                }
+            }
+            console.log(`✅ Grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} (legacy)`);
         }
-        console.log(`✅ Grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} générée avec ${variantes.length} variante(s)`);
     } else {
         // fallback
         container.innerHTML = "";
@@ -720,20 +766,22 @@ function renderActiveColorPills() {
     });
 }
 
-/** Remplit le sélecteur de calepinage (boutons pilules Tapis, Damier, etc.) */
+/** Remplit le sélecteur de calepinage (boutons pilules) à partir de calepinages.json, filtré par collection.layouts. */
 function renderLayoutSelector() {
     const container = document.getElementById("layout-selector");
     if (!container) return;
-    const layouts = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
+    const layoutIds = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
         ? currentCollection.layouts
-        : ["tapis"];
+        : ["aleatoire"];
     container.innerHTML = "";
-    const labels = { tapis: "Tapis", damier: "Damier", solo: "Grille plate" };
-    layouts.forEach((layoutId) => {
+    const legacyLabels = { damier: "Damier", solo: "Grille plate" };
+    layoutIds.forEach((layoutId) => {
+        const calepinage = calepinagesData.find((c) => c.id === layoutId);
+        const label = calepinage ? calepinage.nom : (legacyLabels[layoutId] || layoutId);
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "layout-pill" + (currentLayout === layoutId ? " active" : "");
-        btn.textContent = labels[layoutId] || layoutId;
+        btn.textContent = label;
         btn.onclick = () => {
             currentLayout = layoutId;
             renderLayoutSelector();
@@ -750,15 +798,32 @@ function renderCalepinageOnly() {
     const variants = getVariantsList();
     if (!variants.length) return;
     gridContainer.innerHTML = "";
-    gridContainer.style.display = "grid";
-    gridContainer.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-    gridContainer.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
-    for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
-        for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
-            const variant = variants[(row * SIMULATION_GRID_SIZE + col) % variants.length];
-            const angles = [0, 90, 180, 270];
-            const rot = angles[Math.floor(Math.random() * angles.length)];
-            gridContainer.innerHTML += prepareSVG(svgCache[variant], rot, variant, true, row, col);
+    gridContainer.className = "grid-view " + (currentLayout === "solo" ? "solo" : "tapis");
+
+    if (currentLayout === "solo") {
+        gridContainer.style.display = "block";
+        gridContainer.innerHTML = prepareSVG(svgCache[variants[0]], 0, variants[0]);
+    } else {
+        gridContainer.style.display = "grid";
+        gridContainer.style.gridTemplateColumns = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+        gridContainer.style.gridTemplateRows = `repeat(${SIMULATION_GRID_SIZE}, 1fr)`;
+        const calepinage = calepinagesData.find((c) => c.id === currentLayout);
+        if (calepinage) {
+            for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+                for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+                    const { variantName, rotation } = getCellSpec(calepinage, row, col, variants);
+                    gridContainer.innerHTML += prepareSVG(svgCache[variantName], rotation, variantName, true, row, col);
+                }
+            }
+        } else {
+            for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
+                for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
+                    const variant = variants[(row * SIMULATION_GRID_SIZE + col) % variants.length];
+                    const angles = [0, 90, 180, 270];
+                    const rot = angles[Math.floor(Math.random() * angles.length)];
+                    gridContainer.innerHTML += prepareSVG(svgCache[variant], rot, variant, true, row, col);
+                }
+            }
         }
     }
     scanZones();
