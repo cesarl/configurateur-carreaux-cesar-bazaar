@@ -91,6 +91,13 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     .sidebar.sidebar-palette-desktop { display: none; }
 }
 
+/* Desktop : nuancier visible uniquement quand une zone est sélectionnée */
+@media (min-width: 901px) {
+    .sidebar.sidebar-palette-desktop.sidebar-palette-desktop--no-zone {
+        display: none;
+    }
+}
+
 /* ----- BOTTOM SHEET (Nuancier mobile) ----- */
 .palette-drawer {
     display: none; /* visible uniquement sur mobile via media query */

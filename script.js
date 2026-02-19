@@ -246,6 +246,7 @@ async function loadCollection(id, urlColors = null) {
     Object.keys(svgCache).forEach(key => delete svgCache[key]);
     currentColors = {};
     activeZone = null;
+    updateSidebarVisibility();
 
     // 4. Charger ROOT (obligatoire)
     await loadSVG("ROOT", currentCollection.id);
@@ -447,9 +448,18 @@ function makeZoneInteractive(zoneId) {
     });
 }
 
+function updateSidebarVisibility() {
+    const sidebar = document.getElementById("sidebar-palette-desktop");
+    if (!sidebar) return;
+    const hasZone = activeZone != null;
+    sidebar.classList.toggle("sidebar-palette-desktop--no-zone", !hasZone);
+    sidebar.setAttribute("aria-hidden", hasZone ? "false" : "true");
+}
+
 function selectActiveZone(zoneId) {
     console.log(`🎯 Sélection de la zone: ${zoneId}`);
     activeZone = zoneId;
+    updateSidebarVisibility();
     updatePaletteHighlight();
     if (window.matchMedia("(max-width: 900px)").matches) openPaletteDrawer();
 }

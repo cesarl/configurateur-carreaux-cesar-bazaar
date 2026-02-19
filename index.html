@@ -49,8 +49,8 @@
             
                 </div>
             
-                <!-- Sidebar desktop : nuancier à droite. Mobile : masqué, palette dans le bottom sheet -->
-                <aside class="sidebar sidebar-palette-desktop">
+                <!-- Sidebar desktop : nuancier à droite. Visible uniquement quand une zone est sélectionnée. Mobile : masqué, palette dans le bottom sheet -->
+                <aside class="sidebar sidebar-palette-desktop sidebar-palette-desktop--no-zone" id="sidebar-palette-desktop" aria-hidden="true">
                     <h3>Nuancier</h3>
                     <div id="color-palette" class="palette-grid"></div>
                 </aside>
