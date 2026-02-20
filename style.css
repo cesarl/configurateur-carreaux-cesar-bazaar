@@ -10,9 +10,9 @@ body { margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; b
 /* LAYOUT */
 .app-container { position: relative; width: 100%; height: 100vh; overflow: hidden; }
 
-header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-header h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
-header .actions { display: flex; gap: 10px; }
+header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+header h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; flex: 1; min-width: 0; }
+header .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* ----- Workspace header (retractable on mobile) ----- */
 .workspace-header-wrap {
@@ -27,6 +27,7 @@ header .actions { display: flex; gap: 10px; }
     display: flex;
     align-items: center;
     gap: 10px;
+    row-gap: 8px;
     flex-wrap: wrap;
 }
 .workspace-header .back-button { margin-right: 0; }
@@ -43,13 +44,80 @@ header .actions { display: flex; gap: 10px; }
 .collection-link:hover { text-decoration: underline; }
 .header-actions {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    align-items: center;
 }
-.header-actions .secondary,
-.header-actions .primary {
-    padding: 8px 14px;
-    font-size: 0.85rem;
+.header-menu-wrap {
+    position: relative;
+}
+.header-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.header-menu-trigger:hover {
+    background: var(--bg-color);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.header-menu-trigger[aria-expanded="true"] {
+    background: var(--bg-color);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.header-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 6px;
+    min-width: 200px;
+    padding: 6px 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 30;
+}
+.header-menu-dropdown.is-open {
+    display: flex;
+}
+.header-menu-dropdown .secondary,
+.header-menu-dropdown .primary {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+.header-menu-dropdown .secondary:hover {
+    background: var(--bg-color);
+}
+.header-menu-dropdown .primary {
+    color: white;
+    background: var(--primary);
+}
+.header-menu-dropdown .primary:hover {
+    filter: brightness(1.15);
 }
 .header-scroll-hint {
     position: absolute;
@@ -599,7 +667,7 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     }
     .preview-controls {
         max-width: 100%;
-        padding: 0 8px;
+        padding: 20px 8px 0 8px; /* plus d’espace sous le header pour la ligne des pastilles */
     }
     .preview-area {
         flex: 1;

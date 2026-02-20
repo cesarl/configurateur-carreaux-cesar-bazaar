@@ -28,9 +28,14 @@
                     <button id="btn-back" class="back-button">← Retour</button>
                     <a id="collection-link" class="collection-link" href="#" target="_blank" rel="noopener">...</a>
                     <div class="header-actions">
-                        <button id="btn-save" class="secondary">Sauvegarder</button>
-                        <button id="btn-share" class="secondary" title="Partager">Partager</button>
-                        <button id="btn-cart" class="primary">Ajouter au panier (min 3)</button>
+                        <div class="header-menu-wrap">
+                            <button type="button" id="btn-header-menu" class="header-menu-trigger" aria-label="Menu" aria-expanded="false" aria-haspopup="true">⋯</button>
+                            <div id="header-menu-dropdown" class="header-menu-dropdown" role="menu" aria-hidden="true">
+                                <button type="button" id="btn-save" class="secondary" role="menuitem">Sauvegarder</button>
+                                <button type="button" id="btn-share" class="secondary" role="menuitem" title="Partager">Partager</button>
+                                <button type="button" id="btn-cart" class="primary" role="menuitem">Ajouter au panier (min 3)</button>
+                            </div>
+                        </div>
                     </div>
                 </header>
                 <div id="header-scroll-hint" class="header-scroll-hint" aria-hidden="true">↑ Retrouver le menu</div>

@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadData();
     await renderGallery();
     setupNavigation();
+    setupHeaderMenu();
     setupOptionsDrawer();
     setupWorkspaceHeaderScroll();
     if (collection) {
@@ -234,6 +235,42 @@ function setupNavigation() {
             }
         });
     }
+}
+
+function setupHeaderMenu() {
+    const trigger = document.getElementById("btn-header-menu");
+    const dropdown = document.getElementById("header-menu-dropdown");
+    const wrap = trigger && trigger.closest(".header-menu-wrap");
+    if (!trigger || !dropdown || !wrap) return;
+
+    function closeMenu() {
+        dropdown.classList.remove("is-open");
+        trigger.setAttribute("aria-expanded", "false");
+        dropdown.setAttribute("aria-hidden", "true");
+    }
+
+    function openMenu() {
+        dropdown.classList.add("is-open");
+        trigger.setAttribute("aria-expanded", "true");
+        dropdown.setAttribute("aria-hidden", "false");
+    }
+
+    trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.contains("is-open");
+        if (isOpen) closeMenu();
+        else openMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!dropdown.classList.contains("is-open")) return;
+        if (wrap.contains(e.target)) return;
+        closeMenu();
+    });
+
+    dropdown.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => closeMenu());
+    });
 }
 
 function updateOptionsDrawerZoomVisibility() {
