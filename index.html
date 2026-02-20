@@ -23,28 +23,35 @@
 
         <!-- Vue Workspace -->
         <div id="view-workspace" class="view" style="display: none;">
-            <header>
-                <button id="btn-back" class="back-button">← Retour</button>
-                <h1>Simulateur <span id="collection-title">...</span></h1>
-                <div class="actions">
-                    <button id="btn-save" class="secondary">Sauvegarder</button>
-                    <button id="btn-cart" class="primary">Ajouter au panier (min 3)</button>
-                </div>
-            </header>
+            <div class="workspace-header-wrap" id="workspace-header-wrap">
+                <header class="workspace-header" id="workspace-header">
+                    <button id="btn-back" class="back-button">← Retour</button>
+                    <a id="collection-link" class="collection-link" href="#" target="_blank" rel="noopener">...</a>
+                    <div class="header-actions">
+                        <button id="btn-save" class="secondary">Sauvegarder</button>
+                        <button id="btn-share" class="secondary" title="Partager">Partager</button>
+                        <button id="btn-cart" class="primary">Ajouter au panier (min 3)</button>
+                    </div>
+                </header>
+                <div id="header-scroll-hint" class="header-scroll-hint" aria-hidden="true">↑ Retrouver le menu</div>
+            </div>
 
-            <main>
+            <main class="workspace-main" id="workspace-main">
                 <div class="workspace workspace-preview-first" id="workspace">
                     <div id="molding-warning-banner" class="molding-warning-banner" aria-live="polite" style="display: none;"></div>
                     <div class="preview-controls">
                         <div class="active-colors-row-wrap">
                             <div class="active-colors-row" id="active-colors-row" aria-label="Couleurs des zones du motif"></div>
                             <button type="button" id="btn-reset-collection" class="reset-button reset-button-icon" title="Réinitialiser les couleurs (défaut SVG)" aria-label="Réinitialiser les couleurs de la collection">↺</button>
+                            <button type="button" id="btn-options-drawer" class="options-drawer-trigger" aria-label="Options grille et zoom">Grille & zoom</button>
                         </div>
-                        <div class="layout-selector" id="layout-selector" aria-label="Disposition du calepinage"></div>
-                        <div class="calepinage-zoom-wrap" id="calepinage-zoom-wrap" aria-label="Zoom de la grille">
-                            <button type="button" class="calepinage-zoom-in" title="Zoom avant (moins de carreaux)">−</button>
-                            <span class="calepinage-zoom-label">5×5</span>
-                            <button type="button" class="calepinage-zoom-out" title="Zoom arrière (plus de carreaux)">+</button>
+                        <div class="preview-controls-extras" id="preview-controls-extras">
+                            <div class="layout-selector" id="layout-selector" aria-label="Disposition du calepinage"></div>
+                            <div class="calepinage-zoom-wrap" id="calepinage-zoom-wrap" aria-label="Zoom de la grille">
+                                <button type="button" class="calepinage-zoom-in" title="Zoom avant (moins de carreaux)">−</button>
+                                <span class="calepinage-zoom-label">5×5</span>
+                                <button type="button" class="calepinage-zoom-out" title="Zoom arrière (plus de carreaux)">+</button>
+                            </div>
                         </div>
                     </div>
                     <div class="preview-area" id="preview-area">
@@ -81,6 +88,19 @@
             <div id="palette-drawer" class="palette-drawer" aria-hidden="true">
                 <div class="palette-drawer-body">
                     <div id="color-palette-drawer" class="palette-grid"></div>
+                </div>
+            </div>
+
+            <!-- Tiroir mobile : options grille + zoom -->
+            <div id="options-drawer-overlay" class="options-drawer-overlay" aria-hidden="true"></div>
+            <div id="options-drawer" class="options-drawer" aria-hidden="true">
+                <div class="options-drawer-inner">
+                    <h3 class="options-drawer-title">Grille & zoom</h3>
+                    <div class="options-drawer-layout" id="options-drawer-layout"></div>
+                    <div class="options-drawer-zoom" id="options-drawer-zoom">
+                        <label for="options-zoom-slider">Nombre de carreaux</label>
+                        <input type="range" id="options-zoom-slider" min="2" max="20" value="5" aria-label="Zoom grille" />
+                    </div>
                 </div>
             </div>
 

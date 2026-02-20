@@ -123,6 +123,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadData();
     await renderGallery();
     setupNavigation();
+    setupOptionsDrawer();
+    setupWorkspaceHeaderScroll();
     if (collection) {
         showWorkspace();
         await loadCollection(collection, colors);
@@ -215,6 +217,105 @@ function setupNavigation() {
             resetCollectionToDefault();
         });
     }
+    const btnShare = document.getElementById("btn-share");
+    if (btnShare) {
+        btnShare.addEventListener("click", () => {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    url: url,
+                    text: currentCollection ? `Collection ${currentCollection.nom}` : ""
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    if (typeof alert !== "undefined") alert("Lien copié dans le presse-papier.");
+                }).catch(() => {});
+            }
+        });
+    }
+}
+
+function updateOptionsDrawerZoomVisibility() {
+    const zoomBlock = document.getElementById("options-drawer-zoom");
+    if (!zoomBlock) return;
+    if (carouselIndex === 0) {
+        zoomBlock.classList.remove("hidden");
+    } else {
+        zoomBlock.classList.add("hidden");
+    }
+}
+
+function openOptionsDrawer() {
+    const drawer = document.getElementById("options-drawer");
+    const overlay = document.getElementById("options-drawer-overlay");
+    const slider = document.getElementById("options-zoom-slider");
+    if (drawer) {
+        drawer.classList.add("open");
+        drawer.setAttribute("aria-hidden", "false");
+        if (overlay) {
+            overlay.classList.add("visible");
+            overlay.setAttribute("aria-hidden", "false");
+        }
+        if (slider) slider.value = String(calepinageZoom);
+        updateOptionsDrawerZoomVisibility();
+    }
+}
+
+function closeOptionsDrawer() {
+    const drawer = document.getElementById("options-drawer");
+    const overlay = document.getElementById("options-drawer-overlay");
+    if (drawer) {
+        drawer.classList.remove("open");
+        drawer.setAttribute("aria-hidden", "true");
+        if (overlay) {
+            overlay.classList.remove("visible");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+    }
+}
+
+function setupOptionsDrawer() {
+    const trigger = document.getElementById("btn-options-drawer");
+    const overlay = document.getElementById("options-drawer-overlay");
+    const slider = document.getElementById("options-zoom-slider");
+    if (trigger) trigger.addEventListener("click", openOptionsDrawer);
+    if (overlay) overlay.addEventListener("click", closeOptionsDrawer);
+    if (slider) {
+        slider.min = String(CALEPINAGE_ZOOM_MIN);
+        slider.max = String(CALEPINAGE_ZOOM_MAX);
+        slider.value = String(calepinageZoom);
+        slider.addEventListener("input", () => {
+            const v = parseInt(slider.value, 10);
+            if (Number.isFinite(v)) setCalepinageZoom(v);
+        });
+    }
+}
+
+function setupWorkspaceHeaderScroll() {
+    const main = document.getElementById("workspace-main");
+    const wrap = document.getElementById("workspace-header-wrap");
+    const hint = document.getElementById("header-scroll-hint");
+    if (!main || !wrap || !hint) return;
+    let lastScrollTop = 0;
+    const threshold = 40;
+    const onScroll = () => {
+        if (!window.matchMedia("(max-width: 900px)").matches) return;
+        const st = main.scrollTop;
+        if (st > threshold) {
+            if (st > lastScrollTop) wrap.classList.add("header-retracted");
+            else wrap.classList.remove("header-retracted");
+        } else {
+            wrap.classList.remove("header-retracted");
+        }
+        lastScrollTop = st;
+        hint.setAttribute("aria-hidden", wrap.classList.contains("header-retracted") ? "false" : "true");
+    };
+    main.addEventListener("scroll", onScroll, { passive: true });
+    hint.addEventListener("click", () => {
+        wrap.classList.remove("header-retracted");
+        hint.setAttribute("aria-hidden", "true");
+    });
 }
 
 /** Réinitialise les couleurs de la collection courante aux valeurs par défaut du SVG. */
@@ -343,7 +444,11 @@ async function loadCollection(id, urlColors = null) {
         console.warn(`Collection "${id}" introuvable, chargement de "${collections[0].id}"`);
         currentCollection = collections[0];
     }
-    document.getElementById("collection-title").innerText = currentCollection.nom;
+    const collectionLink = document.getElementById("collection-link");
+    if (collectionLink) {
+        collectionLink.textContent = currentCollection.nom;
+        collectionLink.href = currentCollection.collection_url || "#";
+    }
 
     // 2. Parser les variations (peut être une chaîne "VAR1, VAR2, VAR3" ou un tableau)
     let variationsList = [];
@@ -835,45 +940,58 @@ function renderActiveColorPills() {
     });
 }
 
-/** Remplit le sélecteur de calepinage (boutons pilules) à partir de calepinages.json, filtré par collection.layouts. */
+/** Remplit le sélecteur de calepinage (boutons pilules). Survol = preview, clic = valider. Sur mobile le tiroir ne se ferme qu'au clic en dehors. */
 function renderLayoutSelector() {
-    const container = document.getElementById("layout-selector");
-    if (!container) return;
     const layoutIds = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
         ? currentCollection.layouts
         : ["aleatoire"];
-    container.innerHTML = "";
     const legacyLabels = { damier: "Damier", solo: "Grille plate" };
-    layoutIds.forEach((layoutId) => {
-        const calepinage = calepinagesData.find((c) => c.id === layoutId);
-        const label = calepinage ? calepinage.nom : (legacyLabels[layoutId] || layoutId);
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "layout-pill" + (currentLayout === layoutId ? " active" : "");
-        btn.textContent = label;
-        btn.onclick = () => {
-            currentLayout = layoutId;
-            renderLayoutSelector();
-            renderCalepinageOnly();
-            renderMockupSlides();
-        };
-        container.appendChild(btn);
-    });
+    const makePills = (container) => {
+        if (!container) return;
+        container.innerHTML = "";
+        layoutIds.forEach((layoutId) => {
+            const calepinage = calepinagesData.find((c) => c.id === layoutId);
+            const label = calepinage ? calepinage.nom : (legacyLabels[layoutId] || layoutId);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "layout-pill" + (currentLayout === layoutId ? " active" : "");
+            btn.textContent = label;
+            btn.addEventListener("mouseenter", () => {
+                renderCalepinageOnly(layoutId);
+            });
+            btn.addEventListener("mouseleave", () => {
+                renderCalepinageOnly();
+            });
+            btn.onclick = () => {
+                currentLayout = layoutId;
+                renderLayoutSelector();
+                renderCalepinageOnly();
+                renderMockupSlides();
+                if (window.matchMedia("(min-width: 901px)").matches) {
+                    closeOptionsDrawer();
+                }
+            };
+            container.appendChild(btn);
+        });
+    };
+    makePills(document.getElementById("layout-selector"));
+    makePills(document.getElementById("options-drawer-layout"));
 }
 
-/** Reconstruit uniquement le calepinage (grille) selon currentLayout et niveau de zoom. */
-function renderCalepinageOnly() {
+/** Reconstruit uniquement le calepinage (grille). Si overrideLayout est fourni, l'utilise pour l'affichage sans modifier currentLayout (preview au survol). */
+function renderCalepinageOnly(overrideLayout) {
     const gridContainer = document.getElementById("grid-container");
     if (!gridContainer) return;
+    const layoutToUse = overrideLayout !== undefined ? overrideLayout : currentLayout;
     setupGridClickDelegation();
     const variants = getVariantsList();
     if (!variants.length) return;
     gridCols = calepinageZoom;
-    gridRows = currentLayout === "solo" ? calepinageZoom : getGridRowsForContainer();
+    gridRows = layoutToUse === "solo" ? calepinageZoom : getGridRowsForContainer();
     gridContainer.innerHTML = "";
-    gridContainer.className = "grid-view " + (currentLayout === "solo" ? "solo" : "tapis");
+    gridContainer.className = "grid-view " + (layoutToUse === "solo" ? "solo" : "tapis");
 
-    if (currentLayout === "solo") {
+    if (layoutToUse === "solo") {
         gridContainer.style.display = "block";
         gridContainer.innerHTML = prepareSVG(svgCache[variants[0]], 0, variants[0]);
     } else {
@@ -881,7 +999,7 @@ function renderCalepinageOnly() {
         gridContainer.style.display = "grid";
         gridContainer.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
         gridContainer.style.gridTemplateRows = `repeat(${gridRows}, 1fr)`;
-        const calepinage = calepinagesData.find((c) => c.id === currentLayout);
+        const calepinage = calepinagesData.find((c) => c.id === layoutToUse);
         const parts = [];
         if (calepinage) {
             for (let row = 0; row < gridRows; row++) {
@@ -904,8 +1022,10 @@ function renderCalepinageOnly() {
         requestAnimationFrame(() => applyGridSizeFromContainer());
     }
     applyCurrentColors();
-    renderActiveColorPills();
-    updateMoldingWarning();
+    if (overrideLayout === undefined) {
+        renderActiveColorPills();
+        updateMoldingWarning();
+    }
     if (typeof requestIdleCallback !== "undefined") {
         requestIdleCallback(() => scanZones(), { timeout: 200 });
     } else {
@@ -1134,13 +1254,18 @@ function setCalepinageZoom(newZoom) {
 
 function updateCalepinageZoomUI() {
     const wrap = document.getElementById("calepinage-zoom-wrap");
-    if (!wrap) return;
-    const label = wrap.querySelector(".calepinage-zoom-label");
-    if (label) label.textContent = `${calepinageZoom}×${calepinageZoom}`;
-    const btnIn = wrap.querySelector(".calepinage-zoom-in");
-    const btnOut = wrap.querySelector(".calepinage-zoom-out");
-    if (btnIn) btnIn.disabled = calepinageZoom <= CALEPINAGE_ZOOM_MIN;
-    if (btnOut) btnOut.disabled = calepinageZoom >= CALEPINAGE_ZOOM_MAX;
+    if (wrap) {
+        const label = wrap.querySelector(".calepinage-zoom-label");
+        if (label) label.textContent = `${calepinageZoom}×${calepinageZoom}`;
+        const btnIn = wrap.querySelector(".calepinage-zoom-in");
+        const btnOut = wrap.querySelector(".calepinage-zoom-out");
+        if (btnIn) btnIn.disabled = calepinageZoom <= CALEPINAGE_ZOOM_MIN;
+        if (btnOut) btnOut.disabled = calepinageZoom >= CALEPINAGE_ZOOM_MAX;
+    }
+    const slider = document.getElementById("options-zoom-slider");
+    if (slider) {
+        slider.value = String(calepinageZoom);
+    }
 }
 
 /** Marge autour de la grille calepinage dans la slide (évite le crop, centrage symétrique). */
@@ -1285,6 +1410,7 @@ function setupCarousel() {
         if (dotsContainer) {
             dotsContainer.querySelectorAll(".carousel-dot").forEach((d, i) => d.classList.toggle("active", i === carouselIndex));
         }
+        updateOptionsDrawerZoomVisibility();
     }
 
     if (dotsContainer) {

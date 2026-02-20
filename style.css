@@ -14,8 +14,113 @@ header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--b
 header h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
 header .actions { display: flex; gap: 10px; }
 
+/* ----- Workspace header (retractable on mobile) ----- */
+.workspace-header-wrap {
+    flex-shrink: 0;
+    position: relative;
+    transition: transform 0.25s ease;
+}
+.workspace-header {
+    padding: 12px 16px 12px 12px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.workspace-header .back-button { margin-right: 0; }
+.collection-link {
+    font-size: 0.85rem;
+    color: var(--primary);
+    text-decoration: none;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.collection-link:hover { text-decoration: underline; }
+.header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.header-actions .secondary,
+.header-actions .primary {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+}
+.header-scroll-hint {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 12px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+.workspace-header-wrap.header-retracted .header-scroll-hint {
+    opacity: 1;
+    pointer-events: auto;
+}
+@media (max-width: 900px) {
+    .workspace-header-wrap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+    }
+    .workspace-header-wrap.header-retracted .workspace-header {
+        transform: translateY(-100%);
+    }
+    .workspace-main {
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding-top: 52px; /* place pour le header */
+    }
+    .workspace.workspace-preview-first {
+        min-height: calc(100vh - 52px + 20px); /* légère surcharge pour permettre le scroll */
+    }
+}
+@media (min-width: 901px) {
+    .workspace-header-wrap.header-retracted .workspace-header { transform: none; }
+    .header-scroll-hint { display: none; }
+}
+
 /* main dans le Workspace (éditeur) */
 #view-workspace main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+/* Desktop : vraie colonne (preview à gauche, sidebar à droite) */
+@media (min-width: 901px) {
+    #view-workspace main.workspace-main {
+        flex-direction: row;
+    }
+    #view-workspace main .workspace.workspace-preview-first {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+    #view-workspace main .sidebar.sidebar-palette-desktop {
+        flex-shrink: 0;
+    }
+}
+/* Mobile : colonne verticale, sidebar masquée */
+@media (max-width: 900px) {
+    #view-workspace main.workspace-main {
+        flex-direction: column;
+    }
+}
 
 /* VIEWER (GAUCHE) */
 .viewer { flex: 1; background: #e5e5e5; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: relative; }
@@ -158,6 +263,84 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     .palette-drawer { display: flex; }
 }
 
+/* ----- Options drawer (mobile: grille + zoom) ----- */
+.options-drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 98;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+.options-drawer-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+.options-drawer {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    max-width: 320px;
+    background: white;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+    z-index: 101;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-y: auto;
+}
+.options-drawer.open {
+    transform: translateX(0);
+}
+.options-drawer-inner {
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.options-drawer-title {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin: 0 0 8px 0;
+}
+.options-drawer-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.options-drawer-layout .layout-pill {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+}
+.options-drawer-zoom {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.options-drawer-zoom label {
+    font-size: 0.8rem;
+    color: #666;
+}
+.options-drawer-zoom input[type="range"] {
+    width: 100%;
+    height: 6px;
+    accent-color: var(--primary);
+}
+.options-drawer-zoom.hidden {
+    display: none !important;
+}
+/* Tiroir Grille & zoom : visible quand ouvert (mobile + desktop) */
+.options-drawer-overlay.visible { display: block; }
+.options-drawer {
+    display: block;
+}
+
 /* Overlay transparent : clic en dehors ferme le tiroir (pas de gris) */
 .palette-drawer-overlay {
     display: none;
@@ -240,6 +423,26 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     align-items: center;
     width: 100%;
     max-width: 600px;
+    padding-top: 10px;
+}
+/* Grille & zoom : toujours dans le tiroir (mobile + desktop) */
+.preview-controls-extras {
+    display: none !important;
+}
+.options-drawer-trigger {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    color: #666;
+}
+.options-drawer-trigger:hover {
+    border-color: var(--primary);
+    color: var(--primary);
 }
 .active-colors-row-wrap {
     display: flex;
@@ -387,6 +590,63 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
 }
 .carousel-btn-prev { left: 8px; }
 .carousel-btn-next { right: 8px; }
+
+/* Mobile: carousel prend le max d'espace, flèches discrètes (pas de cercle), ombres latérales */
+@media (max-width: 900px) {
+    .workspace.workspace-preview-first {
+        padding: 8px 0 8px 0;
+        gap: 8px;
+    }
+    .preview-controls {
+        max-width: 100%;
+        padding: 0 8px;
+    }
+    .preview-area {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        padding: 0 2px;
+    }
+    .carousel {
+        min-height: 200px;
+    }
+    .carousel-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 0;
+        border: none;
+        background: rgba(255, 255, 255, 0.75);
+        font-size: 1.4rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
+    .carousel-btn:hover {
+        background: rgba(255, 255, 255, 0.95);
+    }
+    .carousel-btn-prev { left: 4px; }
+    .carousel-btn-next { right: 4px; }
+    /* Ombres latérales pour suggérer le swipe */
+    .carousel-track-container {
+        position: relative;
+    }
+    .carousel-track-container::before,
+    .carousel-track-container::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 24px;
+        pointer-events: none;
+        z-index: 2;
+    }
+    .carousel-track-container::before {
+        left: 0;
+        background: linear-gradient(to right, rgba(0,0,0,0.08), transparent);
+    }
+    .carousel-track-container::after {
+        right: 0;
+        background: linear-gradient(to left, rgba(0,0,0,0.08), transparent);
+    }
+}
 .carousel-dots {
     position: absolute;
     bottom: 12px;
@@ -872,8 +1132,8 @@ h3 { text-transform: uppercase; font-size: 0.8rem; margin-bottom: 15px; letter-s
     flex-shrink: 0;
 }
 
-/* HEADER AVEC BOUTON RETOUR */
-#view-workspace header {
+/* HEADER AVEC BOUTON RETOUR (déjà stylé par .workspace-header) */
+#view-workspace .workspace-header {
     display: flex;
     align-items: center;
     gap: 15px;
