@@ -143,15 +143,15 @@ header .actions { display: flex; gap: 10px; }
 /* SVG STYLES */
 svg { width: 100%; height: 100%; display: block; }
 
-/* L'EFFET BLOP (Micro-interaction) — zone-path est ajouté dans le template SVG */
+/* L'EFFET BLOP (Micro-interaction) — zone-path sur path, rect, circle, ellipse, polygon */
 path[data-active="true"],
-path.zone-path {
+.zone-path {
     transition: fill 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-origin: center;
     cursor: pointer;
 }
 path[data-active="true"]:hover,
-path.zone-path:hover {
+.zone-path:hover {
     filter: brightness(1.1);
     transform: scale(1.02); /* Le petit blop */
     z-index: 10;
