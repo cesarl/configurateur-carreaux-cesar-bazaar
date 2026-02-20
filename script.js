@@ -117,7 +117,6 @@ function applyConfigToUrl() {
 
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("🚀 Initialisation de l'application...");
     const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
@@ -129,7 +128,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadCollection(collection, colors);
     }
     // Les brouillons sont conservés par collection (localStorage) : pas de clear pour ne pas perdre les éditions
-    console.log("✅ Application initialisée");
 });
 
 /** Trie les couleurs pour un ordre progressif type dégradé (HSL : teinte puis luminosité) */
@@ -167,19 +165,15 @@ function getVisibleNuancier() {
 }
 
 async function loadData() {
-    console.log("📦 Chargement du nuancier...");
     try {
         const res = await fetch(`${REPO_URL}/data/nuancier.json`);
         nuancierData = await res.json();
-        // Charger le mapping des noms de couleurs CSS -> hex (ex: "sienna" -> "#a0522d")
         try {
             const resColors = await fetch(`${REPO_URL}/data/colorMatch.json`);
             colorNameMap = await resColors.json();
-            console.log("🎨 colorMatch chargé (noms CSS -> hex).");
         } catch (e) {
-            console.warn("⚠️ Impossible de charger colorMatch.json, fallback sur le navigateur pour les noms CSS.", e);
+            console.warn("Impossible de charger colorMatch.json, fallback sur le navigateur pour les noms CSS.", e);
         }
-        console.log(`✅ Nuancier chargé: ${nuancierData.length} couleurs (affichées: ${getVisibleNuancier().length})`);
         renderPalette(getVisibleNuancier());
         setupPaletteDrawer();
         try {
@@ -187,10 +181,9 @@ async function loadData() {
             if (resCal.ok) {
                 const raw = await resCal.json();
                 calepinagesData = Array.isArray(raw) ? raw : [];
-                console.log(`✅ Calepinages chargés: ${calepinagesData.length}`);
             }
         } catch (e) {
-            console.warn("⚠️ Impossible de charger calepinages.json, calepinages désactivés.", e);
+            console.warn("Impossible de charger calepinages.json, calepinages désactivés.", e);
             calepinagesData = [];
         }
         try {
@@ -198,14 +191,13 @@ async function loadData() {
             if (resMockups.ok) {
                 const raw = await resMockups.json();
                 mockupsData = Array.isArray(raw) ? raw : [];
-                console.log(`✅ Mockups chargés: ${mockupsData.length}`);
             }
         } catch (e) {
-            console.warn("⚠️ Impossible de charger mockups.json, mockups désactivés.", e);
+            console.warn("Impossible de charger mockups.json, mockups désactivés.", e);
             mockupsData = [];
         }
     } catch (e) {
-        console.error("❌ Erreur chargement données", e);
+        console.error("Erreur chargement données", e);
     }
 }
 
@@ -234,9 +226,7 @@ function resetCollectionToDefault() {
     clearDraftForCollection(currentCollection.id);
     // 2. Repartir de zéro : re-parse le SVG (toutes variantes) et remplit currentColors
     currentColors = {};
-    const name = currentCollection.name || currentCollection.id || "?";
-    console.log(`[Reset] Extraction couleurs par défaut — ${name}`);
-    variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v], `[reset ${name}] ${v}`));
+    variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v]));
     // 3. Appliquer sur le calepinage et mettre à jour toute l'interface
     applyCurrentColors();
     renderActiveColorPills();
@@ -281,34 +271,25 @@ function showWorkspace() {
     document.getElementById("view-workspace").style.display = "flex";
 }
 
-// Générer la Gallery avec les collections
 async function renderGallery() {
-    console.log("🖼️ Génération de la Gallery...");
     try {
         const res = await fetch(`${REPO_URL}/data/collections.json`);
         if (!res.ok) {
-            console.error(`❌ Erreur HTTP: ${res.status} ${res.statusText}`);
+            console.error("Erreur HTTP:", res.status, res.statusText);
             return;
         }
         const collections = await res.json();
-        console.log(`📚 Collections chargées: ${collections.length}`, collections);
-
         const galleryGrid = document.getElementById("gallery-grid");
         if (!galleryGrid) {
-            console.error("❌ Élément #gallery-grid introuvable!");
+            console.error("Élément #gallery-grid introuvable");
             return;
         }
-
         galleryGrid.innerHTML = "";
-        
         if (collections.length === 0) {
-            console.warn("⚠️ Aucune collection trouvée dans le JSON");
             galleryGrid.innerHTML = "<p style='padding: 20px; text-align: center; color: #666;'>Aucune collection disponible</p>";
             return;
         }
-
         collections.forEach((collection) => {
-            console.log(`  📦 Création de la carte pour: ${collection.nom || collection.id}`);
             const card = document.createElement("div");
             card.className = "gallery-card";
             card.onclick = () => {
@@ -326,9 +307,6 @@ async function renderGallery() {
             imageDiv.className = "gallery-card-image";
             if (imageUrl) {
                 imageDiv.style.backgroundImage = `url('${imageUrl}')`;
-                console.log(`    🖼️ Image URL: ${imageUrl}`);
-            } else {
-                console.warn(`    ⚠️ Pas d'image pour ${title}`);
             }
 
             // Créer l'overlay avec le titre
@@ -344,18 +322,13 @@ async function renderGallery() {
             card.appendChild(imageDiv);
 
             galleryGrid.appendChild(card);
-            console.log(`    ✅ Carte créée pour: ${title}`);
         });
-
-        console.log(`✅ Gallery générée avec ${collections.length} collection(s)`);
     } catch (e) {
-        console.error("❌ Erreur lors de la génération de la Gallery", e);
+        console.error("Erreur lors de la génération de la Gallery", e);
     }
 }
 
 async function loadCollection(id, urlColors = null) {
-    console.log(`📚 Chargement de la collection: ${id}`);
-    
     const res = await fetch(`${REPO_URL}/data/collections.json`);
     const collections = await res.json();
     currentCollection = collections.find(c => c.id.toLowerCase() === String(id).toLowerCase()) || collections.find(c => c.id === id);
@@ -367,13 +340,9 @@ async function loadCollection(id, urlColors = null) {
             showGallery();
             return;
         }
-        console.warn(`⚠️ Collection "${id}" introuvable. Chargement de la première collection disponible : "${collections[0].id}"`);
+        console.warn(`Collection "${id}" introuvable, chargement de "${collections[0].id}"`);
         currentCollection = collections[0];
     }
-
-    console.log(`✅ Collection trouvée: ${currentCollection.nom}`);
-    console.log(`📋 Variations déclarées:`, currentCollection.variations);
-
     document.getElementById("collection-title").innerText = currentCollection.nom;
 
     // 2. Parser les variations (peut être une chaîne "VAR1, VAR2, VAR3" ou un tableau)
@@ -391,8 +360,6 @@ async function loadCollection(id, urlColors = null) {
         variationsList = currentCollection.variations.split(',').map(v => v.trim().toUpperCase());
     }
 
-    console.log(`🔄 Variations parsées:`, variationsList);
-
     // 3. Réinitialiser le cache et les couleurs
     Object.keys(svgCache).forEach(key => delete svgCache[key]);
     currentColors = {};
@@ -409,9 +376,6 @@ async function loadCollection(id, urlColors = null) {
     for (const variant of variationsList) {
         if (variant) await loadSVG(variant, currentCollection.id);
     }
-
-    console.log(`📦 SVG chargés dans le cache:`, Object.keys(svgCache));
-
     renderInterface();
 
     if (urlColors && Object.keys(urlColors).length > 0) {
@@ -437,19 +401,15 @@ async function loadSVG(type, collectionId) {
     const safeId = collectionId.toUpperCase().trim();
     const safeType = type.toUpperCase().trim();
     const filename = `${safeId}-${safeType}.svg`;
-
-    console.log(`🔍 Tentative de chargement : ${filename}`); 
-
     try {
         const res = await fetch(`${REPO_URL}/assets/svg/${filename}`);
         if (!res.ok) {
             throw new Error(`Erreur 404 : Le fichier ${filename} n'existe pas.`);
         }
         const text = await res.text();
-        svgCache[type] = text; 
-        console.log(`✅ Succès : ${filename} chargé.`);
+        svgCache[type] = text;
     } catch (e) {
-        console.error(`❌ Échec chargement SVG`, e);
+        console.error("Échec chargement SVG", e);
         alert(`Impossible de trouver le fichier : ${filename}\nVérifie qu'il est bien dans le dossier /assets/svg/ sur GitHub et qu'il est bien en MAJUSCULES.`);
     }
 }
@@ -492,7 +452,6 @@ function getCellSpec(calepinage, row, col, variantsList) {
 }
 
 function setGridMode(mode) {
-    console.log(`🎨 setGridMode appelé avec mode: ${mode}`);
     const container = document.getElementById("grid-container");
     container.innerHTML = "";
     container.className = `grid-view ${mode}`;
@@ -500,7 +459,6 @@ function setGridMode(mode) {
     if (!variantes.length) return;
 
     if (mode === "solo") {
-        console.log("📐 Mode solo: affichage d'une seule tuile (première variante)");
         container.innerHTML = prepareSVG(svgCache[variantes[0]], 0, variantes[0]);
     } else if (mode === "tapis" || mode === "simulation") {
         const calepinage = calepinagesData.find((c) => c.id === currentLayout);
@@ -514,7 +472,6 @@ function setGridMode(mode) {
                     container.innerHTML += prepareSVG(svgCache[variantName], rotation, variantName, true, row, col);
                 }
             }
-            console.log(`✅ Grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} (calepinage: ${calepinage.id})`);
         } else {
             for (let row = 0; row < SIMULATION_GRID_SIZE; row++) {
                 for (let col = 0; col < SIMULATION_GRID_SIZE; col++) {
@@ -525,7 +482,6 @@ function setGridMode(mode) {
                     container.innerHTML += prepareSVG(svgCache[variante], rot, variante, true, row, col);
                 }
             }
-            console.log(`✅ Grille ${SIMULATION_GRID_SIZE}x${SIMULATION_GRID_SIZE} (legacy)`);
         }
     } else {
         // fallback
@@ -773,32 +729,19 @@ function normalizeHex(hex) {
     return "#" + h;
 }
 
-/** Convertit une valeur fill (hex, rgb, nom) en hex #rrggbb ou null. Optionnel: log détaillé. */
-function parseFillToHex(fill, logContext = null) {
-    if (!fill || String(fill).trim() === "" || String(fill).toLowerCase() === "none") {
-        if (logContext) console.log(`  [parseFill] ${logContext} fill vide ou "none" → null`);
-        return null;
-    }
+/** Convertit une valeur fill (hex, rgb, nom) en hex #rrggbb ou null. */
+function parseFillToHex(fill) {
+    if (!fill || String(fill).trim() === "" || String(fill).toLowerCase() === "none") return null;
     const s = String(fill).trim();
-    if (s.startsWith("#")) {
-        const hex = normalizeHex(s) || null;
-        if (logContext) console.log(`  [parseFill] ${logContext} type=hex raw="${s}" → ${hex}`);
-        return hex;
-    }
+    if (s.startsWith("#")) return normalizeHex(s) || null;
     const nameKey = s.toLowerCase().replace(/\s+/g, "");
-    if (colorNameMap && colorNameMap[nameKey]) {
-        const hex = normalizeHex(colorNameMap[nameKey]);
-        if (logContext) console.log(`  [parseFill] ${logContext} type=string raw="${s}" → colorMatch.json["${nameKey}"] = ${hex}`);
-        return hex;
-    }
+    if (colorNameMap && colorNameMap[nameKey]) return normalizeHex(colorNameMap[nameKey]);
     const rgbMatch = s.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
     if (rgbMatch) {
         const r = parseInt(rgbMatch[1], 10).toString(16).padStart(2, "0");
         const g = parseInt(rgbMatch[2], 10).toString(16).padStart(2, "0");
         const b = parseInt(rgbMatch[3], 10).toString(16).padStart(2, "0");
-        const hex = "#" + r + g + b;
-        if (logContext) console.log(`  [parseFill] ${logContext} type=rgb raw="${s}" → ${hex}`);
-        return hex;
+        return "#" + r + g + b;
     }
     const div = document.createElement("div");
     div.style.color = s;
@@ -811,11 +754,8 @@ function parseFillToHex(fill, logContext = null) {
         const r = parseInt(m[1], 10).toString(16).padStart(2, "0");
         const g = parseInt(m[2], 10).toString(16).padStart(2, "0");
         const b = parseInt(m[3], 10).toString(16).padStart(2, "0");
-        const hex = "#" + r + g + b;
-        if (logContext) console.log(`  [parseFill] ${logContext} type=string (navigateur) raw="${s}" → ${hex}`);
-        return hex;
+        return "#" + r + g + b;
     }
-    if (logContext) console.warn(`  [parseFill] ${logContext} type=string raw="${s}" → non trouvé (ni colorMatch.json, ni rgb, ni navigateur)`);
     return null;
 }
 
@@ -844,8 +784,8 @@ function findClosestNuancierHex(hex) {
     return best;
 }
 
-/** Extrait les couleurs par défaut d'un SVG (une variante) et les fusionne dans currentColors. logPrefix optionnel pour la console. */
-function extractDefaultColorsFromSvg(svgString, logPrefix = "") {
+/** Extrait les couleurs par défaut d'un SVG (une variante) et les fusionne dans currentColors. */
+function extractDefaultColorsFromSvg(svgString) {
     if (!svgString) return;
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, "image/svg+xml");
@@ -854,22 +794,11 @@ function extractDefaultColorsFromSvg(svgString, logPrefix = "") {
         const zoneId = g.id;
         const path = g.querySelector("path");
         const fillSource = path ? (path.getAttribute("fill") || "") : (g.getAttribute("fill") || "");
-        const ctx = logPrefix ? `${logPrefix} ${zoneId} fill="${fillSource}"` : "";
-        const extractedHex = parseFillToHex(fillSource, ctx || undefined);
-        if (!extractedHex) {
-            if (logPrefix) console.log(`  [extract] ${logPrefix} ${zoneId} ignoré (parseFillToHex → null)`);
-            return;
-        }
+        const extractedHex = parseFillToHex(fillSource);
+        if (!extractedHex) return;
         const normalized = normalizeHex(extractedHex);
-        let inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
-        if (!inNuancier) {
-            const closest = findClosestNuancierHex(extractedHex);
-            if (logPrefix) console.log(`  [extract] ${logPrefix} ${zoneId} hex=${extractedHex} pas dans nuancier → plus proche: ${closest || "aucun"}`);
-            currentColors[zoneId] = closest || extractedHex;
-        } else {
-            if (logPrefix) console.log(`  [extract] ${logPrefix} ${zoneId} hex=${extractedHex} trouvé dans nuancier`);
-            currentColors[zoneId] = inNuancier.hex;
-        }
+        const inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
+        currentColors[zoneId] = inNuancier ? inNuancier.hex : (findClosestNuancierHex(extractedHex) || extractedHex);
     });
 }
 
@@ -977,12 +906,6 @@ function renderCalepinageOnly() {
     applyCurrentColors();
     renderActiveColorPills();
     updateMoldingWarning();
-    // #region agent log
-    if (currentLayout !== "solo") {
-        const slide0 = document.querySelector(".carousel-slide[data-slide-index='0']");
-        setTimeout(() => debugLogGridResize("afterRender", document.getElementById("grid-container"), slide0), 100);
-    }
-    // #endregion
     if (typeof requestIdleCallback !== "undefined") {
         requestIdleCallback(() => scanZones(), { timeout: 200 });
     } else {
@@ -1135,7 +1058,6 @@ function renderPalette(colors) {
     };
     renderInto("color-palette", true);
     renderInto("color-palette-drawer", false);
-    console.log(`✅ Palette rendue (sidebar + drawer)`);
 }
 
 // Applique la couleur au calepinage (preview-first : uniquement #grid-container)
@@ -1172,10 +1094,7 @@ function renderInterface() {
         return;
     }
     currentColors = {};
-    const collName = currentCollection?.name || currentCollection?.id || "?";
-    console.log(`[Ouverture SVG] Extraction couleurs par défaut — ${collName}`);
-    variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v], `[${collName}] ${v}`));
-    console.log(`[Ouverture SVG] Couleurs extraites:`, Object.keys(currentColors).sort(), currentColors);
+    variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v]));
     renderCalepinageOnly();
     buildCarouselMockupSlides();
     renderMockupSlides();
@@ -1274,22 +1193,6 @@ function applyGridSizeFromContainer() {
     gridContainer.style.gridTemplateRows = `repeat(${rows}, ${cellSizePx}px)`;
 }
 
-// #region agent log
-function debugLogGridResize(source, gridContainer, slide0) {
-    if (!gridContainer || !slide0) return;
-    const gridW = gridContainer.clientWidth || 0;
-    const gridH = gridContainer.clientHeight || 0;
-    const slideW = slide0.clientWidth || 0;
-    const slideH = slide0.clientHeight || 0;
-    const cols = gridCols || 1;
-    const rows = gridRows || 1;
-    const cellW = cols ? gridW / cols : 0;
-    const cellH = rows ? gridH / rows : 0;
-    const ratio = cellH ? cellW / cellH : 0;
-    fetch("http://127.0.0.1:7821/ingest/d7454bc9-ad0c-4438-a272-e193afbc963a", { method: "POST", headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ec90f8" }, body: JSON.stringify({ sessionId: "ec90f8", location: "script.js:debugLogGridResize", message: "Grid resize dimensions", data: { source, slideW, slideH, gridW, gridH, gridCols: cols, gridRows: rows, cellW, cellH, cellRatio: ratio }, timestamp: Date.now(), hypothesisId: "H1" }) }).catch(() => {});
-}
-// #endregion
-
 /** Boutons zoom + molette + pinch sur la vue calepinage. */
 function setupCalepinageZoomControls() {
     loadCalepinageZoom();
@@ -1297,7 +1200,6 @@ function setupCalepinageZoomControls() {
     const gridContainer = document.getElementById("grid-container");
     if (!slide0 || !gridContainer) return;
 
-    // #region agent log
     let resizeTimer = 0;
     window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
@@ -1310,18 +1212,13 @@ function setupCalepinageZoomControls() {
                 } else {
                     applyGridSizeFromContainer();
                 }
-                debugLogGridResize("resize", document.getElementById("grid-container"), document.querySelector(".carousel-slide[data-slide-index='0']"));
             }
             updateMockupPerspectives();
         }, 150);
     });
     if (document.getElementById("view-workspace").style.display === "flex" && currentLayout !== "solo") {
-        setTimeout(() => {
-            applyGridSizeFromContainer();
-            debugLogGridResize("afterSetup", gridContainer, slide0);
-        }, 300);
+        setTimeout(() => applyGridSizeFromContainer(), 300);
     }
-    // #endregion
 
     const zoomWrap = document.getElementById("calepinage-zoom-wrap");
     if (zoomWrap) {
