@@ -1593,10 +1593,27 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     tapisEl.removeAttribute("data-no-perspective");
     tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
 
+    const refW = mockup.sceneWidth || 720;
+    const refH = mockup.sceneHeight || 1080;
+    const scaleToRef = (sceneW > 0 && sceneH > 0 && (sceneW !== refW || sceneH !== refH));
+    const sx = scaleToRef ? refW / sceneW : 1;
+    const sy = scaleToRef ? refH / sceneH : 1;
+
     let matrix = "none";
     const raw = mockup.matrix3d;
     if (Array.isArray(raw) && raw.length === 16 && raw.every(Number.isFinite)) {
-        matrix = "matrix3d(" + raw.join(",") + ")";
+        if (scaleToRef) {
+            const m = raw;
+            const scaled = [
+                m[0] * sx, m[1] * sx, m[2] * sx, m[3] * sx,
+                m[4] * sy, m[5] * sy, m[6] * sy, m[7] * sy,
+                m[8], m[9], m[10], m[11],
+                m[12], m[13], m[14], m[15]
+            ];
+            matrix = "matrix3d(" + scaled.join(",") + ")";
+        } else {
+            matrix = "matrix3d(" + raw.join(",") + ")";
+        }
     } else if (corners01.length === 4) {
         const cornersPx = corners01.map(([x, y]) => [x * sceneW, y * sceneH]);
         matrix = perspectiveMatrix3dFromPixelQuad(sceneW, sceneH, cornersPx);
