@@ -1201,6 +1201,7 @@ function applyColorToActiveZone(hexColor) {
 function applyCurrentColors() {
     for (const [zone, color] of Object.entries(currentColors)) {
         document.documentElement.style.setProperty(`--color-${zone}`, color);
+        document.querySelectorAll(`.shared-zone-${zone} path`).forEach(p => { p.style.fill = color; });
     }
 }
 
