@@ -618,14 +618,15 @@ function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode 
 
     // IMPORTANT: ajouter les classes shared-zone AVANT le préfixe tapis
     // car après le préfixe, les ids commencent par "tapis-", pas "zone-"
-    // Remplir les path avec var(--color-zone-X) et classe zone-path (évite de toucher chaque path dans scanZones).
+    // Remplir path, rect, circle, ellipse, polygon avec var(--color-zone-X) et classe zone-path.
+    const fillableSelector = "path, rect, circle, ellipse, polygon";
     svg.querySelectorAll('g[id^="zone-"]').forEach(g => {
         const zoneId = g.id; // ID original (ex: zone-1)
         g.classList.add(`shared-zone-${zoneId}`);
         const varFill = `var(--color-${zoneId})`;
-        g.querySelectorAll("path").forEach(p => {
-            p.setAttribute("fill", varFill);
-            p.classList.add("zone-path");
+        g.querySelectorAll(fillableSelector).forEach(el => {
+            el.setAttribute("fill", varFill);
+            el.classList.add("zone-path");
         });
     });
 
@@ -763,7 +764,7 @@ function setupGridClickDelegation() {
     });
 }
 
-// Marque les groupes de zone comme cliquables (cursor). Les path ont déjà la classe zone-path (template).
+// Marque les groupes de zone comme cliquables (cursor). path, rect, etc. ont la classe zone-path (prepareSVG).
 function scanZones() {
     const gridContainer = document.getElementById("grid-container");
     if (!gridContainer) return;
@@ -897,8 +898,8 @@ function extractDefaultColorsFromSvg(svgString) {
     const zones = doc.querySelectorAll("svg g[id^='zone-']");
     zones.forEach((g) => {
         const zoneId = g.id;
-        const path = g.querySelector("path");
-        const fillSource = path ? (path.getAttribute("fill") || "") : (g.getAttribute("fill") || "");
+        const fillEl = g.querySelector("path, rect, circle, ellipse, polygon");
+        const fillSource = fillEl ? (fillEl.getAttribute("fill") || "") : (g.getAttribute("fill") || "");
         const extractedHex = parseFillToHex(fillSource);
         if (!extractedHex) return;
         const normalized = normalizeHex(extractedHex);
@@ -1160,14 +1161,14 @@ function renderPalette(colors) {
                     if (activeZone) {
                         livePreviewRestoreHex = currentColors[activeZone] ? normalizeHex(currentColors[activeZone]) : null;
                         const hoverHex = (this.getAttribute("data-hex") || "").startsWith("#") ? this.getAttribute("data-hex") : "#" + (this.getAttribute("data-hex") || "");
-                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = hoverHex; });
+                        document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`).forEach(p => { p.style.fill = hoverHex; });
                     }
                 });
                 div.addEventListener("mouseleave", function () {
                     tooltipEl.classList.remove("visible");
                     if (activeZone && livePreviewRestoreHex != null) {
                         const restoreHex = livePreviewRestoreHex.startsWith("#") ? livePreviewRestoreHex : "#" + livePreviewRestoreHex;
-                        document.querySelectorAll(`.shared-zone-${activeZone} path`).forEach(p => { p.style.fill = restoreHex; });
+                        document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`).forEach(p => { p.style.fill = restoreHex; });
                         livePreviewRestoreHex = null;
                     }
                 });
@@ -1190,8 +1191,8 @@ function applyColorToActiveZone(hexColor) {
     currentColors[activeZone] = hexColor;
     updatePaletteHighlight();
     if (currentCollection) applyConfigToUrl();
-    const paths = document.querySelectorAll(`.shared-zone-${activeZone} path`);
-    paths.forEach(p => { p.style.fill = hexColor; });
+    const fillables = document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`);
+    fillables.forEach(p => { p.style.fill = hexColor; });
     livePreviewRestoreHex = null; // après validation, plus de restauration au survol
     renderActiveColorPills();
     updateSidebarRecap();
@@ -1201,7 +1202,7 @@ function applyColorToActiveZone(hexColor) {
 function applyCurrentColors() {
     for (const [zone, color] of Object.entries(currentColors)) {
         document.documentElement.style.setProperty(`--color-${zone}`, color);
-        document.querySelectorAll(`.shared-zone-${zone} path`).forEach(p => { p.style.fill = color; });
+        document.querySelectorAll(`.shared-zone-${zone} .zone-path`).forEach(p => { p.style.fill = color; });
     }
 }
 

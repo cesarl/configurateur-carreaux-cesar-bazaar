@@ -24,15 +24,16 @@
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469137901-ILWN4HWAK9CXY98JCHPI/dune-par-bleu-cobalt-carreaux-de-ciment-435783.gif"
   },
 {
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+    "id": "fleurs-roda",
+    "nom": "Fleurs par Alex Roda",
+    "description": "Vive les fleurs.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6", "VAR7", "VAR8", "VAR9", "VAR10", "VAR11", "VAR12", "VAR13", "VAR14", "VAR15", "VAR16"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466279795-9GNDC58VDDTWD33774A1/fleurs-par-alex-roda-carreaux-de-ciment-634622.jpg?format=500w"
   },
 {
     "id": "Test",
