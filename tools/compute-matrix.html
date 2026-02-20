@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outil de Calibrage Perspective (Matrix3D)</title>
+    <style>
+        :root { --primary: #007bff; --handle-color: #ff3300; }
+        body { font-family: sans-serif; display: flex; height: 100vh; margin: 0; background: #f0f2f5; }
+        
+        /* SIDEBAR CONTROLS */
+        .controls {
+            width: 300px; background: white; padding: 20px; border-right: 1px solid #ddd;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        h2 { margin-top: 0; font-size: 1.2rem; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { width: 100%; height: 150px; padding: 10px; font-family: monospace; font-size: 0.8rem; border: 1px solid #ccc; background: #f9f9f9; }
+        .output-group { margin-top: auto; }
+
+        /* MAIN WORKSPACE */
+        .workspace { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; position: relative; overflow: hidden; }
+
+        /* DROP ZONE */
+        #drop-zone {
+            width: 80%; height: 80%; border: 3px dashed #ccc; border-radius: 10px;
+            display: flex; justify-content: center; align-items: center; color: #999; font-size: 1.5rem;
+            position: absolute; z-index: 10; background: rgba(255,255,255,0.8); transition: all 0.3s;
+        }
+        #drop-zone.dragover { background: rgba(0,123,255,0.1); border-color: var(--primary); color: var(--primary); }
+        #drop-zone.hidden { display: none; }
+
+        /* WORKING AREA (Image + Overlay) */
+        #working-area { position: relative; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        #base-image { display: block; max-width: 100%; max-height: 90vh; pointer-events: none; user-select: none; }
+
+        /* THE TRANSFORMED OVERLAY (Le calepinage) - taille = image, déformé par matrix3d */
+        #overlay-container {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            transform-origin: 0 0;
+            pointer-events: none;
+            border: 2px solid var(--primary);
+            opacity: 0.7;
+        }
+        
+        /* GRID INSIDE OVERLAY */
+        #debug-grid {
+            display: grid; width: 100%; height: 100%;
+            border-top: 1px solid rgba(0,123,255,0.5); border-left: 1px solid rgba(0,123,255,0.5);
+        }
+        .grid-cell { border-right: 1px solid rgba(0,123,255,0.5); border-bottom: 1px solid rgba(0,123,255,0.5); background: rgba(0,123,255,0.1); }
+
+        /* HANDLES (Les poignées rouges) */
+        .handle {
+            width: 20px; height: 20px; background: var(--handle-color); border: 3px solid white;
+            border-radius: 50%; position: absolute; transform: translate(-50%, -50%);
+            cursor: grab; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .handle:active { cursor: grabbing; background:yellow; }
+
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2>Calibrage Perspective</h2>
+        <div>
+            <label>Carreaux en largeur</label>
+            <input type="number" id="gridSizeInput" value="10" min="2" max="50" title="Nombre de carreaux sur la largeur (grille carrée)">
+        </div>
+        
+        <div class="output-group">
+            <label>Résultat CSS (à copier) :</label>
+            <textarea id="cssOutput" readonly spellcheck="false">Glisse une image pour commencer...</textarea>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div id="drop-zone">Glisser-déposer une image de mockup ici</div>
+        
+        <div id="working-area">
+            <img id="base-image" src="" alt="Mockup Base">
+            
+            <div id="overlay-container">
+                <div id="debug-grid"></div>
+            </div>
+
+            <div class="handle" id="handle-tl" data-corner="tl"></div>
+            <div class="handle" id="handle-tr" data-corner="tr"></div>
+            <div class="handle" id="handle-br" data-corner="br"></div>
+            <div class="handle" id="handle-bl" data-corner="bl"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- VARIABLES GLOBALES ---
+        const dropZone = document.getElementById('drop-zone');
+        const workingArea = document.getElementById('working-area');
+        const baseImage = document.getElementById('base-image');
+        const overlayContainer = document.getElementById('overlay-container');
+        const debugGrid = document.getElementById('debug-grid');
+        const cssOutput = document.getElementById('cssOutput');
+        const handles = document.querySelectorAll('.handle');
+        const gridSizeInput = document.getElementById('gridSizeInput');
+
+        // Taille de l'overlay = taille de l'image (rempli dans initWorkspace)
+        let overlayWidth = 1;
+        let overlayHeight = 1;
+
+        // Coordonnées des 4 coins (pixels, relatives à working-area)
+        let corners = { tl: {x:0, y:0}, tr: {x:0, y:0}, br: {x:0, y:0}, bl: {x:0, y:0} };
+        let activeHandle = null;
+
+        // --- 1. GESTION DU DRAG & DROP D'IMAGE ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', handleDrop);
+
+        function handleDrop(e) {
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    baseImage.src = e.target.result;
+                    baseImage.onload = initWorkspace; // On initialise quand l'image est chargée
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- 2. INITIALISATION DE L'ESPACE DE TRAVAIL ---
+        function initWorkspace() {
+            dropZone.classList.add('hidden');
+            workingArea.style.display = 'block';
+
+            const w = baseImage.offsetWidth;
+            const h = baseImage.offsetHeight;
+            overlayWidth = w;
+            overlayHeight = h;
+
+            // Overlay même taille que l'image (déjà en 100% si le conteneur suit l'image)
+            overlayContainer.style.width = w + 'px';
+            overlayContainer.style.height = h + 'px';
+
+            // Poignées aux 4 coins du rectangle
+            updateHandlePos('tl', 0, 0);
+            updateHandlePos('tr', w, 0);
+            updateHandlePos('br', w, h);
+            updateHandlePos('bl', 0, h);
+
+            updateGrid();
+            updatePerspective();
+        }
+
+        // --- 3. GESTION DE LA GRILLE INTERNE ---
+        gridSizeInput.addEventListener('input', updateGrid);
+
+        function updateGrid() {
+            const cols = Math.max(2, parseInt(gridSizeInput.value, 10) || 10);
+            debugGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            debugGrid.style.gridTemplateRows = `repeat(${cols}, 1fr)`;
+            debugGrid.innerHTML = '';
+            for (let i = 0; i < cols * cols; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                debugGrid.appendChild(cell);
+            }
+        }
+
+        // --- 4. GESTION DU DRAG DES POIGNÉES ---
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => { activeHandle = handle; });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!activeHandle) return;
+            
+            // Calculer la position de la souris relative à la zone de travail
+            const rect = workingArea.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            // Mettre à jour la position de la poignée et les données
+            updateHandlePos(activeHandle.dataset.corner, x, y);
+            updatePerspective();
+        });
+
+        document.addEventListener('mouseup', () => { activeHandle = null; });
+
+        function updateHandlePos(cornerId, x, y) {
+            corners[cornerId] = {x, y};
+            const handle = document.getElementById(`handle-${cornerId}`);
+            handle.style.left = `${x}px`;
+            handle.style.top = `${y}px`;
+        }
+
+        // --- 5. CALCUL DE LA MATRICE matrix3d (sans lib externe) ---
+        // Résolution 8x8 pour les coeffs de l'homographie, puis matrix3d (même logique que script.js).
+        function solve8(A, b) {
+            const n = 8;
+            const M = A.map((row, i) => [...row, b[i]]);
+            for (let col = 0; col < n; col++) {
+                let pivot = col;
+                for (let row = col + 1; row < n; row++) {
+                    if (Math.abs(M[row][col]) > Math.abs(M[pivot][col])) pivot = row;
+                }
+                [M[col], M[pivot]] = [M[pivot], M[col]];
+                const pivotVal = M[col][col];
+                const maxInCol = Math.max(...Array.from({ length: n }, (_, i) => Math.abs(M[i][col])));
+                if (Math.abs(pivotVal) < Math.max(1e-10, maxInCol * 1e-8)) return null;
+                for (let j = 0; j <= n; j++) M[col][j] /= pivotVal;
+                for (let i = 0; i < n; i++) {
+                    if (i === col) continue;
+                    const factor = M[i][col];
+                    for (let j = 0; j <= n; j++) M[i][j] -= factor * M[col][j];
+                }
+            }
+            const x = M.map(row => row[n]);
+            if (x.some(v => !Number.isFinite(v) || Math.abs(v) > 1e6)) return null;
+            return x;
+        }
+
+        function perspectiveMatrix3dFromPixelQuad(sourceW, sourceH, cornersPx) {
+            const W = sourceW, H = sourceH;
+            if (W <= 0 || H <= 0) return null;
+            const corners01 = cornersPx.map(([x, y]) => [x / W, y / H]);
+            const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = corners01;
+            const A = [
+                [1, 0, 0, 0, 0, 0, -x1, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, -x3],
+                [0, 0, 0, 1, 0, 0, -y1, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, -y3],
+                [1, 1, 0, 0, 0, 0, -x2, -x2],
+                [0, 0, 0, 1, 1, 0, -y2, -y2]
+            ];
+            const b = [x1 - x0, x0, x3 - x0, y1 - y0, y0, y3 - y0, x2 - x0, y2 - y0];
+            const x = solve8(A, b);
+            if (!x) return null;
+            const [a, bVal, c, d, e, f, g, h] = x;
+            const A_ = a, B_ = bVal * W / H, C_ = c * W, D_ = d * H / W, E_ = e, F_ = f * H, G_ = g / W, Hout = h / H;
+            if ([A_, B_, C_, D_, E_, F_, G_, Hout].some(v => !Number.isFinite(v))) return null;
+            const nearAffine = Math.abs(G_) < 1e-6 && Math.abs(Hout) < 1e-6;
+            if (nearAffine) return `matrix(${A_},${D_},${B_},${E_},${C_},${F_})`;
+            return `matrix3d(${A_},${D_},0,${G_}, ${B_},${E_},0,${Hout}, 0,0,1,0, ${C_},${F_},0,1)`;
+        }
+
+        function updatePerspective() {
+            const cornersPx = [
+                [corners.tl.x, corners.tl.y],
+                [corners.tr.x, corners.tr.y],
+                [corners.br.x, corners.br.y],
+                [corners.bl.x, corners.bl.y]
+            ];
+            const cssMatrixString = perspectiveMatrix3dFromPixelQuad(overlayWidth, overlayHeight, cornersPx);
+
+            if (cssMatrixString) {
+                overlayContainer.style.transform = cssMatrixString;
+                outputCSS(cssMatrixString);
+            }
+        }
+
+        function outputCSS(matrixStr) {
+            // On formate un joli bloc CSS prêt à l'emploi
+            const finalCSS = `/* Appliquer sur le conteneur du calepinage */\n` +
+                             `transform-origin: 0 0;\n` +
+                             `transform: ${matrixStr};`;
+            cssOutput.value = finalCSS;
+        }
+
+    </script>
+</body>
+</html>
