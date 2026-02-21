@@ -16,7 +16,9 @@ const CALEPINAGE_ZOOM_MIN = 2;     // Zoom max = 2×2 carreaux
 const CALEPINAGE_ZOOM_MAX = 20;    // Zoom min = 20×20 carreaux
 const CALEPINAGE_ZOOM_DEFAULT = 5;
 const CALEPINAGE_ZOOM_STORAGE_KEY = "cesar-bazaar-calepinage-zoom";
+const CALEPINAGE_JOINTS_STORAGE_KEY = "cesar-bazaar-calepinage-joints";
 let calepinageZoom = CALEPINAGE_ZOOM_DEFAULT;  // Grille = calepinageZoom × calepinageZoom (persisté au changement)
+let showJoints = false;  // Afficher les joints (1px trait gris pointillé autour des carreaux)
 let gridCols = CALEPINAGE_ZOOM_DEFAULT;
 let gridRows = CALEPINAGE_ZOOM_DEFAULT;
 
@@ -34,6 +36,17 @@ function loadCalepinageZoom() {
 function saveCalepinageZoom() {
     try {
         localStorage.setItem(CALEPINAGE_ZOOM_STORAGE_KEY, String(calepinageZoom));
+    } catch (e) {}
+}
+function loadCalepinageJoints() {
+    try {
+        const v = localStorage.getItem(CALEPINAGE_JOINTS_STORAGE_KEY);
+        showJoints = v === "1" || v === "true";
+    } catch (e) {}
+}
+function saveCalepinageJoints() {
+    try {
+        localStorage.setItem(CALEPINAGE_JOINTS_STORAGE_KEY, showJoints ? "1" : "0");
     } catch (e) {}
 }
 
@@ -117,6 +130,7 @@ function applyConfigToUrl() {
 
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
+    loadCalepinageJoints();
     const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
@@ -295,6 +309,8 @@ function openOptionsDrawer() {
             overlay.setAttribute("aria-hidden", "false");
         }
         if (slider) slider.value = String(calepinageZoom);
+        const jointsCheckbox = document.getElementById("options-show-joints");
+        if (jointsCheckbox) jointsCheckbox.checked = showJoints;
         updateOptionsDrawerZoomVisibility();
     }
 }
@@ -312,10 +328,21 @@ function closeOptionsDrawer() {
     }
 }
 
+function applyShowJointsToGrid() {
+    const gridContainer = document.getElementById("grid-container");
+    if (gridContainer) {
+        gridContainer.classList.toggle("show-joints", showJoints);
+    }
+    document.querySelectorAll(".mockup-tapis").forEach((el) => {
+        el.classList.toggle("show-joints", showJoints);
+    });
+}
+
 function setupOptionsDrawer() {
     const trigger = document.getElementById("btn-options-drawer");
     const overlay = document.getElementById("options-drawer-overlay");
     const slider = document.getElementById("options-zoom-slider");
+    const jointsCheckbox = document.getElementById("options-show-joints");
     if (trigger) trigger.addEventListener("click", openOptionsDrawer);
     if (overlay) overlay.addEventListener("click", closeOptionsDrawer);
     if (slider) {
@@ -325,6 +352,14 @@ function setupOptionsDrawer() {
         slider.addEventListener("input", () => {
             const v = parseInt(slider.value, 10);
             if (Number.isFinite(v)) setCalepinageZoom(v);
+        });
+    }
+    if (jointsCheckbox) {
+        jointsCheckbox.checked = showJoints;
+        jointsCheckbox.addEventListener("change", () => {
+            showJoints = jointsCheckbox.checked;
+            saveCalepinageJoints();
+            applyShowJointsToGrid();
         });
     }
 }
@@ -1079,6 +1114,7 @@ function renderCalepinageOnly(overrideLayout) {
         renderActiveColorPills();
         updateMoldingWarning();
     }
+    applyShowJointsToGrid();
     if (typeof requestIdleCallback !== "undefined") {
         requestIdleCallback(() => scanZones(), { timeout: 200 });
     } else {
@@ -1261,6 +1297,7 @@ function applyCurrentColors() {
 // Preview-first : calepinage seul, pastilles, sélecteur de layout (uniquement les variantes du JSON, plus de ROOT)
 function renderInterface() {
     loadCalepinageZoom();
+    loadCalepinageJoints();
     const variants = getVariantsList();
     if (!variants.length) {
         const gridContainer = document.getElementById("grid-container");
@@ -1533,7 +1570,7 @@ function renderMockupSlides() {
         // Plus de gridRows dans le mockup : on génère assez de lignes pour couvrir la hauteur (ratio scene)
         const maxRows = Math.ceil(((mockup.sceneHeight || 1080) / (mockup.sceneWidth || 720)) * cols) + 2;
         const rows = maxRows;
-        tapisEl.className = "mockup-tapis grid-view tapis";
+        tapisEl.className = "mockup-tapis grid-view tapis" + (showJoints ? " show-joints" : "");
         tapisEl.style.display = "grid";
         tapisEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
         tapisEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
