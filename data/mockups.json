@@ -5,7 +5,7 @@
     "overlayPath": "assets/mockups/Sol-1.png",
     "sceneWidth": 720,
     "sceneHeight": 1080,
-    "gridCols": 15,
+    "gridCols": 14,
     "perspective": true,
     "perspectiveMode": "simple",
     "rotateX": 80,
