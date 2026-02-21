@@ -1236,12 +1236,12 @@ function renderPalette(colors) {
             };
             if (isDesktopSidebar && tooltipEl) {
                 div.addEventListener("mouseenter", function () {
+                    const rect = this.getBoundingClientRect();
                     const nom = this.getAttribute("data-nom") || "";
                     const code = this.getAttribute("data-code") || "";
                     const pantone = this.getAttribute("data-pantone") || "";
                     const ral = this.getAttribute("data-ral") || "";
                     tooltipEl.innerHTML = `<span class="tooltip-name">${nom}</span><span class="tooltip-code">Code: ${code}</span>${pantone ? `<span class="tooltip-pantone">Pantone: ${pantone}</span>` : ""}${ral ? `<span class="tooltip-ral">RAL: ${ral}</span>` : ""}`;
-                    const rect = this.getBoundingClientRect();
                     tooltipEl.style.left = `${rect.left}px`;
                     tooltipEl.style.top = `${rect.top - 8}px`;
                     tooltipEl.style.transform = "translateY(-100%)";
@@ -1249,14 +1249,14 @@ function renderPalette(colors) {
                     if (activeZone) {
                         livePreviewRestoreHex = currentColors[activeZone] ? normalizeHex(currentColors[activeZone]) : null;
                         const hoverHex = (this.getAttribute("data-hex") || "").startsWith("#") ? this.getAttribute("data-hex") : "#" + (this.getAttribute("data-hex") || "");
-                        document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`).forEach(p => { p.style.fill = hoverHex; });
+                        document.documentElement.style.setProperty(`--color-${activeZone}`, hoverHex);
                     }
                 });
                 div.addEventListener("mouseleave", function () {
                     tooltipEl.classList.remove("visible");
                     if (activeZone && livePreviewRestoreHex != null) {
                         const restoreHex = livePreviewRestoreHex.startsWith("#") ? livePreviewRestoreHex : "#" + livePreviewRestoreHex;
-                        document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`).forEach(p => { p.style.fill = restoreHex; });
+                        document.documentElement.style.setProperty(`--color-${activeZone}`, restoreHex);
                         livePreviewRestoreHex = null;
                     }
                 });
@@ -1279,8 +1279,6 @@ function applyColorToActiveZone(hexColor) {
     currentColors[activeZone] = hexColor;
     updatePaletteHighlight();
     if (currentCollection) applyConfigToUrl();
-    const fillables = document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`);
-    fillables.forEach(p => { p.style.fill = hexColor; });
     livePreviewRestoreHex = null; // après validation, plus de restauration au survol
     renderActiveColorPills();
     updateSidebarRecap();
@@ -1290,7 +1288,6 @@ function applyColorToActiveZone(hexColor) {
 function applyCurrentColors() {
     for (const [zone, color] of Object.entries(currentColors)) {
         document.documentElement.style.setProperty(`--color-${zone}`, color);
-        document.querySelectorAll(`.shared-zone-${zone} .zone-path`).forEach(p => { p.style.fill = color; });
     }
 }
 
