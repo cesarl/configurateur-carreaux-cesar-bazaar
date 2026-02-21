@@ -678,13 +678,28 @@ function prepareSVG(svgString, rotation = 0, varianteName = "VAR1", isTapisMode 
         });
     }
 
-    // Rotation au niveau du wrapper. En tapis : overflow hidden pour clipper le SVG "slice" et garder des cellules nettes.
-    // Avec rotation : léger scale(1.02) pour éviter les espaces visuels entre cellules (rendu subpixel / bords).
-    const overflow = isTapisMode ? "hidden" : "visible";
-    const scaleFix = isTapisMode && rotation !== 0 ? " scale(1.02)" : "";
-    const rotStyle = `transform: rotate(${rotation}deg)${scaleFix};overflow:${overflow};transform-origin:center center;`;
+    // Rotation : appliquée dans le SVG (évite décalages sous perspective CSS 3D) plutôt que sur le wrapper
+    if (rotation !== 0) {
+        const vb = svg.getAttribute("viewBox");
+        let cx = 283.465, cy = 283.465; // défaut pour viewBox 0 0 566.93 566.93
+        if (vb) {
+            const p = vb.trim().split(/\s+/);
+            if (p.length >= 4) {
+                const w = parseFloat(p[2]), h = parseFloat(p[3]);
+                cx = parseFloat(p[0]) + w / 2;
+                cy = parseFloat(p[1]) + h / 2;
+            }
+        }
+        const rotG = doc.createElementNS("http://www.w3.org/2000/svg", "g");
+        rotG.setAttribute("transform", `rotate(${rotation},${cx},${cy})`);
+        while (svg.firstChild) rotG.appendChild(svg.firstChild);
+        svg.appendChild(rotG);
+    }
 
-    // Donne un index pour debug si besoin
+    // Wrapper sans rotation (overflow hidden en tapis pour clipper le SVG "slice")
+    const overflow = isTapisMode ? "hidden" : "visible";
+    const rotStyle = `overflow:${overflow};`;
+
     return `<div class="tile-wrapper" style="${rotStyle}">${svg.outerHTML}</div>`;
 }
 
