@@ -16,7 +16,9 @@ const CALEPINAGE_ZOOM_MIN = 2;     // Zoom max = 2×2 carreaux
 const CALEPINAGE_ZOOM_MAX = 20;    // Zoom min = 20×20 carreaux
 const CALEPINAGE_ZOOM_DEFAULT = 5;
 const CALEPINAGE_ZOOM_STORAGE_KEY = "cesar-bazaar-calepinage-zoom";
+const CALEPINAGE_JOINTS_STORAGE_KEY = "cesar-bazaar-calepinage-joints";
 let calepinageZoom = CALEPINAGE_ZOOM_DEFAULT;  // Grille = calepinageZoom × calepinageZoom (persisté au changement)
+let showJoints = false;  // Afficher les joints (1px trait gris pointillé autour des carreaux)
 let gridCols = CALEPINAGE_ZOOM_DEFAULT;
 let gridRows = CALEPINAGE_ZOOM_DEFAULT;
 
@@ -34,6 +36,17 @@ function loadCalepinageZoom() {
 function saveCalepinageZoom() {
     try {
         localStorage.setItem(CALEPINAGE_ZOOM_STORAGE_KEY, String(calepinageZoom));
+    } catch (e) {}
+}
+function loadCalepinageJoints() {
+    try {
+        const v = localStorage.getItem(CALEPINAGE_JOINTS_STORAGE_KEY);
+        showJoints = v === "1" || v === "true";
+    } catch (e) {}
+}
+function saveCalepinageJoints() {
+    try {
+        localStorage.setItem(CALEPINAGE_JOINTS_STORAGE_KEY, showJoints ? "1" : "0");
     } catch (e) {}
 }
 
@@ -117,6 +130,7 @@ function applyConfigToUrl() {
 
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
+    loadCalepinageJoints();
     const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
@@ -295,6 +309,8 @@ function openOptionsDrawer() {
             overlay.setAttribute("aria-hidden", "false");
         }
         if (slider) slider.value = String(calepinageZoom);
+        const jointsCheckbox = document.getElementById("options-show-joints");
+        if (jointsCheckbox) jointsCheckbox.checked = showJoints;
         updateOptionsDrawerZoomVisibility();
     }
 }
@@ -312,10 +328,21 @@ function closeOptionsDrawer() {
     }
 }
 
+function applyShowJointsToGrid() {
+    const gridContainer = document.getElementById("grid-container");
+    if (gridContainer) {
+        gridContainer.classList.toggle("show-joints", showJoints);
+    }
+    document.querySelectorAll(".mockup-tapis").forEach((el) => {
+        el.classList.toggle("show-joints", showJoints);
+    });
+}
+
 function setupOptionsDrawer() {
     const trigger = document.getElementById("btn-options-drawer");
     const overlay = document.getElementById("options-drawer-overlay");
     const slider = document.getElementById("options-zoom-slider");
+    const jointsCheckbox = document.getElementById("options-show-joints");
     if (trigger) trigger.addEventListener("click", openOptionsDrawer);
     if (overlay) overlay.addEventListener("click", closeOptionsDrawer);
     if (slider) {
@@ -325,6 +352,14 @@ function setupOptionsDrawer() {
         slider.addEventListener("input", () => {
             const v = parseInt(slider.value, 10);
             if (Number.isFinite(v)) setCalepinageZoom(v);
+        });
+    }
+    if (jointsCheckbox) {
+        jointsCheckbox.checked = showJoints;
+        jointsCheckbox.addEventListener("change", () => {
+            showJoints = jointsCheckbox.checked;
+            saveCalepinageJoints();
+            applyShowJointsToGrid();
         });
     }
 }
@@ -1079,6 +1114,7 @@ function renderCalepinageOnly(overrideLayout) {
         renderActiveColorPills();
         updateMoldingWarning();
     }
+    applyShowJointsToGrid();
     if (typeof requestIdleCallback !== "undefined") {
         requestIdleCallback(() => scanZones(), { timeout: 200 });
     } else {
@@ -1200,12 +1236,12 @@ function renderPalette(colors) {
             };
             if (isDesktopSidebar && tooltipEl) {
                 div.addEventListener("mouseenter", function () {
+                    const rect = this.getBoundingClientRect();
                     const nom = this.getAttribute("data-nom") || "";
                     const code = this.getAttribute("data-code") || "";
                     const pantone = this.getAttribute("data-pantone") || "";
                     const ral = this.getAttribute("data-ral") || "";
                     tooltipEl.innerHTML = `<span class="tooltip-name">${nom}</span><span class="tooltip-code">Code: ${code}</span>${pantone ? `<span class="tooltip-pantone">Pantone: ${pantone}</span>` : ""}${ral ? `<span class="tooltip-ral">RAL: ${ral}</span>` : ""}`;
-                    const rect = this.getBoundingClientRect();
                     tooltipEl.style.left = `${rect.left}px`;
                     tooltipEl.style.top = `${rect.top - 8}px`;
                     tooltipEl.style.transform = "translateY(-100%)";
@@ -1213,14 +1249,14 @@ function renderPalette(colors) {
                     if (activeZone) {
                         livePreviewRestoreHex = currentColors[activeZone] ? normalizeHex(currentColors[activeZone]) : null;
                         const hoverHex = (this.getAttribute("data-hex") || "").startsWith("#") ? this.getAttribute("data-hex") : "#" + (this.getAttribute("data-hex") || "");
-                        document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`).forEach(p => { p.style.fill = hoverHex; });
+                        document.documentElement.style.setProperty(`--color-${activeZone}`, hoverHex);
                     }
                 });
                 div.addEventListener("mouseleave", function () {
                     tooltipEl.classList.remove("visible");
                     if (activeZone && livePreviewRestoreHex != null) {
                         const restoreHex = livePreviewRestoreHex.startsWith("#") ? livePreviewRestoreHex : "#" + livePreviewRestoreHex;
-                        document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`).forEach(p => { p.style.fill = restoreHex; });
+                        document.documentElement.style.setProperty(`--color-${activeZone}`, restoreHex);
                         livePreviewRestoreHex = null;
                     }
                 });
@@ -1243,8 +1279,6 @@ function applyColorToActiveZone(hexColor) {
     currentColors[activeZone] = hexColor;
     updatePaletteHighlight();
     if (currentCollection) applyConfigToUrl();
-    const fillables = document.querySelectorAll(`.shared-zone-${activeZone} .zone-path`);
-    fillables.forEach(p => { p.style.fill = hexColor; });
     livePreviewRestoreHex = null; // après validation, plus de restauration au survol
     renderActiveColorPills();
     updateSidebarRecap();
@@ -1254,13 +1288,13 @@ function applyColorToActiveZone(hexColor) {
 function applyCurrentColors() {
     for (const [zone, color] of Object.entries(currentColors)) {
         document.documentElement.style.setProperty(`--color-${zone}`, color);
-        document.querySelectorAll(`.shared-zone-${zone} .zone-path`).forEach(p => { p.style.fill = color; });
     }
 }
 
 // Preview-first : calepinage seul, pastilles, sélecteur de layout (uniquement les variantes du JSON, plus de ROOT)
 function renderInterface() {
     loadCalepinageZoom();
+    loadCalepinageJoints();
     const variants = getVariantsList();
     if (!variants.length) {
         const gridContainer = document.getElementById("grid-container");
@@ -1533,7 +1567,7 @@ function renderMockupSlides() {
         // Plus de gridRows dans le mockup : on génère assez de lignes pour couvrir la hauteur (ratio scene)
         const maxRows = Math.ceil(((mockup.sceneHeight || 1080) / (mockup.sceneWidth || 720)) * cols) + 2;
         const rows = maxRows;
-        tapisEl.className = "mockup-tapis grid-view tapis";
+        tapisEl.className = "mockup-tapis grid-view tapis" + (showJoints ? " show-joints" : "");
         tapisEl.style.display = "grid";
         tapisEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
         tapisEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
@@ -1599,7 +1633,9 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
         delete scene.dataset.perspectiveMode;
         scene.style.perspective = "";
         scene.style.perspectiveOrigin = "";
+        scene.style.transformStyle = "";
     }
+    tapisEl.style.transformStyle = "";
     let sceneW = scene ? scene.offsetWidth : 0;
     let sceneH = scene ? scene.offsetHeight : 0;
     const sceneRaw = { w: scene ? scene.offsetWidth : null, h: scene ? scene.offsetHeight : null };
@@ -1655,26 +1691,44 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
 
     // Mode simple : perspective CSS + rotateX/rotateY + scaleX (sans matrix3d, moins de bugs visuels)
+    // Grille en pixels entiers pour éviter chevauchements et variations au resize (1fr → tailles fractionnaires).
     if (useSimplePerspective) {
         const rotateX = mockup.rotateX ?? 25;
         const rotateY = mockup.rotateY ?? 0;
         const widthScale = mockup.widthScale ?? 1;
         const perspectivePx = mockup.perspectivePx ?? 1200;
+        const gridCols = Math.max(1, mockup.gridCols || 8);
+        const s = Math.max(1, Math.floor(sceneW / gridCols));
+        const cols = gridCols;
+        const rows = Math.max(1, Math.floor(sceneH / s));
+        const w = cols * s;
+        const h = rows * s;
         if (scene) {
             scene.dataset.perspectiveMode = "simple";
             scene.style.perspective = String(perspectivePx) + "px";
             scene.style.perspectiveOrigin = "center center";
+            scene.style.transformStyle = "preserve-3d";
         }
         tapisEl.style.transformOrigin = "center bottom";
+        tapisEl.style.transformStyle = "preserve-3d";
         tapisEl.style.transform = "rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg) scaleX(" + widthScale + ")";
-        tapisEl.style.width = "";
-        tapisEl.style.height = "";
+        tapisEl.style.width = w + "px";
+        tapisEl.style.height = h + "px";
+        tapisEl.style.left = "0";
+        tapisEl.style.top = "0";
+        tapisEl.style.right = "auto";
+        tapisEl.style.bottom = "auto";
+        tapisEl.style.gridTemplateColumns = "repeat(" + cols + ", " + s + "px)";
+        tapisEl.style.gridTemplateRows = "repeat(" + rows + ", " + s + "px)";
         tapisEl.style.display = "grid";
         const inner = tapisEl.querySelector(".mockup-tapis-inner");
         if (inner) {
             while (inner.firstChild) tapisEl.appendChild(inner.firstChild);
             inner.remove();
         }
+        tapisEl.querySelectorAll(".tile-wrapper").forEach((el, i) => {
+            el.style.display = i < cols * rows ? "" : "none";
+        });
         return;
     }
 

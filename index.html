@@ -48,7 +48,7 @@
                         <div class="active-colors-row-wrap">
                             <div class="active-colors-row" id="active-colors-row" aria-label="Couleurs des zones du motif"></div>
                             <button type="button" id="btn-reset-collection" class="reset-button reset-button-icon" title="Réinitialiser les couleurs (défaut SVG)" aria-label="Réinitialiser les couleurs de la collection">↺</button>
-                            <button type="button" id="btn-options-drawer" class="options-drawer-trigger" aria-label="Options grille et zoom">Grille & zoom</button>
+                            <button type="button" id="btn-options-drawer" class="options-drawer-trigger" aria-label="Options">Options</button>
                         </div>
                         <div class="preview-controls-extras" id="preview-controls-extras">
                             <div class="layout-selector" id="layout-selector" aria-label="Disposition du calepinage"></div>
@@ -100,11 +100,17 @@
             <div id="options-drawer-overlay" class="options-drawer-overlay" aria-hidden="true"></div>
             <div id="options-drawer" class="options-drawer" aria-hidden="true">
                 <div class="options-drawer-inner">
-                    <h3 class="options-drawer-title">Grille & zoom</h3>
+                    <h3 class="options-drawer-title">Options</h3>
                     <div class="options-drawer-layout" id="options-drawer-layout"></div>
                     <div class="options-drawer-zoom" id="options-drawer-zoom">
                         <label for="options-zoom-slider">Nombre de carreaux</label>
                         <input type="range" id="options-zoom-slider" min="2" max="20" value="5" aria-label="Zoom grille" />
+                    </div>
+                    <div class="options-drawer-joints">
+                        <label class="options-drawer-checkbox">
+                            <input type="checkbox" id="options-show-joints" aria-label="Afficher les joints" />
+                            <span>Afficher les joints</span>
+                        </label>
                     </div>
                 </div>
             </div>

@@ -36,15 +36,16 @@
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466279795-9GNDC58VDDTWD33774A1/fleurs-par-alex-roda-carreaux-de-ciment-634622.jpg?format=500w"
   },
 {
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+    "id": "sunrise",
+    "nom": "Sunrise par Laurie Lecou",
+    "description": "Une nouvelle pepitte.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1"],
     "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "defaut_layout": "damier_2",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/sunrise-laurie-lecou-tournesol",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/82fabab0-fc80-4feb-a456-8cb5851c4f37/CESARBAZAAR-FALL25-075-ezgif.com-resize.webp?format=500w"
   },
 {
     "id": "Test",
