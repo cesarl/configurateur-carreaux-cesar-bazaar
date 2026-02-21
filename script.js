@@ -1633,7 +1633,9 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
         delete scene.dataset.perspectiveMode;
         scene.style.perspective = "";
         scene.style.perspectiveOrigin = "";
+        scene.style.transformStyle = "";
     }
+    tapisEl.style.transformStyle = "";
     let sceneW = scene ? scene.offsetWidth : 0;
     let sceneH = scene ? scene.offsetHeight : 0;
     const sceneRaw = { w: scene ? scene.offsetWidth : null, h: scene ? scene.offsetHeight : null };
@@ -1689,26 +1691,44 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
 
     // Mode simple : perspective CSS + rotateX/rotateY + scaleX (sans matrix3d, moins de bugs visuels)
+    // Grille en pixels entiers pour éviter chevauchements et variations au resize (1fr → tailles fractionnaires).
     if (useSimplePerspective) {
         const rotateX = mockup.rotateX ?? 25;
         const rotateY = mockup.rotateY ?? 0;
         const widthScale = mockup.widthScale ?? 1;
         const perspectivePx = mockup.perspectivePx ?? 1200;
+        const gridCols = Math.max(1, mockup.gridCols || 8);
+        const s = Math.max(1, Math.floor(sceneW / gridCols));
+        const cols = gridCols;
+        const rows = Math.max(1, Math.floor(sceneH / s));
+        const w = cols * s;
+        const h = rows * s;
         if (scene) {
             scene.dataset.perspectiveMode = "simple";
             scene.style.perspective = String(perspectivePx) + "px";
             scene.style.perspectiveOrigin = "center center";
+            scene.style.transformStyle = "preserve-3d";
         }
         tapisEl.style.transformOrigin = "center bottom";
+        tapisEl.style.transformStyle = "preserve-3d";
         tapisEl.style.transform = "rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg) scaleX(" + widthScale + ")";
-        tapisEl.style.width = "";
-        tapisEl.style.height = "";
+        tapisEl.style.width = w + "px";
+        tapisEl.style.height = h + "px";
+        tapisEl.style.left = "0";
+        tapisEl.style.top = "0";
+        tapisEl.style.right = "auto";
+        tapisEl.style.bottom = "auto";
+        tapisEl.style.gridTemplateColumns = "repeat(" + cols + ", " + s + "px)";
+        tapisEl.style.gridTemplateRows = "repeat(" + rows + ", " + s + "px)";
         tapisEl.style.display = "grid";
         const inner = tapisEl.querySelector(".mockup-tapis-inner");
         if (inner) {
             while (inner.firstChild) tapisEl.appendChild(inner.firstChild);
             inner.remove();
         }
+        tapisEl.querySelectorAll(".tile-wrapper").forEach((el, i) => {
+            el.style.display = i < cols * rows ? "" : "none";
+        });
         return;
     }
 

@@ -861,6 +861,12 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     opacity: 1;
     box-sizing: border-box;
 }
+/* En perspective : supprimer le chevauchement des tuiles pour éviter qu’elles se superposent visuellement (z-fighting). */
+.mockup-scene[data-perspective-mode="simple"] .mockup-tapis .tile-wrapper {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
 .mockup-overlay {
     position: absolute;
     inset: 0;
