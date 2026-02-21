@@ -1,6 +1,6 @@
 # Mockups en situation — Configuration `mockups.json`
 
-Ce fichier décrit comment configurer les mockups (vues en situation : cuisine, salle de bain, etc.) et comment fonctionne la déformation en perspective.
+Ce fichier décrit comment configurer les mockups (vues en situation : cuisine, salle de bain, etc.), comment éditer `data/mockups.json` et comment fonctionne la déformation en perspective.
 
 ---
 
@@ -27,11 +27,45 @@ Les carreaux sont donc visibles dans la zone transparente de l’image.
 | `gridCols`     | number  | oui         | Nombre de carreaux en largeur dans la grille. |
 | `corners`      | array   | optionnel   | 4 points `[x, y]` en **pourcentage (0–100)** (voir ci‑dessous). Ignoré si `matrix3d` est présent. |
 | `perspective`  | boolean | non         | Si `false`, la grille s’affiche sans déformation (pleine zone). |
-| `matrix3d`     | array   | optionnel   | **16 nombres** (ordre column-major CSS) appliqués tels quels en `transform: matrix3d(...)`. Prioritaire sur `corners`. |
+| `perspectiveMode` | string  | optionnel   | `"simple"` = CSS perspective + rotateX (recommandé). `"matrix"` ou absent = matrix3d/corners. |
+| `rotateX`         | number  | optionnel   | (Mode simple) Angle de basculement avant/arrière en degrés. Défaut : 25. |
+| `rotateY`         | number  | optionnel   | (Mode simple) Rotation gauche/droite en degrés (ex. -15 à 15). Défaut : 0. |
+| `widthScale`      | number  | optionnel   | (Mode simple) Largeur du sol en bas (1 = normal, 1.2 = 20 % plus large, 0.8 = plus étroit). Défaut : 1. |
+| `perspectivePx`   | number  | optionnel   | (Mode simple) Valeur CSS `perspective` en px (800–1500). Défaut : 1200. |
+| `matrix3d`        | array   | optionnel   | (Mode matrix) **16 nombres** (column-major CSS). Prioritaire sur `corners`. |
 
 ---
 
-## Matrice 3D directe (`matrix3d`)
+## Comment éditer `mockups.json`
+
+1. **Ouvrir** le fichier `data/mockups.json` dans un éditeur de texte.
+2. **Vérifier le format JSON** : chaque mockup est un objet entre `{` et `}`, séparés par des virgules. Pas de virgule après le dernier objet.
+3. **Modifier les propriétés** listées ci-dessous selon tes besoins.
+4. **Sauvegarder** — le configurateur recharge automatiquement (ou rafraîchir la page).
+
+---
+
+## Mode perspective simple (recommandé)
+
+Le mode `perspectiveMode: "simple"` utilise `perspective` CSS + `rotateX` pour un effet de sol en perspective. Il évite les bugs visuels (fentes, artefacts) liés à la matrix3d sur une grille SVG.
+
+- **`rotateX`** : bascule avant/arrière en degrés (20 = léger, 28 = moyen, 35 = marqué). Défaut : 25.
+- **`rotateY`** : rotation gauche/droite en degrés (ex. -15 à 15). Défaut : 0.
+- **`widthScale`** : largeur du sol en bas (1 = normal, 1.2 = plus large, 0.8 = plus étroit). Défaut : 1.
+- **`perspectivePx`** : intensité (800 = fort, 1100 = moyen, 1500 = doux). Défaut : 1200.
+
+```json
+"perspective": true,
+"perspectiveMode": "simple",
+"rotateX": 28,
+"rotateY": 0,
+"widthScale": 1,
+"perspectivePx": 1100
+```
+
+---
+
+## Matrice 3D directe (`matrix3d`) — mode matrix
 
 Si tu préfères fournir la transformation toi-même (ex. export depuis un outil, ou pour éviter les soucis de rendu avec les coins), tu peux mettre un tableau **`matrix3d`** de **16 nombres** dans l’ordre attendu par CSS (column-major) :
 

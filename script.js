@@ -1579,6 +1579,12 @@ function isIdentityQuad(corners01) {
 
 function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     const scene = tapisEl.closest(".mockup-scene");
+    // Réinitialiser la perspective CSS sur la scène (au cas où on bascule matrix → simple ou inverse)
+    if (scene) {
+        delete scene.dataset.perspectiveMode;
+        scene.style.perspective = "";
+        scene.style.perspectiveOrigin = "";
+    }
     let sceneW = scene ? scene.offsetWidth : 0;
     let sceneH = scene ? scene.offsetHeight : 0;
     const sceneRaw = { w: scene ? scene.offsetWidth : null, h: scene ? scene.offsetHeight : null };
@@ -1589,11 +1595,13 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     }
     const corners = mockup.corners;
     const perspectiveDisabled = mockup.perspective === false;
+    const perspectiveMode = mockup.perspectiveMode || "matrix";
     const hasMatrix3d = Array.isArray(mockup.matrix3d) && mockup.matrix3d.length === 16 && mockup.matrix3d.every(Number.isFinite);
     const corners01 = corners && corners.length === 4 ? corners.map(([x, y]) => [x / 100, y / 100]) : [];
     const identityQuad = isIdentityQuad(corners01);
     const hasCorners = corners && corners.length === 4 && !identityQuad;
-    const noPerspective = perspectiveDisabled || (!hasMatrix3d && !hasCorners);
+    const useSimplePerspective = perspectiveMode === "simple" && !perspectiveDisabled;
+    const noPerspective = perspectiveDisabled || (!useSimplePerspective && !hasMatrix3d && !hasCorners);
 
     tapisEl.style.transformOrigin = "0 0";
     tapisEl.dataset.mockupSceneW = String(sceneW);
@@ -1630,6 +1638,30 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
 
     tapisEl.removeAttribute("data-no-perspective");
     tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
+
+    // Mode simple : perspective CSS + rotateX/rotateY + scaleX (sans matrix3d, moins de bugs visuels)
+    if (useSimplePerspective) {
+        const rotateX = mockup.rotateX ?? 25;
+        const rotateY = mockup.rotateY ?? 0;
+        const widthScale = mockup.widthScale ?? 1;
+        const perspectivePx = mockup.perspectivePx ?? 1200;
+        if (scene) {
+            scene.dataset.perspectiveMode = "simple";
+            scene.style.perspective = String(perspectivePx) + "px";
+            scene.style.perspectiveOrigin = "center center";
+        }
+        tapisEl.style.transformOrigin = "center bottom";
+        tapisEl.style.transform = "rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg) scaleX(" + widthScale + ")";
+        tapisEl.style.width = "";
+        tapisEl.style.height = "";
+        tapisEl.style.display = "grid";
+        const inner = tapisEl.querySelector(".mockup-tapis-inner");
+        if (inner) {
+            while (inner.firstChild) tapisEl.appendChild(inner.firstChild);
+            inner.remove();
+        }
+        return;
+    }
 
     const refW = mockup.sceneWidth || 720;
     const refH = mockup.sceneHeight || 1080;
