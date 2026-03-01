@@ -2000,14 +2000,37 @@ function setupCarousel() {
     if (prevBtn) prevBtn.onclick = () => goTo(carouselIndex - 1);
     if (nextBtn) nextBtn.onclick = () => goTo(carouselIndex + 1);
 
+    const container = track.closest(".carousel-track-container") || track.parentElement;
+    let touchId = null;
     let touchStartX = 0;
-    let touchEndX = 0;
-    track.addEventListener("touchstart", (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-    track.addEventListener("touchend", (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        const diff = touchStartX - touchEndX;
-        if (Math.abs(diff) > 50) goTo(diff > 0 ? carouselIndex + 1 : carouselIndex - 1);
+    const SWIPE_THRESHOLD = 50;
+
+    track.addEventListener("touchstart", (e) => {
+        if (e.changedTouches.length && touchId === null) {
+            const t = e.changedTouches[0];
+            touchId = t.identifier;
+            touchStartX = t.screenX;
+        }
     }, { passive: true });
+
+    function handleTouchEnd(e) {
+        if (touchId === null || !e.changedTouches.length) return;
+        const t = Array.from(e.changedTouches).find((touch) => touch.identifier === touchId);
+        if (!t) return;
+        const touchEndX = t.screenX;
+        touchId = null;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > SWIPE_THRESHOLD) {
+            goTo(diff > 0 ? carouselIndex + 1 : carouselIndex - 1);
+        }
+    }
+
+    track.addEventListener("touchend", handleTouchEnd, { passive: true });
+    track.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    if (container) {
+        container.addEventListener("touchend", handleTouchEnd, { passive: true, capture: true });
+        container.addEventListener("touchcancel", handleTouchEnd, { passive: true, capture: true });
+    }
 
     document.addEventListener("keydown", (e) => {
         if (document.getElementById("view-workspace").style.display !== "flex") return;
