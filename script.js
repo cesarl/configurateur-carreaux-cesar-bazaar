@@ -443,6 +443,115 @@ function restoreCarouselSlide(track, slides, index) {
     }
 }
 
+// ——— Export SVG vectoriel (pour architectes / 3D) ———
+const EXPORT_SVG_TILE_SIZE = 566.93; // viewBox unit, matches source SVGs
+
+/**
+ * Construit le contenu SVG d'une tuile pour l'export : couleurs résolues (hex), rotation appliquée, ids préfixés.
+ * Retourne le contenu interne du <svg> (à placer dans un <g transform="translate(...)">).
+ */
+function buildExportTileFragment(svgString, rotation, row, col) {
+    if (!svgString) return "";
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svg = doc.querySelector("svg");
+    if (!svg) return "";
+
+    const fillableSelector = "path, rect, circle, ellipse, polygon";
+    svg.querySelectorAll('g[id^="zone-"]').forEach(g => {
+        const zoneId = g.id;
+        const hex = normalizeHex(currentColors[zoneId]);
+        const fill = hex || (g.querySelector(fillableSelector) && g.querySelector(fillableSelector).getAttribute("fill")) || "#888";
+        g.querySelectorAll(fillableSelector).forEach(el => el.setAttribute("fill", fill));
+    });
+
+    const prefix = `tile-${row}-${col}-`;
+    svg.querySelectorAll("[id]").forEach(el => { el.id = prefix + (el.id || ""); });
+
+    if (rotation !== 0) {
+        const vb = svg.getAttribute("viewBox");
+        let cx = EXPORT_SVG_TILE_SIZE / 2, cy = EXPORT_SVG_TILE_SIZE / 2;
+        if (vb) {
+            const p = vb.trim().split(/\s+/);
+            if (p.length >= 4) {
+                const w = parseFloat(p[2]), h = parseFloat(p[3]);
+                cx = parseFloat(p[0]) + w / 2;
+                cy = parseFloat(p[1]) + h / 2;
+            }
+        }
+        const rotG = doc.createElementNS("http://www.w3.org/2000/svg", "g");
+        rotG.setAttribute("transform", `rotate(${rotation},${cx},${cy})`);
+        while (svg.firstChild) rotG.appendChild(svg.firstChild);
+        svg.appendChild(rotG);
+    }
+
+    return Array.from(svg.childNodes).map(n => (n.outerHTML || n.textContent || "")).join("");
+}
+
+/**
+ * Génère un SVG complet (chaîne) avec toutes les tuiles du calepinage actuel,
+ * couleurs en hex, chaque tuile dans un groupe tile-row-col pour import 3D.
+ */
+function buildExportSVG() {
+    const variants = getVariantsList();
+    if (!variants.length) return null;
+
+    const layoutToUse = currentLayout;
+    const cols = gridCols || calepinageZoom;
+    const rows = layoutToUse === "solo" ? 1 : (gridRows || cols);
+    const calepinage = calepinagesData.find(c => c.id === layoutToUse);
+
+    const groups = [];
+    if (layoutToUse === "solo") {
+        const svgString = svgCache[variants[0]];
+        const content = buildExportTileFragment(svgString, 0, 0, 0);
+        groups.push(`<g id="tile-0-0" transform="translate(0,0)">${content}</g>`);
+    } else {
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                let variantName, rotation;
+                if (calepinage) {
+                    const spec = getCellSpec(calepinage, row, col, variants);
+                    variantName = spec.variantName;
+                    rotation = spec.rotation;
+                } else {
+                    variantName = variants[(row * cols + col) % variants.length];
+                    rotation = [0, 90, 180, 270][Math.floor(Math.random() * 4)];
+                }
+                const svgString = svgCache[variantName];
+                const content = buildExportTileFragment(svgString, rotation, row, col);
+                const tx = col * EXPORT_SVG_TILE_SIZE;
+                const ty = row * EXPORT_SVG_TILE_SIZE;
+                groups.push(`<g id="tile-${row}-${col}" transform="translate(${tx},${ty})">${content}</g>`);
+            }
+        }
+    }
+
+    const w = cols * EXPORT_SVG_TILE_SIZE;
+    const h = rows * EXPORT_SVG_TILE_SIZE;
+    const svgContent = groups.join("");
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
+${svgContent}
+</svg>`;
+}
+
+function downloadExportSVG() {
+    if (!currentCollection) return;
+    const svgString = buildExportSVG();
+    if (!svgString) {
+        if (typeof alert !== "undefined") alert("Impossible de générer le SVG (aucune variante chargée).");
+        return;
+    }
+    const baseName = getExportBaseName() + " carreaux César Bazaar - plan";
+    const blob = new Blob([svgString], { type: "image/svg+xml" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = baseName + ".svg";
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
     loadCalepinageJoints();
@@ -564,6 +673,12 @@ function setupNavigation() {
     if (btnExportPdf) {
         btnExportPdf.addEventListener("click", () => {
             exportPdf();
+        });
+    }
+    const btnExportSvg = document.getElementById("btn-export-svg");
+    if (btnExportSvg) {
+        btnExportSvg.addEventListener("click", () => {
+            downloadExportSVG();
         });
     }
 }
