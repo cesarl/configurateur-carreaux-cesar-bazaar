@@ -750,7 +750,15 @@ function setupNavigation() {
             if (cartLabelEl) cartLabelEl.textContent = "Ajout au panier...";
             window.parent.postMessage(data, "*");
             console.log("Message envoyé au parent :", data);
-            setTimeout(() => { if (cartLabelEl) cartLabelEl.textContent = labelOriginal; }, 1500);
+
+            const basketOverlay = document.getElementById("basket-loading-overlay");
+            if (basketOverlay) {
+                basketOverlay.setAttribute("aria-hidden", "false");
+            }
+            setTimeout(() => {
+                if (basketOverlay) basketOverlay.setAttribute("aria-hidden", "true");
+                if (cartLabelEl) cartLabelEl.textContent = labelOriginal;
+            }, 3000);
         });
     }
 }
