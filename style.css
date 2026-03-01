@@ -1046,6 +1046,11 @@ button { cursor: pointer; padding: 10px 20px; border-radius: 4px; font-weight: b
     color: #555;
     font-size: 0.95rem;
 }
+.collection-loading-subtext {
+    margin: 0.25rem 0 0;
+    color: #777;
+    font-size: 0.85rem;
+}
 @keyframes collection-loading-spin {
     to { transform: rotate(360deg); }
 }

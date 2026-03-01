@@ -32,7 +32,8 @@
                             <button type="button" id="btn-header-menu" class="header-menu-trigger" aria-label="Menu" aria-expanded="false" aria-haspopup="true">⋯</button>
                             <div id="header-menu-dropdown" class="header-menu-dropdown" role="menu" aria-hidden="true">
                                 <button type="button" id="btn-save" class="secondary" role="menuitem">Sauvegarder</button>
-                                <button type="button" id="btn-share" class="secondary" role="menuitem" title="Partager">Partager</button>
+                                <button type="button" id="btn-share" class="secondary" role="menuitem" title="Partager l'image">Partager</button>
+                                <button type="button" id="btn-export-pdf" class="secondary" role="menuitem" title="Télécharger un PDF avec la config et les vues">Télécharger le PDF</button>
                                 <button type="button" id="btn-cart" class="primary" role="menuitem">Ajouter au panier (min 3)</button>
                             </div>
                         </div>
@@ -127,6 +128,25 @@
         </div>
     </div>
 
+    <!-- Overlay génération PDF -->
+    <div id="pdf-loading-overlay" class="collection-loading-overlay pdf-loading-overlay" aria-hidden="true" aria-live="polite" style="display: none;">
+        <div class="collection-loading-content">
+            <div class="collection-loading-spinner" aria-hidden="true"></div>
+            <p class="collection-loading-text">Génération du PDF…</p>
+            <p class="collection-loading-subtext">Veuillez patienter, cela peut prendre quelques secondes.</p>
+        </div>
+    </div>
+
+    <!-- Overlay génération image (partage) -->
+    <div id="share-image-loading-overlay" class="collection-loading-overlay share-image-loading-overlay" aria-hidden="true" aria-live="polite" style="display: none;">
+        <div class="collection-loading-content">
+            <div class="collection-loading-spinner" aria-hidden="true"></div>
+            <p class="collection-loading-text">Génération de l'image, veuillez patienter.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     <script src="script.js"></script>
 </body>
 </html>

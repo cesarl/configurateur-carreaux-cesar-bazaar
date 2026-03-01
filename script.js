@@ -128,6 +128,321 @@ function applyConfigToUrl() {
     window.history.replaceState({ collection: currentCollection.id, colors: currentColors }, "", url);
 }
 
+/** Retourne l'URL de restauration (collection + couleurs) pour partage / PDF. */
+function getRestoreUrl() {
+    applyConfigToUrl();
+    return window.location.href;
+}
+
+/** True si la slide est une vue mockup en perspective 3D (html2canvas ne la restitue pas, on exclut de la capture). */
+function slideHas3DPerspective(slideEl) {
+    if (!slideEl || !slideEl.getAttribute) return false;
+    const idx = parseInt(slideEl.getAttribute("data-slide-index"), 10);
+    if (idx <= 0) return false;
+    const mockup = mockupsData[idx - 1];
+    return mockup && mockup.perspective === true;
+}
+
+/** Masque le bouton Partager quand la vue active est un mockup en perspective. */
+function updateShareButtonVisibility() {
+    const btn = document.getElementById("btn-share");
+    if (!btn) return;
+    const activeSlide = document.querySelector(".carousel-slide-active");
+    if (slideHas3DPerspective(activeSlide)) {
+        btn.style.display = "none";
+        btn.setAttribute("aria-hidden", "true");
+    } else {
+        btn.style.display = "";
+        btn.setAttribute("aria-hidden", "false");
+    }
+}
+
+/** Retourne un nom de fichier sûr pour export (collection). */
+function getExportBaseName() {
+    const name = (currentCollection && currentCollection.nom) ? currentCollection.nom : "configuration";
+    return name.replace(/[<>:"/\\|?*]/g, "").trim() || "configuration";
+}
+
+// ——— Export image (partage réseaux / WhatsApp) ———
+/** Capture la slide active du carrousel en image, ajoute un watermark "César Bazaar", partage ou télécharge. (Vue en perspective non supportée : partage du lien.) */
+async function shareCurrentViewAsImage() {
+    const activeSlide = document.querySelector(".carousel-slide-active");
+    const container = activeSlide ? activeSlide.closest(".carousel-track-container") : null;
+    if (!activeSlide || !container) {
+        fallbackShareLink();
+        return;
+    }
+    if (slideHas3DPerspective(activeSlide)) {
+        fallbackShareLink();
+        return;
+    }
+    if (typeof html2canvas === "undefined") {
+        fallbackShareLink();
+        return;
+    }
+    showShareImageLoadingOverlay();
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    try {
+        const canvas = await html2canvas(activeSlide, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#ffffff",
+            logging: false
+        });
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+            ctx.font = "14px sans-serif";
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "bottom";
+            const pad = 8;
+            ctx.fillText("César Bazaar", canvas.width - pad, canvas.height - pad);
+        }
+        const baseName = getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation";
+        canvas.toBlob(async (blob) => {
+            hideShareImageLoadingOverlay();
+            if (!blob) {
+                fallbackShareLink();
+                return;
+            }
+            const file = new File([blob], baseName + ".png", { type: "image/png" });
+            const urlToShare = getRestoreUrl();
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: baseName,
+                        text: currentCollection ? `Ma configuration ${currentCollection.nom}` : "",
+                        url: urlToShare,
+                        files: [file]
+                    });
+                } catch (e) {
+                    if (e.name !== "AbortError") downloadImageFromBlob(blob, baseName);
+                }
+            } else {
+                downloadImageFromBlob(blob, baseName);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(urlToShare).then(() => {}).catch(() => {});
+                }
+            }
+        }, "image/png");
+    } catch (e) {
+        hideShareImageLoadingOverlay();
+        console.warn("Capture partage échouée", e);
+        fallbackShareLink();
+    }
+}
+
+function showShareImageLoadingOverlay() {
+    const el = document.getElementById("share-image-loading-overlay");
+    if (el) {
+        el.style.display = "flex";
+        el.setAttribute("aria-hidden", "false");
+    }
+}
+
+function hideShareImageLoadingOverlay() {
+    const el = document.getElementById("share-image-loading-overlay");
+    if (el) {
+        el.style.display = "none";
+        el.setAttribute("aria-hidden", "true");
+    }
+}
+
+function fallbackShareLink() {
+    const url = getRestoreUrl();
+    if (navigator.share) {
+        navigator.share({
+            title: document.title,
+            url: url,
+            text: currentCollection ? `Collection ${currentCollection.nom}` : ""
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(url).then(() => {
+            if (typeof alert !== "undefined") alert("Lien copié dans le presse-papier.");
+        }).catch(() => {});
+    }
+}
+
+function downloadImageFromBlob(blob, baseName) {
+    const name = (baseName != null ? baseName : getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name + ".png";
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ——— Export PDF ———
+function showPdfLoadingOverlay() {
+    const el = document.getElementById("pdf-loading-overlay");
+    if (el) {
+        el.style.display = "flex";
+        el.setAttribute("aria-hidden", "false");
+    }
+}
+
+function hidePdfLoadingOverlay() {
+    const el = document.getElementById("pdf-loading-overlay");
+    if (el) {
+        el.style.display = "none";
+        el.setAttribute("aria-hidden", "true");
+    }
+}
+
+/** Génère et télécharge un PDF : page d'info (collection, couleurs, lien) + une page par vue (grille + mockups). */
+async function exportPdf() {
+    if (typeof html2canvas === "undefined" || typeof jspdf === "undefined") {
+        if (typeof alert !== "undefined") alert("Export PDF indisponible (bibliothèques non chargées).");
+        return;
+    }
+    if (!currentCollection) return;
+    const track = document.getElementById("carousel-track");
+    const slides = document.querySelectorAll(".carousel-slide");
+    if (!track || !slides.length) {
+        hidePdfLoadingOverlay();
+        return;
+    }
+    const savedIndex = carouselIndex;
+    showPdfLoadingOverlay();
+    applyConfigToUrl();
+    const restoreUrl = window.location.href;
+
+    try {
+        const { jsPDF } = jspdf;
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let y = margin;
+
+        const collectionTitle = (currentCollection.nom || "Configuration") + " carreaux de ciment César Bazaar";
+        const docTitle = collectionTitle + " - personnalisation";
+        if (typeof doc.setProperties === "function") {
+            doc.setProperties({ title: docTitle });
+        }
+
+        doc.setFontSize(18);
+        doc.text(collectionTitle, margin, y);
+        y += 10;
+        if (currentCollection.description) {
+            doc.setFontSize(10);
+            doc.text(currentCollection.description, margin, y);
+            y += 8;
+        }
+        doc.setFontSize(12);
+        doc.text("Couleurs choisies", margin, y);
+        y += 6;
+        const zoneIds = Object.keys(currentColors).sort();
+        const circleRadius = 1.5;
+        const circleX = margin + circleRadius + 0.5;
+        const textStartX = margin + circleRadius * 2 + 2;
+        zoneIds.forEach((zoneId) => {
+            if (y > pageH - margin - 10) {
+                doc.addPage();
+                y = margin;
+            }
+            const hex = normalizeHex(currentColors[zoneId]);
+            const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
+            const line = colorInfo
+                ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " RAL " + colorInfo.ral : ""} (${hex})`
+                : `${zoneId}: ${hex}`;
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            doc.setFillColor(r, g, b);
+            doc.circle(circleX, y - 0.5, circleRadius, "F");
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+            doc.text(line, textStartX, y);
+            y += 5;
+        });
+        y += 6;
+        if (y > pageH - margin - 15) {
+            doc.addPage();
+            y = margin;
+        }
+        doc.setFontSize(10);
+        const linkText = "Retrouvez ici la configuration que vous avez fait de la collection " + (currentCollection.nom || "cette collection");
+        doc.setTextColor(0, 0, 255);
+        doc.textWithLink(linkText, margin, y, { url: restoreUrl });
+        doc.setTextColor(0, 0, 0);
+        y += 15;
+
+        if (y > pageH - 20) {
+            doc.addPage();
+            y = margin;
+        }
+
+        for (let i = 0; i < slides.length; i++) {
+            if (slideHas3DPerspective(slides[i])) continue;
+            setCarouselSlideForCapture(track, slides, i);
+            await new Promise((r) => setTimeout(r, 150));
+            try {
+                const canvas = await html2canvas(slides[i], {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: "#ffffff",
+                    logging: false
+                });
+                const imgW = canvas.width;
+                const imgH = canvas.height;
+                const ratio = imgH / imgW;
+                const maxW = pageW - 2 * margin;
+                const maxH = pageH - 2 * margin;
+                let w = maxW;
+                let h = w * ratio;
+                if (h > maxH) {
+                    h = maxH;
+                    w = h / ratio;
+                }
+                if (y + h > pageH - margin) {
+                    doc.addPage();
+                    y = margin;
+                }
+                const imgData = canvas.toDataURL("image/png");
+                doc.addImage(imgData, "PNG", margin, y, w, h);
+                y += h + 10;
+            } catch (e) {
+                console.warn("Capture slide " + i + " échouée", e);
+            }
+        }
+
+        restoreCarouselSlide(track, slides, savedIndex);
+        const pdfFilename = getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation.pdf";
+        doc.save(pdfFilename);
+    } catch (e) {
+        console.error("Export PDF échoué", e);
+        if (typeof alert !== "undefined") alert("Erreur lors de la génération du PDF.");
+    } finally {
+        hidePdfLoadingOverlay();
+        restoreCarouselSlide(track, slides, savedIndex);
+    }
+}
+
+function setCarouselSlideForCapture(track, slides, index) {
+    if (!track || !slides[index]) return;
+    track.style.transform = `translateX(-${index * 100}%)`;
+    slides.forEach((s, i) => s.classList.toggle("carousel-slide-active", i === index));
+}
+
+function restoreCarouselSlide(track, slides, index) {
+    if (!track || !slides.length) return;
+    const i = Math.max(0, Math.min(index, slides.length - 1));
+    track.style.transform = `translateX(-${i * 100}%)`;
+    slides.forEach((s, idx) => s.classList.toggle("carousel-slide-active", idx === i));
+    carouselIndex = i;
+    const dotsContainer = document.getElementById("carousel-dots");
+    if (dotsContainer) {
+        dotsContainer.querySelectorAll(".carousel-dot").forEach((d, idx) => d.classList.toggle("active", idx === i));
+    }
+    updateShareButtonVisibility();
+    if (i === 0 && typeof positionGridWatermark === "function") {
+        requestAnimationFrame(() => positionGridWatermark());
+    }
+}
+
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
     loadCalepinageJoints();
@@ -242,18 +557,13 @@ function setupNavigation() {
     const btnShare = document.getElementById("btn-share");
     if (btnShare) {
         btnShare.addEventListener("click", () => {
-            const url = window.location.href;
-            if (navigator.share) {
-                navigator.share({
-                    title: document.title,
-                    url: url,
-                    text: currentCollection ? `Collection ${currentCollection.nom}` : ""
-                }).catch(() => {});
-            } else {
-                navigator.clipboard.writeText(url).then(() => {
-                    if (typeof alert !== "undefined") alert("Lien copié dans le presse-papier.");
-                }).catch(() => {});
-            }
+            shareCurrentViewAsImage();
+        });
+    }
+    const btnExportPdf = document.getElementById("btn-export-pdf");
+    if (btnExportPdf) {
+        btnExportPdf.addEventListener("click", () => {
+            exportPdf();
         });
     }
 }
@@ -265,6 +575,9 @@ function setupHeaderMenu() {
     if (!trigger || !dropdown || !wrap) return;
 
     function closeMenu() {
+        if (document.activeElement && dropdown.contains(document.activeElement)) {
+            trigger.focus({ preventScroll: true });
+        }
         dropdown.classList.remove("is-open");
         trigger.setAttribute("aria-expanded", "false");
         dropdown.setAttribute("aria-hidden", "true");
@@ -1552,6 +1865,7 @@ function setupCarousel() {
             dotsContainer.querySelectorAll(".carousel-dot").forEach((d, i) => d.classList.toggle("active", i === carouselIndex));
         }
         updateOptionsDrawerZoomVisibility();
+        updateShareButtonVisibility();
         if (carouselIndex === 0) requestAnimationFrame(() => positionGridWatermark());
     }
 
