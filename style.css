@@ -228,6 +228,52 @@ header .actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .workspace.workspace-preview-first {
         min-height: calc(100vh - 52px + 20px); /* légère surcharge pour permettre le scroll */
     }
+    /* Header compact sur mobile pour limiter le passage sur 2 lignes */
+    .workspace-header {
+        padding: 8px 10px 8px 8px;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+    .workspace-header .back-button {
+        flex-shrink: 0;
+        padding: 6px 8px;
+        font-size: 0.9rem;
+    }
+    .workspace-header .collection-link {
+        min-width: 0;
+        font-size: 0.8rem;
+    }
+    .header-actions {
+        flex-shrink: 0;
+        gap: 6px;
+    }
+    .header-cart-block {
+        gap: 6px;
+    }
+    .header-cart-trigger {
+        padding: 6px 8px;
+    }
+    .header-cart-label {
+        display: none; /* icône seule sur mobile */
+    }
+    .header-cart-icon {
+        width: 18px;
+        height: 18px;
+    }
+    .header-cart-qty-btn {
+        width: 28px;
+        height: 32px;
+        font-size: 1.1rem;
+    }
+    .header-cart-qty-value {
+        padding: 0 6px;
+        font-size: 0.9rem;
+    }
+    .header-menu-trigger {
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
 }
 @media (min-width: 901px) {
     .workspace-header-wrap.header-retracted .workspace-header { transform: none; }
