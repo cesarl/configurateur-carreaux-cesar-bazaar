@@ -184,7 +184,7 @@ async function shareCurrentViewAsImage() {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     try {
         const canvas = await html2canvas(activeSlide, {
-            scale: 2,
+            scale: 1.25,
             useCORS: true,
             allowTaint: true,
             backgroundColor: "#ffffff",
@@ -200,13 +200,14 @@ async function shareCurrentViewAsImage() {
             ctx.fillText("César Bazaar", canvas.width - pad, canvas.height - pad);
         }
         const baseName = getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation";
+        const jpegQuality = 0.85;
         canvas.toBlob(async (blob) => {
             hideShareImageLoadingOverlay();
             if (!blob) {
                 fallbackShareLink();
                 return;
             }
-            const file = new File([blob], baseName + ".png", { type: "image/png" });
+            const file = new File([blob], baseName + ".jpg", { type: "image/jpeg" });
             const urlToShare = getRestoreUrl();
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
@@ -217,15 +218,15 @@ async function shareCurrentViewAsImage() {
                         files: [file]
                     });
                 } catch (e) {
-                    if (e.name !== "AbortError") downloadImageFromBlob(blob, baseName);
+                    if (e.name !== "AbortError") downloadImageFromBlob(blob, baseName + ".jpg");
                 }
             } else {
-                downloadImageFromBlob(blob, baseName);
+                downloadImageFromBlob(blob, baseName + ".jpg");
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(urlToShare).then(() => {}).catch(() => {});
                 }
             }
-        }, "image/png");
+        }, "image/jpeg", jpegQuality);
     } catch (e) {
         hideShareImageLoadingOverlay();
         console.warn("Capture partage échouée", e);
@@ -266,9 +267,10 @@ function fallbackShareLink() {
 
 function downloadImageFromBlob(blob, baseName) {
     const name = (baseName != null ? baseName : getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation");
+    const ext = name.includes(".") ? "" : ".png";
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = name + ".png";
+    a.download = name + ext;
     a.click();
     URL.revokeObjectURL(a.href);
 }
@@ -380,7 +382,7 @@ async function exportPdf() {
             await new Promise((r) => setTimeout(r, 150));
             try {
                 const canvas = await html2canvas(slides[i], {
-                    scale: 2,
+                    scale: 1.25,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: "#ffffff",
@@ -401,8 +403,8 @@ async function exportPdf() {
                     doc.addPage();
                     y = margin;
                 }
-                const imgData = canvas.toDataURL("image/png");
-                doc.addImage(imgData, "PNG", margin, y, w, h);
+                const imgData = canvas.toDataURL("image/jpeg", 0.82);
+                doc.addImage(imgData, "JPEG", margin, y, w, h);
                 y += h + 10;
             } catch (e) {
                 console.warn("Capture slide " + i + " échouée", e);
