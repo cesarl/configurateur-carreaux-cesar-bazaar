@@ -141,8 +141,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupOptionsDrawer();
     setupWorkspaceHeaderScroll();
     if (collection) {
-        showWorkspace();
-        await loadCollection(collection, colors);
+        showCollectionLoadingOverlay();
+        try {
+            await loadCollection(collection, colors);
+            await waitForMockupOverlayImages();
+            showWorkspace();
+            refreshWorkspaceLayoutAfterVisible();
+        } finally {
+            hideCollectionLoadingOverlay();
+        }
     }
     // Les brouillons sont conservés par collection (localStorage) : pas de clear pour ne pas perdre les éditions
 });
@@ -444,6 +451,27 @@ function showWorkspace() {
     document.getElementById("view-workspace").style.display = "flex";
 }
 
+function showCollectionLoadingOverlay() {
+    const el = document.getElementById("collection-loading-overlay");
+    if (el) el.setAttribute("aria-hidden", "false");
+}
+
+function hideCollectionLoadingOverlay() {
+    const el = document.getElementById("collection-loading-overlay");
+    if (el) el.setAttribute("aria-hidden", "true");
+}
+
+/** Attend que toutes les images .mockup-overlay soient chargées (après buildCarouselMockupSlides). */
+function waitForMockupOverlayImages() {
+    const imgs = document.querySelectorAll(".mockup-overlay");
+    if (!imgs.length) return Promise.resolve();
+    return Promise.all(Array.from(imgs).map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        if (img.decode) return img.decode().catch(() => new Promise((r) => { img.onload = r; img.onerror = r; }));
+        return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+    }));
+}
+
 async function renderGallery() {
     try {
         const res = await fetch(`${REPO_URL}/data/collections.json`);
@@ -465,11 +493,17 @@ async function renderGallery() {
         collections.forEach((collection) => {
             const card = document.createElement("div");
             card.className = "gallery-card";
-            card.onclick = () => {
+            card.onclick = async () => {
                 saveDraftToLocal(); // sauve la collection affichée avant d'ouvrir une autre (brouillon par collection)
-                showWorkspace();
-                const draftColors = getDraftForCollection(collection.id);
-                loadCollection(collection.id, draftColors || undefined);
+                showCollectionLoadingOverlay();
+                try {
+                    await loadCollection(collection.id, getDraftForCollection(collection.id) || undefined);
+                    await waitForMockupOverlayImages();
+                    showWorkspace();
+                    refreshWorkspaceLayoutAfterVisible();
+                } finally {
+                    hideCollectionLoadingOverlay();
+                }
             };
 
             const imageUrl = collection.collection_image || "";
@@ -1779,5 +1813,34 @@ function updateMockupPerspectives() {
         const idx = parseInt(tapisEl.getAttribute("data-mockup-index"), 10);
         const mockup = mockupsData[idx];
         if (mockup) applyPerspectiveToMockupTapis(tapisEl, mockup);
+    });
+}
+
+/**
+ * À appeler après avoir rendu le workspace visible (ex. après chargement dynamique).
+ * Le layout est calculé alors que le workspace était masqué, donc dimensions à 0.
+ * On recalcule grille calepinage et perspectives mockup une fois la vue affichée.
+ */
+function refreshWorkspaceLayoutAfterVisible() {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (document.getElementById("view-workspace").style.display !== "flex") return;
+            if (currentLayout !== "solo") {
+                const newRows = getGridRowsForContainer();
+                if (newRows !== gridRows) {
+                    gridRows = newRows;
+                    renderCalepinageOnly();
+                } else {
+                    applyGridSizeFromContainer();
+                }
+            }
+            updateMockupPerspectives();
+            // Un second délai au cas où le navigateur n’a pas encore fini le layout (carreaux carrés, mockups).
+            setTimeout(() => {
+                if (document.getElementById("view-workspace").style.display !== "flex") return;
+                if (currentLayout !== "solo") applyGridSizeFromContainer();
+                updateMockupPerspectives();
+            }, 100);
+        });
     });
 }
