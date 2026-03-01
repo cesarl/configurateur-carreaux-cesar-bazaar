@@ -129,6 +129,11 @@ function applyConfigToUrl() {
     const newSearch = params.toString();
     const url = newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname;
     window.history.replaceState({ collection: currentCollection.id, colors: currentColors }, "", url);
+    // On envoie les paramètres d'URL actuels au site parent
+    window.parent.postMessage({
+        type: "UPDATE_URL",
+        queryString: window.location.search
+    }, "*");
 }
 
 /** Retourne l'URL de restauration (collection + couleurs) pour partage / PDF. */
@@ -937,6 +942,11 @@ function showGallery() {
     saveDraftToLocal();
     // Nettoyer l'URL pour que un rechargement ramène bien sur la liste des collections
     window.history.replaceState({}, "", window.location.pathname || "/");
+    // On envoie les paramètres d'URL actuels au site parent
+    window.parent.postMessage({
+        type: "UPDATE_URL",
+        queryString: window.location.search
+    }, "*");
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
 }
