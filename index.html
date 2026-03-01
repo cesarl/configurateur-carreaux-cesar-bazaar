@@ -31,8 +31,7 @@
                         <div class="header-menu-wrap">
                             <button type="button" id="btn-header-menu" class="header-menu-trigger" aria-label="Menu" aria-expanded="false" aria-haspopup="true">⋯</button>
                             <div id="header-menu-dropdown" class="header-menu-dropdown" role="menu" aria-hidden="true">
-                                <button type="button" id="btn-save" class="secondary" role="menuitem">Sauvegarder</button>
-                                <button type="button" id="btn-share" class="secondary" role="menuitem" title="Partager l'image">Partager</button>
+                                <button type="button" id="btn-share" class="secondary" role="menuitem" title="Partager le lien de la configuration">Partager</button>
                                 <button type="button" id="btn-export-pdf" class="secondary" role="menuitem" title="Télécharger un PDF avec la config et les vues">Télécharger le PDF</button>
                                 <button type="button" id="btn-export-svg" class="secondary" role="menuitem" title="Télécharger le plan en SVG vectoriel pour logiciels 3D">Télécharger le SVG</button>
                                 <button type="button" id="btn-cart" class="primary" role="menuitem">Ajouter au panier (min 3)</button>
@@ -134,7 +133,10 @@
         <div class="collection-loading-content">
             <div class="collection-loading-spinner" aria-hidden="true"></div>
             <p class="collection-loading-text">Génération du PDF…</p>
-            <p class="collection-loading-subtext">Veuillez patienter, cela peut prendre quelques secondes.</p>
+            <div class="pdf-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="pdf-progress-fill"></div>
+            </div>
+            <p class="collection-loading-subtext">La capture du calepinage peut prendre du temps, merci de patienter.</p>
         </div>
     </div>
 

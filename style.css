@@ -1051,6 +1051,20 @@ button { cursor: pointer; padding: 10px 20px; border-radius: 4px; font-weight: b
     color: #777;
     font-size: 0.85rem;
 }
+.pdf-progress-bar {
+    width: 220px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.pdf-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary, #333);
+    border-radius: 4px;
+    transition: width 0.2s ease;
+}
 @keyframes collection-loading-spin {
     to { transform: rotate(360deg); }
 }

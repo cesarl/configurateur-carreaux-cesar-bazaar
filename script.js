@@ -143,18 +143,12 @@ function slideHas3DPerspective(slideEl) {
     return mockup && mockup.perspective === true;
 }
 
-/** Masque le bouton Partager quand la vue active est un mockup en perspective. */
+/** Le bouton Partager propose toujours le lien (visible sur toutes les vues). */
 function updateShareButtonVisibility() {
     const btn = document.getElementById("btn-share");
     if (!btn) return;
-    const activeSlide = document.querySelector(".carousel-slide-active");
-    if (slideHas3DPerspective(activeSlide)) {
-        btn.style.display = "none";
-        btn.setAttribute("aria-hidden", "true");
-    } else {
-        btn.style.display = "";
-        btn.setAttribute("aria-hidden", "false");
-    }
+    btn.style.display = "";
+    btn.setAttribute("aria-hidden", "false");
 }
 
 /** Retourne un nom de fichier sûr pour export (collection). */
@@ -184,9 +178,9 @@ async function shareCurrentViewAsImage() {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     try {
         const canvas = await html2canvas(activeSlide, {
-            scale: 1.25,
-            useCORS: true,
-            allowTaint: true,
+            scale: 1,
+            useCORS: false,
+            allowTaint: false,
             backgroundColor: "#ffffff",
             logging: false
         });
@@ -265,6 +259,11 @@ function fallbackShareLink() {
     }
 }
 
+/** Partager le lien de la configuration (Web Share API ou copie dans le presse-papier). */
+function shareLink() {
+    fallbackShareLink();
+}
+
 function downloadImageFromBlob(blob, baseName) {
     const name = (baseName != null ? baseName : getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation");
     const ext = name.includes(".") ? "" : ".png";
@@ -289,13 +288,27 @@ function hidePdfLoadingOverlay() {
     if (el) {
         el.style.display = "none";
         el.setAttribute("aria-hidden", "true");
+        setPdfProgress(0, "Génération du PDF…", "Veuillez patienter.");
     }
 }
 
-/** Génère et télécharge un PDF : page d'info (collection, couleurs, lien) + une page par vue (grille + mockups). */
+function setPdfProgress(percent, label, subtext) {
+    const fill = document.querySelector("#pdf-loading-overlay .pdf-progress-fill");
+    const bar = document.querySelector("#pdf-loading-overlay .pdf-progress-bar");
+    const text = document.querySelector("#pdf-loading-overlay .collection-loading-text");
+    const subtextEl = document.querySelector("#pdf-loading-overlay .collection-loading-subtext");
+    if (fill) fill.style.width = Math.max(0, Math.min(100, percent)) + "%";
+    if (bar) {
+        bar.setAttribute("aria-valuenow", Math.round(percent));
+    }
+    if (text && label !== undefined) text.textContent = label;
+    if (subtextEl && subtext !== undefined) subtextEl.textContent = subtext;
+}
+
+/** Génère et télécharge un PDF : page d'info (collection, couleurs, lien) + une page avec le calepinage uniquement (pas les mockups). Le calepinage est généré en SVG puis converti en image (sans html2canvas). */
 async function exportPdf() {
-    if (typeof html2canvas === "undefined" || typeof jspdf === "undefined") {
-        if (typeof alert !== "undefined") alert("Export PDF indisponible (bibliothèques non chargées).");
+    if (typeof jspdf === "undefined") {
+        if (typeof alert !== "undefined") alert("Export PDF indisponible (bibliothèque jsPDF non chargée).");
         return;
     }
     if (!currentCollection) return;
@@ -307,6 +320,7 @@ async function exportPdf() {
     }
     const savedIndex = carouselIndex;
     showPdfLoadingOverlay();
+    setPdfProgress(0, "Préparation…");
     applyConfigToUrl();
     const restoreUrl = window.location.href;
 
@@ -376,23 +390,22 @@ async function exportPdf() {
             y = margin;
         }
 
-        for (let i = 0; i < slides.length; i++) {
-            if (slideHas3DPerspective(slides[i])) continue;
-            setCarouselSlideForCapture(track, slides, i);
-            await new Promise((r) => setTimeout(r, 150));
+        setPdfProgress(30, "Génération du calepinage…", "La capture peut prendre du temps, merci de patienter.");
+
+        const svgString = getCalepinageSvgStringFromDom() || getCalepinageSvgString();
+        if (svgString) {
+            setPdfProgress(50, "Ajout du calepinage au PDF…", "Presque terminé…");
             try {
-                const canvas = await html2canvas(slides[i], {
-                    scale: 1.25,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: "#ffffff",
-                    logging: false
+                const svgDataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => reject(new Error("Chargement SVG échoué"));
+                    img.src = svgDataUrl;
                 });
-                const imgW = canvas.width;
-                const imgH = canvas.height;
-                const ratio = imgH / imgW;
                 const maxW = pageW - 2 * margin;
                 const maxH = pageH - 2 * margin;
+                const ratio = img.height / img.width;
                 let w = maxW;
                 let h = w * ratio;
                 if (h > maxH) {
@@ -403,14 +416,25 @@ async function exportPdf() {
                     doc.addPage();
                     y = margin;
                 }
-                const imgData = canvas.toDataURL("image/jpeg", 0.82);
+                const dpi = 200;
+                const canvasPxW = Math.round((w / 25.4) * dpi);
+                const canvasPxH = Math.round((h / 25.4) * dpi);
+                const c = document.createElement("canvas");
+                c.width = canvasPxW;
+                c.height = canvasPxH;
+                const ctx = c.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, c.width, c.height);
+                ctx.drawImage(img, 0, 0, canvasPxW, canvasPxH);
+                const imgData = c.toDataURL("image/jpeg", 0.88);
                 doc.addImage(imgData, "JPEG", margin, y, w, h);
                 y += h + 10;
             } catch (e) {
-                console.warn("Capture slide " + i + " échouée", e);
+                console.warn("Ajout calepinage PDF échoué", e);
             }
         }
 
+        setPdfProgress(100, "Téléchargement…");
         restoreCarouselSlide(track, slides, savedIndex);
         const pdfFilename = getExportBaseName() + " carreaux de ciment César Bazaar - personnalisation.pdf";
         doc.save(pdfFilename);
@@ -668,7 +692,7 @@ function setupNavigation() {
     const btnShare = document.getElementById("btn-share");
     if (btnShare) {
         btnShare.addEventListener("click", () => {
-            shareCurrentViewAsImage();
+            shareLink();
         });
     }
     const btnExportPdf = document.getElementById("btn-export-pdf");
@@ -1209,6 +1233,127 @@ function getPreparedTileHTML(variantName, rotation, row, col) {
         preparedTileCache[key] = prepareSVG(svgCache[variantName], rotation, variantName, true, 0, 0);
     }
     return preparedTileCache[key].replace(/tapis-0-0-/g, `tapis-${row}-${col}-`);
+}
+
+/** Prépare un SVG de tuile pour l'export PDF : couleurs en hex, ids uniques, retourne l'outerHTML du <svg> (sans wrapper). */
+function prepareSVGForPdf(svgString, rotation, variantName, row, col) {
+    if (!svgString) return "";
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svg = doc.querySelector("svg");
+    if (!svg) return "";
+
+    const fillableSelector = "path, rect, circle, ellipse, polygon";
+    svg.querySelectorAll('g[id^="zone-"]').forEach((g) => {
+        const zoneId = g.id;
+        const hex = normalizeHex(currentColors[zoneId] || "#cccccc");
+        g.querySelectorAll(fillableSelector).forEach((el) => {
+            el.setAttribute("fill", hex);
+        });
+    });
+
+    const prefix = `pdf-${row}-${col}-`;
+    svg.querySelectorAll("[id]").forEach((el) => {
+        el.id = prefix + (el.id || "");
+    });
+
+    if (rotation !== 0) {
+        const vb = svg.getAttribute("viewBox");
+        let cx = 283.465, cy = 283.465;
+        if (vb) {
+            const p = vb.trim().split(/\s+/);
+            if (p.length >= 4) {
+                const w = parseFloat(p[2]), h = parseFloat(p[3]);
+                cx = parseFloat(p[0]) + w / 2;
+                cy = parseFloat(p[1]) + h / 2;
+            }
+        }
+        const rotG = doc.createElementNS("http://www.w3.org/2000/svg", "g");
+        rotG.setAttribute("transform", `rotate(${rotation},${cx},${cy})`);
+        while (svg.firstChild) rotG.appendChild(svg.firstChild);
+        svg.appendChild(rotG);
+    }
+
+    return svg.outerHTML;
+}
+
+/** Construit un SVG unique pour tout le calepinage (grille) pour l'export PDF. */
+function getCalepinageSvgString() {
+    const variants = getVariantsList();
+    if (!variants.length) return null;
+    const cols = gridCols || CALEPINAGE_ZOOM_DEFAULT;
+    const rows = gridRows || CALEPINAGE_ZOOM_DEFAULT;
+    const calepinage = calepinagesData.find((c) => c.id === currentLayout);
+    const tileSize = 566.93;
+
+    const tiles = [];
+    if (currentLayout === "solo") {
+        const svgContent = prepareSVGForPdf(svgCache[variants[0]], 0, variants[0], 0, 0);
+        if (!svgContent) return null;
+        const totalW = tileSize;
+        const totalH = tileSize;
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}">${svgContent}</svg>`;
+    }
+
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            const { variantName, rotation } = calepinage
+                ? getCellSpec(calepinage, row, col, variants)
+                : {
+                    variantName: variants[(row * cols + col) % variants.length],
+                    rotation: [0, 90, 180, 270][Math.floor(Math.random() * 4)]
+                };
+            const svgContent = prepareSVGForPdf(svgCache[variantName], rotation, variantName, row, col);
+            if (!svgContent) continue;
+            tiles.push(`<g transform="translate(${col * tileSize},${row * tileSize})">${svgContent}</g>`);
+        }
+    }
+
+    if (!tiles.length) return null;
+    const totalW = cols * tileSize;
+    const totalH = rows * tileSize;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}">${tiles.join("")}</svg>`;
+}
+
+/** Construit le SVG du calepinage à partir du DOM affiché (#grid-container) pour que le PDF soit identique à l'écran. */
+function getCalepinageSvgStringFromDom() {
+    const gridContainer = document.getElementById("grid-container");
+    if (!gridContainer) return null;
+    const tileSize = 566.93;
+    const wrappers = gridContainer.querySelectorAll(".tile-wrapper");
+    if (!wrappers.length) return null;
+
+    const cols = gridCols || CALEPINAGE_ZOOM_DEFAULT;
+    const tiles = [];
+
+    for (let i = 0; i < wrappers.length; i++) {
+        const wrapper = wrappers[i];
+        const svgEl = wrapper.querySelector("svg");
+        if (!svgEl) continue;
+
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const svgClone = svgEl.cloneNode(true);
+
+        svgClone.querySelectorAll('g[id^="zone-"], g[id^="tapis-"]').forEach((g) => {
+            const zoneId = g.id.replace(/^tapis-\d+-\d+-/, "");
+            if (!zoneId || !zoneId.startsWith("zone-")) return;
+            const hex = normalizeHex(currentColors[zoneId] || "#cccccc");
+            g.querySelectorAll("path, rect, circle, ellipse, polygon").forEach((el) => {
+                el.setAttribute("fill", hex);
+            });
+        });
+
+        svgClone.setAttribute("width", String(tileSize));
+        svgClone.setAttribute("height", String(tileSize));
+        tiles.push(`<g transform="translate(${col * tileSize},${row * tileSize})">${svgClone.outerHTML}</g>`);
+    }
+
+    if (!tiles.length) return null;
+    const rows = Math.ceil(wrappers.length / cols);
+    const totalW = wrappers.length === 1 ? tileSize : cols * tileSize;
+    const totalH = wrappers.length === 1 ? tileSize : rows * tileSize;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}">${tiles.join("")}</svg>`;
 }
 
 /**
