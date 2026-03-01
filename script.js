@@ -707,6 +707,18 @@ function setupNavigation() {
             downloadExportSVG();
         });
     }
+    const btnCart = document.getElementById("btn-cart");
+    if (btnCart) {
+        btnCart.addEventListener("click", () => {
+            const data = buildAddToCartPayload();
+            if (!data) return;
+            const labelOriginal = btnCart.textContent;
+            btnCart.textContent = "Ajout au panier...";
+            window.parent.postMessage(data, "*");
+            console.log("Message envoyé au parent :", data);
+            setTimeout(() => { btnCart.textContent = labelOriginal; }, 1500);
+        });
+    }
 }
 
 function setupHeaderMenu() {
@@ -1529,6 +1541,58 @@ function normalizeHex(hex) {
     if (h.length === 6) return "#" + h;
     if (h.length === 3) return "#" + h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
     return "#" + h;
+}
+
+/** Retourne le SVG d’une variante avec les couleurs actuelles appliquées (sans rotation, ids inchangés). Pour le payload add-to-cart. */
+function getVariantSvgString(variantName) {
+    const svgString = svgCache[variantName];
+    if (!svgString) return "";
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svg = doc.querySelector("svg");
+    if (!svg) return "";
+    const fillableSelector = "path, rect, circle, ellipse, polygon";
+    svg.querySelectorAll('g[id^="zone-"]').forEach((g) => {
+        const zoneId = g.id;
+        const hex = normalizeHex(currentColors[zoneId] || "#cccccc");
+        g.querySelectorAll(fillableSelector).forEach((el) => {
+            el.setAttribute("fill", hex);
+        });
+    });
+    return svg.outerHTML;
+}
+
+/** Construit le payload pour l’ajout au panier (postMessage iframe). Retourne null si pas de collection. */
+function buildAddToCartPayload() {
+    if (!currentCollection) return null;
+    const colors = {};
+    Object.keys(currentColors).sort().forEach((zoneId) => {
+        const hex = normalizeHex(currentColors[zoneId]);
+        if (!hex) return;
+        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
+        colors[zoneId] = {
+            hex,
+            nom: colorInfo ? (colorInfo.nom || "—") : "—",
+            id: colorInfo ? (colorInfo.id || "") : ""
+        };
+    });
+    const configUrl = getRestoreUrl();
+    const variants = getVariantsList();
+    const variantSvgs = {};
+    variants.forEach((v) => {
+        const svgStr = getVariantSvgString(v);
+        if (svgStr) variantSvgs[v] = svgStr;
+    });
+    return {
+        type: "CESAR_BAZAAR_ADD_TO_CART",
+        payload: {
+            collectionId: currentCollection.id,
+            configUrl,
+            colors,
+            quantity: 1,
+            variantSvgs
+        }
+    };
 }
 
 /** Convertit une valeur fill (hex, rgb, nom) en hex #rrggbb ou null. */
