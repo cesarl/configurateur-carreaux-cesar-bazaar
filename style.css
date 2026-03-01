@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg-color: #f8f8f8;
     --text-color: #333;
     --primary: #111;
@@ -421,10 +421,13 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     height: 18px;
     accent-color: var(--primary);
 }
-/* Joints des carreaux : 2px contour blanc cassé continu autour de chaque tuile (calepinage + mockups) */
+/* Joints des carreaux : 1px contour blanc cassé continu autour de chaque tuile (calepinage + mockups).
+   On utilise outline au lieu de border pour éviter un décalage d’1 px quand les joints sont masqués
+   (surtout en vue mock-up avec perspective). */
 #grid-container.show-joints.tapis .tile-wrapper,
 .mockup-tapis.show-joints .tile-wrapper {
-    border: 1px solid #f0f0eb;
+    outline: 1px solid #f0f0eb;
+    outline-offset: -1px;
     box-sizing: border-box;
 }
 /* Tiroir Options : visible quand ouvert (mobile + desktop) */
@@ -851,21 +854,15 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     transform: none;
 }
 .mockup-tapis .tile-wrapper {
-    margin: -1px;
+    margin: 0;
     padding: 0;
-    width: calc(100% + 2px);
-    height: calc(100% + 2px);
+    width: 100%;
+    height: 100%;
     line-height: 0;
     font-size: 0;
     display: block;
     opacity: 1;
     box-sizing: border-box;
-}
-/* En perspective : supprimer le chevauchement des tuiles pour éviter qu’elles se superposent visuellement (z-fighting). */
-.mockup-scene[data-perspective-mode="simple"] .mockup-tapis .tile-wrapper {
-    margin: 0;
-    width: 100%;
-    height: 100%;
 }
 .mockup-overlay {
     position: absolute;
