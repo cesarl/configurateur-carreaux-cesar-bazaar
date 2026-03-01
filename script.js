@@ -1149,6 +1149,11 @@ function renderCalepinageOnly(overrideLayout) {
         updateMoldingWarning();
     }
     applyShowJointsToGrid();
+    if (layoutToUse !== "solo") {
+        requestAnimationFrame(() => positionGridWatermark());
+    } else {
+        requestAnimationFrame(() => requestAnimationFrame(() => positionGridWatermark()));
+    }
     if (typeof requestIdleCallback !== "undefined") {
         requestIdleCallback(() => scanZones(), { timeout: 200 });
     } else {
@@ -1438,6 +1443,20 @@ function applyGridSizeFromContainer() {
     gridContainer.style.height = gridH + "px";
     gridContainer.style.gridTemplateColumns = `repeat(${cols}, ${cellSizePx}px)`;
     gridContainer.style.gridTemplateRows = `repeat(${rows}, ${cellSizePx}px)`;
+    positionGridWatermark();
+}
+
+/** Place le watermark de la vue grille en haut à gauche des carreaux (aligné sur la grille). */
+function positionGridWatermark() {
+    const slide0 = document.querySelector(".carousel-slide[data-slide-index='0']");
+    const gridContainer = document.getElementById("grid-container");
+    const watermark = slide0 ? slide0.querySelector(".visuel-watermark-grid") : null;
+    if (!slide0 || !gridContainer || !watermark) return;
+    const slideRect = slide0.getBoundingClientRect();
+    const gridRect = gridContainer.getBoundingClientRect();
+    const inset = 8;
+    watermark.style.left = (gridRect.left - slideRect.left + inset) + "px";
+    watermark.style.top = (gridRect.top - slideRect.top + inset) + "px";
 }
 
 /** Boutons zoom + molette + pinch sur la vue calepinage. */
@@ -1533,6 +1552,7 @@ function setupCarousel() {
             dotsContainer.querySelectorAll(".carousel-dot").forEach((d, i) => d.classList.toggle("active", i === carouselIndex));
         }
         updateOptionsDrawerZoomVisibility();
+        if (carouselIndex === 0) requestAnimationFrame(() => positionGridWatermark());
     }
 
     if (dotsContainer) {
@@ -1580,6 +1600,7 @@ function buildCarouselMockupSlides() {
         slide.setAttribute("data-slide-index", String(i + 1));
         slide.innerHTML = `
             <div class="mockup-scene carousel-slide-mockup-content" style="aspect-ratio: ${mockup.sceneWidth}/${mockup.sceneHeight};">
+                <img class="visuel-watermark" src="${REPO_URL}/assets/logo-cesar-bazaar-alpha.png" alt="" aria-hidden="true" />
                 <div class="mockup-tapis" data-mockup-index="${i}"></div>
                 <img class="mockup-overlay" src="${REPO_URL}/${mockup.overlayPath}" alt="${mockup.name}" />
             </div>`;
