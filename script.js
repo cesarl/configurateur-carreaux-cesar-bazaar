@@ -2174,11 +2174,12 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
     tapisEl.removeAttribute("data-no-perspective");
     tapisEl.querySelectorAll(".tile-wrapper").forEach((el) => { el.style.display = ""; });
 
-    // Mode simple : perspective CSS + rotateX/rotateY + scaleX (sans matrix3d, moins de bugs visuels)
+    // Mode simple : perspective CSS + rotateX/rotateY/rotateZ + scaleX (sans matrix3d, moins de bugs visuels)
     // Grille en pixels entiers pour éviter chevauchements et variations au resize (1fr → tailles fractionnaires).
     if (useSimplePerspective) {
         const rotateX = mockup.rotateX ?? 25;
         const rotateY = mockup.rotateY ?? 0;
+        const rotateZ = mockup.rotateZ ?? 0;
         const widthScale = mockup.widthScale ?? 1;
         const perspectivePx = mockup.perspectivePx ?? 1200;
         const gridCols = Math.max(1, mockup.gridCols || 8);
@@ -2195,7 +2196,7 @@ function applyPerspectiveToMockupTapis(tapisEl, mockup) {
         }
         tapisEl.style.transformOrigin = "center bottom";
         tapisEl.style.transformStyle = "preserve-3d";
-        tapisEl.style.transform = "rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg) scaleX(" + widthScale + ")";
+        tapisEl.style.transform = "rotateZ(" + rotateZ + "deg) rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg) scaleX(" + widthScale + ")";
         tapisEl.style.width = w + "px";
         tapisEl.style.height = h + "px";
         tapisEl.style.left = "0";

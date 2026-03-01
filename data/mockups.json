@@ -20,5 +20,27 @@
     "sceneHeight": 1080,
     "gridCols": 8,
     "perspective": false
+  },
+  {
+    "id": "sol-2",
+    "name": "Sol cuisine 2",
+    "overlayPath": "assets/mockups/Sol-2.png",
+    "sceneWidth": 720,
+    "sceneHeight": 1080,
+    "gridCols": 14,
+    "perspective": true,
+    "perspectiveMode": "simple",
+    "rotateX": 80,
+    "perspectivePx": 1000,
+    "widthScale": 2
+  },
+  {
+    "id": "moitie-mur-salon",
+    "name": "Moitié mur salon",
+    "overlayPath": "assets/mockups/Moitie-mur-salon.png",
+    "sceneWidth": 720,
+    "sceneHeight": 1080,
+    "gridCols": 8,
+    "perspective": false
   }
 ]
