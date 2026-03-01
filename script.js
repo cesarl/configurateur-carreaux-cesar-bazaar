@@ -1,5 +1,5 @@
 // CONFIGURATEUR CÉSAR BAZAAR - ALPHA V2 (TAPIS dynamique)
-const REPO_URL = "."; // Pour GitHub Pages, "." suffit
+const REPO_URL = "https://cesarl.github.io/configurateur-carreaux-cesar-bazaar";
 let currentCollection = null;
 let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
 let activeZone = null;  // La zone qu'on est en train de modifier

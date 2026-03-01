@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configurateur César Bazaar (Alpha)</title>
+    <script>
+        (function () {
+            var isLocal = /^localhost$|^127\.\d+\.\d+\.\d+$|\.local$/i.test(location.hostname);
+            if (!isLocal) {
+                var base = document.createElement("base");
+                base.href = "https://cesarl.github.io/configurateur-carreaux-cesar-bazaar/";
+                document.head.appendChild(base);
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
