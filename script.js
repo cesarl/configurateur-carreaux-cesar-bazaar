@@ -24,6 +24,9 @@ let gridRows = CALEPINAGE_ZOOM_DEFAULT;
 
 const DRAFT_STORAGE_KEY = "cesar-bazaar-drafts";
 
+const CART_QUANTITY_MIN = 3;
+let cartQuantity = CART_QUANTITY_MIN;
+
 function loadCalepinageZoom() {
     try {
         const v = parseInt(localStorage.getItem(CALEPINAGE_ZOOM_STORAGE_KEY), 10);
@@ -708,15 +711,41 @@ function setupNavigation() {
         });
     }
     const btnCart = document.getElementById("btn-cart");
+    const cartQuantityEl = document.getElementById("cart-quantity");
+    const btnCartMinus = document.getElementById("btn-cart-minus");
+    const btnCartPlus = document.getElementById("btn-cart-plus");
+    const cartLabelEl = document.querySelector(".header-cart-label");
+
+    function updateCartQuantityDisplay() {
+        if (cartQuantityEl) cartQuantityEl.textContent = String(cartQuantity);
+        if (btnCartMinus) btnCartMinus.disabled = cartQuantity <= CART_QUANTITY_MIN;
+    }
+
+    if (btnCartMinus) {
+        btnCartMinus.addEventListener("click", () => {
+            if (cartQuantity > CART_QUANTITY_MIN) {
+                cartQuantity--;
+                updateCartQuantityDisplay();
+            }
+        });
+    }
+    if (btnCartPlus) {
+        btnCartPlus.addEventListener("click", () => {
+            cartQuantity++;
+            updateCartQuantityDisplay();
+        });
+    }
+    updateCartQuantityDisplay();
+
     if (btnCart) {
         btnCart.addEventListener("click", () => {
             const data = buildAddToCartPayload();
             if (!data) return;
-            const labelOriginal = btnCart.textContent;
-            btnCart.textContent = "Ajout au panier...";
+            const labelOriginal = cartLabelEl ? cartLabelEl.textContent : "Ajouter au panier";
+            if (cartLabelEl) cartLabelEl.textContent = "Ajout au panier...";
             window.parent.postMessage(data, "*");
             console.log("Message envoyé au parent :", data);
-            setTimeout(() => { btnCart.textContent = labelOriginal; }, 1500);
+            setTimeout(() => { if (cartLabelEl) cartLabelEl.textContent = labelOriginal; }, 1500);
         });
     }
 }
@@ -1589,7 +1618,7 @@ function buildAddToCartPayload() {
             collectionId: currentCollection.id,
             configUrl,
             colors,
-            quantity: 1,
+            quantity: cartQuantity,
             variantSvgs
         }
     };

@@ -38,13 +38,23 @@
                     <button id="btn-back" class="back-button">← Retour</button>
                     <a id="collection-link" class="collection-link" href="#" target="_blank" rel="noopener">...</a>
                     <div class="header-actions">
+                        <div class="header-cart-block" id="header-cart-block">
+                            <button type="button" id="btn-cart" class="header-cart-trigger" aria-label="Ajouter au panier" title="Ajouter au panier">
+                                <svg class="header-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                <span class="header-cart-label">Ajouter au panier</span>
+                            </button>
+                            <div class="header-cart-qty" aria-label="Quantité">
+                                <button type="button" id="btn-cart-minus" class="header-cart-qty-btn" aria-label="Diminuer la quantité">−</button>
+                                <span id="cart-quantity" class="header-cart-qty-value">3</span>
+                                <button type="button" id="btn-cart-plus" class="header-cart-qty-btn" aria-label="Augmenter la quantité">+</button>
+                            </div>
+                        </div>
                         <div class="header-menu-wrap">
                             <button type="button" id="btn-header-menu" class="header-menu-trigger" aria-label="Menu" aria-expanded="false" aria-haspopup="true">⋯</button>
                             <div id="header-menu-dropdown" class="header-menu-dropdown" role="menu" aria-hidden="true">
                                 <button type="button" id="btn-share" class="secondary" role="menuitem" title="Partager le lien de la configuration">Partager</button>
                                 <button type="button" id="btn-export-pdf" class="secondary" role="menuitem" title="Télécharger un PDF avec la config et les vues">Télécharger le PDF</button>
                                 <button type="button" id="btn-export-svg" class="secondary" role="menuitem" title="Télécharger le plan en SVG vectoriel pour logiciels 3D">Télécharger le SVG</button>
-                                <button type="button" id="btn-cart" class="primary" role="menuitem">Ajouter au panier (min 3)</button>
                             </div>
                         </div>
                     </div>
