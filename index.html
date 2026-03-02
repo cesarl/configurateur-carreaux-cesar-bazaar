@@ -168,6 +168,62 @@
         </div>
     </div>
 
+    <!-- Modale de confirmation avant ajout au panier -->
+    <div id="cart-confirm-overlay" class="cart-confirm-overlay" aria-hidden="true">
+        <div class="cart-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="cart-confirm-title" tabindex="-1">
+            <h2 id="cart-confirm-title" class="cart-confirm-title">✨ Avant de faire le grand saut... Lisez attentivement ce qui suit ! ✨</h2>
+            <div class="cart-confirm-body">
+                <p>Vous êtes sur le point de valider votre création sur-mesure 💌. Mais avant de l'ajouter au panier, voici comment ça se passe :</p>
+
+                <h3>📦 Le format des cartons &amp; les motifs</h3>
+                <p>
+                    La vente se fait par carton complet : 16 carreaux (pour le format 20x20cm). 3 cartons minimum pour une commande personnalisée<br>
+                    Attention : Vous êtes maître absolu des couleurs, mais la répartition des motifs dans un carton est fixe et ne peut pas être modifiée.
+                    Pour connaître la répartition exacte des motifs, n'hésitez pas à consulter la description sur
+                    <a id="cart-confirm-collection-link" href="#" target="_blank" rel="noopener noreferrer">la page de cette collection</a> !
+                </p>
+
+                <h3>🗓️ Le calendrier de production</h3>
+                <p>
+                    Les productions fonctionnent par cycles. Pour cette session :<br>
+                    👉 Commandes ouvertes jusqu'au : <span id="cart-confirm-order-deadline"></span><br>
+                    👉 Livraison estimée aux alentours de : <span id="cart-confirm-estimated-delivery"></span>
+                </p>
+
+                <h3>Maroc ou France, l'artisanat, le vrai 💪</h3>
+                <p>
+                    Par défaut, vos carreaux seront fabriqués au Maroc, par les camarades artisans exceptionnels qui m'ont appris le métier. ✨<br>
+                    Envie d'une fabrication 100% Made in France par mes propres soins ? Ou carrément envie de venir à l'atelier pour les fabriquer vous-même ?
+                    C'est carrément possible ! Contactez-moi en m'envoyant le lien de votre personnalisation et on en discute.
+                </p>
+
+                <h3>🎨 Le charme de l'imperfection (Point Couleurs)</h3>
+                <p>
+                    Les codes RAL de notre nuancier sont donnés à titre indicatif. Le carreau de ciment est une matière vivante et artisanale : la couleur nuance,
+                    vibre, et ne sera jamais aussi plate et uniforme qu'une impression industrielle. C'est ce qui fait sa beauté !<br>
+                    Un conseil : Ne cherchez pas une peinture de la couleur exacte du carreau, cherchez plutôt une teinte qui s'harmonisera avec lui.
+                </p>
+
+                <h3>🧪 Besoin d'un prototype ?</h3>
+                <p>
+                    Vous voulez voir et toucher votre création avant de lancer la grande production ? Je peux fabriquer votre prototype sur-mesure dans mon atelier en France.<br>
+                    C'est facturé 120€ (livraison comprise), et c'est 100% offert pour toute commande finale supérieure ou égale à 2000€ TTC !
+                </p>
+
+                <h3>💬 Une question ?</h3>
+                <p>
+                    Le but, c'est que vos carreaux soient parfaits pour chez vous. Si vous avez le moindre doute, jetez un œil à la
+                    <a href="https://www.cesarbazaar.fr/faq-carreaux-de-ciment" target="_blank" rel="noopener noreferrer">Foire Aux Questions</a>,
+                    envoyez-moi un mail, ou passez-moi un coup de fil. Je suis là pour vous ! Merci 💘
+                </p>
+            </div>
+            <div class="cart-confirm-actions">
+                <button type="button" id="cart-cancel-btn" class="secondary cart-confirm-cancel">Retourner au simulateur</button>
+                <button type="button" id="cart-confirm-btn" class="primary cart-confirm-confirm">J'ai tout lu et j'ai hâte 🥰 ! Ajouter au panier</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Overlay ajout au panier -->
     <div id="basket-loading-overlay" class="collection-loading-overlay basket-loading-overlay" aria-hidden="true" aria-live="polite">
         <div class="collection-loading-content">

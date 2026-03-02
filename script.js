@@ -1,4 +1,8 @@
 // CONFIGURATEUR CÉSAR BAZAAR - ALPHA V2 (TAPIS dynamique)
+// Dates de production (modifiable facilement)
+const ORDER_DEADLINE_DATE = "30 avril 2026";
+const ESTIMATED_DELIVERY_DATE = "mi-juin 2026";
+
 const REPO_URL = "https://cesarl.github.io/configurateur-carreaux-cesar-bazaar";
 let currentCollection = null;
 let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
@@ -716,11 +720,28 @@ function setupNavigation() {
             downloadExportSVG();
         });
     }
+
+    // Gestion du panier et de la modale de confirmation
     const btnCart = document.getElementById("btn-cart");
     const cartQuantityEl = document.getElementById("cart-quantity");
     const btnCartMinus = document.getElementById("btn-cart-minus");
     const btnCartPlus = document.getElementById("btn-cart-plus");
     const cartLabelEl = document.querySelector(".header-cart-label");
+
+    const cartConfirmOverlay = document.getElementById("cart-confirm-overlay");
+    const cartConfirmDialog = cartConfirmOverlay ? cartConfirmOverlay.querySelector(".cart-confirm-dialog") : null;
+    const cartConfirmBtn = document.getElementById("cart-confirm-btn");
+    const cartCancelBtn = document.getElementById("cart-cancel-btn");
+    const cartOrderDeadlineEl = document.getElementById("cart-confirm-order-deadline");
+    const cartEstimatedDeliveryEl = document.getElementById("cart-confirm-estimated-delivery");
+
+    // Injection des dates issues des constantes globales
+    if (cartOrderDeadlineEl) {
+        cartOrderDeadlineEl.textContent = ORDER_DEADLINE_DATE;
+    }
+    if (cartEstimatedDeliveryEl) {
+        cartEstimatedDeliveryEl.textContent = ESTIMATED_DELIVERY_DATE;
+    }
 
     function updateCartQuantityDisplay() {
         if (cartQuantityEl) cartQuantityEl.textContent = String(cartQuantity);
@@ -743,25 +764,84 @@ function setupNavigation() {
     }
     updateCartQuantityDisplay();
 
-    if (btnCart) {
-        btnCart.addEventListener("click", () => {
-            const data = buildAddToCartPayload();
-            if (!data) return;
-            const labelOriginal = cartLabelEl ? cartLabelEl.textContent : "Ajouter au panier";
-            if (cartLabelEl) cartLabelEl.textContent = "Ajout au panier...";
-            window.parent.postMessage(data, "*");
-            console.log("Message envoyé au parent :", data);
+    function openCartConfirmModal() {
+        if (!cartConfirmOverlay) {
+            // Fallback : si la modale n'existe pas, on envoie directement l'ajout au panier
+            performAddToCart();
+            return;
+        }
+        cartConfirmOverlay.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+        if (cartConfirmDialog && typeof cartConfirmDialog.focus === "function") {
+            cartConfirmDialog.focus({ preventScroll: true });
+        }
+    }
 
-            const basketOverlay = document.getElementById("basket-loading-overlay");
-            if (basketOverlay) {
-                basketOverlay.setAttribute("aria-hidden", "false");
-            }
-            setTimeout(() => {
-                if (basketOverlay) basketOverlay.setAttribute("aria-hidden", "true");
-                if (cartLabelEl) cartLabelEl.textContent = labelOriginal;
-            }, 3000);
+    function closeCartConfirmModal() {
+        if (!cartConfirmOverlay) return;
+        cartConfirmOverlay.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+        if (btnCart && typeof btnCart.focus === "function") {
+            btnCart.focus({ preventScroll: true });
+        }
+    }
+
+    function performAddToCart() {
+        const data = buildAddToCartPayload();
+        if (!data) return;
+        const labelOriginal = cartLabelEl ? cartLabelEl.textContent : "Ajouter au panier";
+        if (cartLabelEl) cartLabelEl.textContent = "Ajout au panier...";
+        window.parent.postMessage(data, "*");
+        console.log("Message envoyé au parent :", data);
+
+        const basketOverlay = document.getElementById("basket-loading-overlay");
+        if (basketOverlay) {
+            basketOverlay.setAttribute("aria-hidden", "false");
+        }
+        setTimeout(() => {
+            if (basketOverlay) basketOverlay.setAttribute("aria-hidden", "true");
+            if (cartLabelEl) cartLabelEl.textContent = labelOriginal;
+        }, 3000);
+    }
+
+    if (btnCart) {
+        btnCart.addEventListener("click", (e) => {
+            e.preventDefault();
+            openCartConfirmModal();
         });
     }
+
+    if (cartConfirmBtn) {
+        cartConfirmBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            closeCartConfirmModal();
+            performAddToCart();
+        });
+    }
+
+    if (cartCancelBtn) {
+        cartCancelBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            closeCartConfirmModal();
+        });
+    }
+
+    if (cartConfirmOverlay) {
+        cartConfirmOverlay.addEventListener("click", (e) => {
+            if (e.target === cartConfirmOverlay) {
+                closeCartConfirmModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" || e.key === "Esc") {
+            if (cartConfirmOverlay && cartConfirmOverlay.getAttribute("aria-hidden") === "false") {
+                e.preventDefault();
+                closeCartConfirmModal();
+            }
+        }
+    });
 }
 
 function setupHeaderMenu() {
@@ -1068,6 +1148,10 @@ async function loadCollection(id, urlColors = null) {
     if (collectionLink) {
         collectionLink.textContent = currentCollection.nom;
         collectionLink.href = currentCollection.collection_url || "#";
+    }
+    const modalCollectionLink = document.getElementById("cart-confirm-collection-link");
+    if (modalCollectionLink && collectionLink) {
+        modalCollectionLink.href = collectionLink.href;
     }
 
     // 2. Parser les variations (peut être une chaîne "VAR1, VAR2, VAR3" ou un tableau)
