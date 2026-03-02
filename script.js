@@ -129,10 +129,11 @@ function applyConfigToUrl() {
     const newSearch = params.toString();
     const url = newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname;
     window.history.replaceState({ collection: currentCollection.id, colors: currentColors }, "", url);
-    // On envoie les paramètres d'URL actuels au site parent
+    
+    // On envoie la chaîne qu'on vient de calculer (plus sûr que window.location.search)
     window.parent.postMessage({
         type: "UPDATE_URL",
-        queryString: window.location.search
+        queryString: newSearch ? "?" + newSearch : ""
     }, "*");
 }
 
