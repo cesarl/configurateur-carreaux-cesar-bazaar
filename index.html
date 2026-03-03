@@ -39,6 +39,13 @@
                     <a id="collection-link" class="collection-link" href="#" target="_blank" rel="noopener">...</a>
                     <div class="header-actions">
                         <div class="header-cart-block" id="header-cart-block">
+                            <button type="button" id="btn-cart-info" class="header-cart-info-btn" aria-label="Informations sur les cartons" title="Informations sur les cartons">
+                                <svg class="header-cart-info-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6" />
+                                    <line x1="12" y1="10" x2="12" y2="16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                                    <circle cx="12" cy="7" r="1" fill="currentColor" />
+                                </svg>
+                            </button>
                             <button type="button" id="btn-cart" class="header-cart-trigger" aria-label="Ajouter au panier" title="Ajouter au panier">
                                 <svg class="header-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                                 <span class="header-cart-label">Ajouter au panier</span>
@@ -175,9 +182,15 @@
             <div class="cart-confirm-body">
                 <p>Vous êtes sur le point de valider votre création sur-mesure 💌. Mais avant de l'ajouter au panier, voici comment ça se passe :</p>
 
+                <h3>🏗️ Le configurateur</h3>
+                <p>
+                    Ce configurateur fonctionne super bien sur mobile, mais encore mieux sur ordinateur ! Posez-vous tranquillement devant votre ordinateur avant de finaliser votre commande.<br><br>
+                    Vous pouvez <b>partager et sauvegarder votre configuration</b>, et revenir plus tard pour la finaliser grace au lien de cette page. Vous pouvez aussi télécharger un pdf récappitulatif ou un SVG vectoriel pour les logiciels 3D. (tout ça dans le petit menu en haut à droite de la page).
+                </p>
+
                 <h3>📦 Le format des cartons &amp; les motifs</h3>
                 <p>
-                    La vente se fait par carton complet : 16 carreaux (pour le format 20x20cm). 3 cartons minimum pour une commande personnalisée<br>
+                    La vente se fait par <b>carton complet</b> : 16 carreaux (pour le format 20x20cm). <b>3 cartons minimum pour une commande personnalisée</b><br>
                     Attention : Vous êtes maître absolu des couleurs, mais la répartition des motifs dans un carton est fixe et ne peut pas être modifiée.
                     Pour connaître la répartition exacte des motifs, n'hésitez pas à consulter la description sur
                     <a id="cart-confirm-collection-link" href="#" target="_blank" rel="noopener noreferrer">la page de cette collection</a> !
@@ -186,8 +199,8 @@
                 <h3>🗓️ Le calendrier de production</h3>
                 <p>
                     Les productions fonctionnent par cycles. Pour cette session :<br>
-                    👉 Commandes ouvertes jusqu'au : <span id="cart-confirm-order-deadline"></span><br>
-                    👉 Livraison estimée aux alentours de : <span id="cart-confirm-estimated-delivery"></span>
+                    👉 Commandes ouvertes jusqu'au : <b><span id="cart-confirm-order-deadline"></span></b><br>
+                    👉 Livraison estimée aux alentours de : <b><span id="cart-confirm-estimated-delivery"></span></b>
                 </p>
 
                 <h3>Maroc ou France, l'artisanat, le vrai 💪</h3>

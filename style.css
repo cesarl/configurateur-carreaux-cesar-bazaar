@@ -54,6 +54,31 @@ header .actions { display: flex; gap: 10px; flex-wrap: wrap; }
     gap: 8px;
     flex-shrink: 0;
 }
+.header-cart-info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.header-cart-info-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+.header-cart-info-btn:hover {
+    background: var(--bg-color);
+    border-color: var(--primary);
+    color: var(--primary);
+}
 .header-cart-trigger {
     display: inline-flex;
     align-items: center;
