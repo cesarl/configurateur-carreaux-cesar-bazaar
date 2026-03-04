@@ -3,13 +3,16 @@
 const ORDER_DEADLINE_DATE = "30 avril 2026";
 const ESTIMATED_DELIVERY_DATE = "mi-juin 2026";
 
-const REPO_URL = "https://cesarl.github.io/configurateur-carreaux-cesar-bazaar";
+// Utilise toujours des chemins relatifs aux fichiers du projet.
+// En production, le <base href="..."> dans index.html s'occupe de pointer vers la bonne URL GitHub Pages.
+const REPO_URL = "";
 let currentCollection = null;
 let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
 let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];  // Catalogue complet (brut)
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
 let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
+let devMode = false;       // Mode développeur : inclut les couleurs "Test" et désactive la commande
 let currentLayout = "aleatoire"; // Layout de calepinage (id du calepinage ou "solo")
 let calepinagesData = []; // Calepinages chargés depuis data/calepinages.json
 let mockupsData = []; // Mockups en situation (data/mockups.json)
@@ -371,11 +374,11 @@ async function exportPdf() {
                 doc.addPage();
                 y = margin;
             }
-            const hex = normalizeHex(currentColors[zoneId]);
-            const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
-            const line = colorInfo
-                ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " RAL " + colorInfo.ral : ""} (${hex})`
-                : `${zoneId}: ${hex}`;
+        const hex = normalizeHex(currentColors[zoneId]);
+        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
+        const line = colorInfo
+            ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " " + colorInfo.ral : ""} (Hex: ${hex})`
+            : `${zoneId}: (Hex: ${hex})`;
             const r = parseInt(hex.slice(1, 3), 16);
             const g = parseInt(hex.slice(3, 5), 16);
             const b = parseInt(hex.slice(5, 7), 16);
@@ -645,18 +648,57 @@ function sortColorsForGradient(colors) {
     });
 }
 
-/** Retourne la liste des couleurs à afficher dans le nuancier (publiques seules sauf si showAllColors). */
+/** Retourne la liste des couleurs à afficher dans le nuancier (publiques seules sauf si showAllColors / devMode). */
 function getVisibleNuancier() {
     if (showAllColors) return nuancierData;
-    return nuancierData.filter(c => c.publique !== false);
+    return nuancierData.filter((c) => {
+        // En mode normal, on cache les couleurs non publiques
+        if (!devMode && c.publique === false) return false;
+        // Par défaut : uniquement les couleurs "Validé"
+        if (!devMode) return !c.etat || c.etat === "validé";
+        // En mode développeur : on inclut aussi les couleurs "Test"
+        return !c.etat || c.etat === "validé" || c.etat === "test";
+    });
 }
 
 async function loadData() {
     try {
-        const res = await fetch(`${REPO_URL}/data/nuancier.json`);
-        nuancierData = await res.json();
+        const res = await fetch(`${REPO_URL}data/nuancier.json`);
+        const rawNuancier = await res.json();
+        // Adaptation au nouveau format du JSON couleurs (Color_ID, "Nom couleur", Hex, RAL, Etat)
+        // + compatibilité avec l'ancien format (id, nom, hex, ral, pantone, publique, famille)
+        nuancierData = Array.isArray(rawNuancier)
+            ? rawNuancier.map((c) => {
+                const hasNewFormat =
+                    typeof c.Color_ID !== "undefined" ||
+                    typeof c["Nom couleur"] !== "undefined" ||
+                    typeof c.Hex !== "undefined" ||
+                    typeof c.RAL !== "undefined";
+                const id = hasNewFormat ? (c.Color_ID || "") : (c.id || "");
+                const nom = hasNewFormat ? (c["Nom couleur"] || "") : (c.nom || "");
+                const ral = hasNewFormat ? (c.RAL || "") : (c.ral || "");
+                const pantone = c.pantone || "";
+                const hex =
+                    (hasNewFormat
+                        ? (c.Hex ? "#" + String(c.Hex).replace(/^#/, "") : "")
+                        : (c.hex || "")) || "";
+                const etatRaw = hasNewFormat && c.Etat ? String(c.Etat).toLowerCase().trim() : (c.etat || "").toLowerCase().trim();
+                const publique = hasNewFormat
+                    ? (etatRaw ? etatRaw === "validé" : true)
+                    : (c.publique !== false);
+                return {
+                    id,
+                    nom,
+                    hex,
+                    ral,
+                    pantone,
+                    publique,
+                    etat: etatRaw,
+                };
+            })
+            : [];
         try {
-            const resColors = await fetch(`${REPO_URL}/data/colorMatch.json`);
+            const resColors = await fetch(`${REPO_URL}data/colorMatch.json`);
             colorNameMap = await resColors.json();
         } catch (e) {
             console.warn("Impossible de charger colorMatch.json, fallback sur le navigateur pour les noms CSS.", e);
@@ -664,7 +706,7 @@ async function loadData() {
         renderPalette(getVisibleNuancier());
         setupPaletteDrawer();
         try {
-            const resCal = await fetch(`${REPO_URL}/data/calepinages.json`);
+            const resCal = await fetch(`${REPO_URL}data/calepinages.json`);
             if (resCal.ok) {
                 const raw = await resCal.json();
                 calepinagesData = Array.isArray(raw) ? raw : [];
@@ -674,7 +716,7 @@ async function loadData() {
             calepinagesData = [];
         }
         try {
-            const resMockups = await fetch(`${REPO_URL}/data/mockups.json`);
+            const resMockups = await fetch(`${REPO_URL}data/mockups.json`);
             if (resMockups.ok) {
                 const raw = await resMockups.json();
                 mockupsData = Array.isArray(raw) ? raw : [];
@@ -739,6 +781,24 @@ function setupNavigation() {
     const CART_CANCEL_BTN_TEXT_DEFAULT = cartCancelBtn ? cartCancelBtn.textContent : "";
     let lastCartModalTrigger = null;
 
+    function applyDevModeUiState() {
+        const devWarning = document.getElementById("options-dev-warning");
+        const devHeaderLabel = document.getElementById("dev-mode-header-label");
+        if (btnCart) {
+            if (devMode) {
+                btnCart.style.display = "none";
+            } else {
+                btnCart.style.display = "";
+            }
+        }
+        if (devHeaderLabel) {
+            devHeaderLabel.style.display = devMode ? "" : "none";
+        }
+        if (devWarning) {
+            devWarning.style.display = devMode ? "" : "none";
+        }
+    }
+
     // Injection des dates issues des constantes globales
     if (cartOrderDeadlineEl) {
         cartOrderDeadlineEl.textContent = ORDER_DEADLINE_DATE;
@@ -770,6 +830,7 @@ function setupNavigation() {
         });
     }
     updateCartQuantityDisplay();
+    applyDevModeUiState();
 
     function openCartConfirmModal(mode = "cart", triggerEl) {
         if (!cartConfirmOverlay) {
@@ -823,6 +884,10 @@ function setupNavigation() {
     }
 
     function performAddToCart() {
+        if (devMode) {
+            alert("Le mode développeur est activé : la commande est désactivée tant que ce mode est coché dans les options.");
+            return;
+        }
         const data = buildAddToCartPayload();
         if (!data) return;
         const labelOriginal = cartLabelEl ? cartLabelEl.textContent : "Ajouter au panier";
@@ -887,6 +952,11 @@ function setupNavigation() {
                 closeCartConfirmModal();
             }
         }
+    });
+
+    // Écoute les changements de mode développeur pour mettre à jour l'UI du header (bouton + label)
+    document.addEventListener("devmode:changed", () => {
+        applyDevModeUiState();
     });
 }
 
@@ -953,6 +1023,8 @@ function openOptionsDrawer() {
         if (slider) slider.value = String(calepinageZoom);
         const jointsCheckbox = document.getElementById("options-show-joints");
         if (jointsCheckbox) jointsCheckbox.checked = showJoints;
+        const devCheckbox = document.getElementById("options-dev-mode");
+        if (devCheckbox) devCheckbox.checked = devMode;
         updateOptionsDrawerZoomVisibility();
     }
 }
@@ -985,6 +1057,8 @@ function setupOptionsDrawer() {
     const overlay = document.getElementById("options-drawer-overlay");
     const slider = document.getElementById("options-zoom-slider");
     const jointsCheckbox = document.getElementById("options-show-joints");
+    const devCheckbox = document.getElementById("options-dev-mode");
+    const devWarning = document.getElementById("options-dev-warning");
     if (trigger) trigger.addEventListener("click", openOptionsDrawer);
     if (overlay) overlay.addEventListener("click", closeOptionsDrawer);
     if (slider) {
@@ -1002,6 +1076,26 @@ function setupOptionsDrawer() {
             showJoints = jointsCheckbox.checked;
             saveCalepinageJoints();
             applyShowJointsToGrid();
+        });
+    }
+    if (devCheckbox) {
+        devCheckbox.checked = devMode;
+        devCheckbox.addEventListener("change", () => {
+            const newValue = devCheckbox.checked;
+            const wasFalse = !devMode && newValue;
+            devMode = newValue;
+            if (devWarning) {
+                devWarning.style.display = devMode ? "" : "none";
+            }
+            if (wasFalse && devMode) {
+                alert("Mode développeur activé : les couleurs 'Test' s'affichent dans le nuancier et le bouton de commande est désactivée.");
+            }
+            // Met à jour nuancier + récap + header (bouton panier / label)
+            renderPalette(getVisibleNuancier());
+            updateSidebarRecap();
+            // Le header est géré par setupNavigation -> on force la mise à jour de son état devMode
+            // via un événement personnalisé pour éviter le couplage direct.
+            document.dispatchEvent(new CustomEvent("devmode:changed", { detail: { devMode } }));
         });
     }
 }
@@ -1114,7 +1208,7 @@ function waitForMockupOverlayImages() {
 
 async function renderGallery() {
     try {
-        const res = await fetch(`${REPO_URL}/data/collections.json`);
+        const res = await fetch(`${REPO_URL}data/collections.json`);
         if (!res.ok) {
             console.error("Erreur HTTP:", res.status, res.statusText);
             return;
@@ -1176,7 +1270,7 @@ async function renderGallery() {
 }
 
 async function loadCollection(id, urlColors = null) {
-    const res = await fetch(`${REPO_URL}/data/collections.json`);
+    const res = await fetch(`${REPO_URL}data/collections.json`);
     const collections = await res.json();
     currentCollection = collections.find(c => c.id.toLowerCase() === String(id).toLowerCase()) || collections.find(c => c.id === id);
 
@@ -1257,7 +1351,7 @@ async function loadSVG(type, collectionId) {
     const safeType = type.toUpperCase().trim();
     const filename = `${safeId}-${safeType}.svg`;
     try {
-        const res = await fetch(`${REPO_URL}/assets/svg/${filename}`);
+        const res = await fetch(`${REPO_URL}assets/svg/${filename}`);
         if (!res.ok) {
             throw new Error(`Erreur 404 : Le fichier ${filename} n'existe pas.`);
         }
@@ -1842,7 +1936,25 @@ function extractDefaultColorsFromSvg(svgString) {
         if (!extractedHex) return;
         const normalized = normalizeHex(extractedHex);
         const inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
-        currentColors[zoneId] = inNuancier ? inNuancier.hex : (findClosestNuancierHex(extractedHex) || extractedHex);
+        if (inNuancier) {
+            currentColors[zoneId] = inNuancier.hex;
+        } else {
+            // Couleur non trouvée dans le nuancier : log + fallback BL001
+            const fallback = nuancierData.find((c) => c.id === "BL001") || nuancierData[0];
+            console.warn(
+                "[Nuancier] Couleur par défaut du SVG non trouvée dans le nuancier pour la zone",
+                zoneId,
+                "couleur SVG:",
+                normalized,
+                "→ remplacement par",
+                fallback ? `${fallback.id} (${fallback.hex})` : "aucun fallback disponible"
+            );
+            if (fallback && fallback.hex) {
+                currentColors[zoneId] = fallback.hex;
+            } else {
+                currentColors[zoneId] = "#057BAB"; // dernier filet de sécurité (BL001 en dur)
+            }
+        }
     });
 }
 
@@ -1993,7 +2105,11 @@ function updateSidebarRecap() {
             <span class="sidebar-recap-pill" style="background:${currentColors[zoneId]}"></span>
             <span class="sidebar-recap-info">
                 <span class="recap-name">${colorInfo ? colorInfo.nom : "—"}</span>
-                <span class="recap-code">${colorInfo ? colorInfo.id : ""} ${colorInfo && colorInfo.pantone ? " · Pantone " + colorInfo.pantone : ""} ${colorInfo && colorInfo.ral ? " · RAL " + colorInfo.ral : ""}</span>
+                <span class="recap-code">
+                    ${colorInfo ? colorInfo.id : ""}
+                    ${colorInfo && colorInfo.ral ? " · " + colorInfo.ral : ""}
+                    · Hex: ${hex}
+                </span>
             </span>`;
         list.appendChild(row);
     });
@@ -2097,7 +2213,13 @@ function renderPalette(colors) {
                     const code = this.getAttribute("data-code") || "";
                     const pantone = this.getAttribute("data-pantone") || "";
                     const ral = this.getAttribute("data-ral") || "";
-                    tooltipEl.innerHTML = `<span class="tooltip-name">${nom}</span><span class="tooltip-code">Code: ${code}</span>${pantone ? `<span class="tooltip-pantone">Pantone: ${pantone}</span>` : ""}${ral ? `<span class="tooltip-ral">RAL: ${ral}</span>` : ""}`;
+                    const hexTooltip = this.getAttribute("data-hex") || "";
+                    tooltipEl.innerHTML =
+                        `${nom}` +
+                        (code ? `<br>Code: ${code}` : "") +
+                        (hexTooltip ? `<br>Hex: ${hexTooltip}` : "") +
+                        (pantone ? `<br>Pantone: ${pantone}` : "") +
+                        (ral ? `<br>${ral}` : "");
                     tooltipEl.style.left = `${rect.left}px`;
                     tooltipEl.style.top = `${rect.top - 8}px`;
                     tooltipEl.style.transform = "translateY(-100%)";
@@ -2441,9 +2563,9 @@ function buildCarouselMockupSlides() {
         slide.setAttribute("data-slide-index", String(i + 1));
         slide.innerHTML = `
             <div class="mockup-scene carousel-slide-mockup-content" style="aspect-ratio: ${mockup.sceneWidth}/${mockup.sceneHeight};">
-                <img class="visuel-watermark" src="${REPO_URL}/assets/logo-cesar-bazaar-alpha.png" alt="" aria-hidden="true" />
+                <img class="visuel-watermark" src="${REPO_URL}assets/logo-cesar-bazaar-alpha.png" alt="" aria-hidden="true" />
                 <div class="mockup-tapis" data-mockup-index="${i}"></div>
-                <img class="mockup-overlay" src="${REPO_URL}/${mockup.overlayPath}" alt="${mockup.name}" />
+                <img class="mockup-overlay" src="${REPO_URL}${mockup.overlayPath}" alt="${mockup.name}" />
             </div>`;
         track.appendChild(slide);
     });

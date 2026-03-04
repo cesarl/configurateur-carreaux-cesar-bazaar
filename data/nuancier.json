@@ -1,1 +1,1031 @@
-[{"id":"CB-001","nom":"Bleu Nuit","hex":"#1D355F","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-002","nom":"Bleu Ciel","hex":"#87CEEB","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-003","nom":"Bleu Glacier","hex":"#CFE8F3","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-004","nom":"Bleu Pétrole","hex":"#2A5D67","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-005","nom":"Bleu Indigo","hex":"#3F51B5","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-006","nom":"Bleu Majorelle","hex":"#1C39BB","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-007","nom":"Bleu Ardoise","hex":"#4A6FA5","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-008","nom":"Bleu Océan","hex":"#2E86AB","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-009","nom":"Bleu Brume","hex":"#A9C6D9","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-010","nom":"Bleu Minéral","hex":"#5D8AA8","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-011","nom":"Vert Forêt","hex":"#2D4A3E","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-012","nom":"Vert Sauge","hex":"#9CAF88","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-013","nom":"Vert Olive","hex":"#6B8E23","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-014","nom":"Vert Menthe","hex":"#98FF98","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-015","nom":"Vert Émeraude","hex":"#2ECC71","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-016","nom":"Vert Mousse","hex":"#8A9A5B","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-017","nom":"Vert Bouteille","hex":"#1F3D2B","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-018","nom":"Vert Jade","hex":"#00A86B","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-019","nom":"Vert Amande","hex":"#A4C3A2","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-020","nom":"Vert Minéral","hex":"#6C9A8B","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-021","nom":"Rouge Brique","hex":"#B25A44","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-022","nom":"Rouge Coquelicot","hex":"#E63946","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-023","nom":"Rouge Bordeaux","hex":"#6D071A","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-024","nom":"Rouge Corail","hex":"#FF6F61","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-025","nom":"Rouge Grenat","hex":"#7B1E3A","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-026","nom":"Rouge Terre Cuite","hex":"#C1440E","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-027","nom":"Rouge Carmin","hex":"#960018","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-028","nom":"Rouge Tomate","hex":"#E34234","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-029","nom":"Rouge Framboise","hex":"#D72663","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-030","nom":"Rouge Cinabre","hex":"#E44D2E","famille":"Rouges","publique":true,"pantone":"","ral":""},{"id":"CB-031","nom":"Terracotta","hex":"#D59A7C","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-032","nom":"Ocre Jaune","hex":"#CC7722","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-033","nom":"Brun Sienne","hex":"#A0522D","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-034","nom":"Argile Claire","hex":"#E6B89C","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-035","nom":"Brun Chocolat","hex":"#5C3A21","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-036","nom":"Terre d'Ombre","hex":"#635147","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-037","nom":"Sable Chaud","hex":"#D2B48C","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-038","nom":"Beige Argile","hex":"#C9A27E","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-039","nom":"Brun Minéral","hex":"#7B5E57","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-040","nom":"Ocre Rouge","hex":"#A65E2E","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-041","nom":"Jaune Moutarde","hex":"#E0AC00","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-042","nom":"Jaune Soleil","hex":"#FFD60A","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-043","nom":"Jaune Safran","hex":"#F4C430","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-044","nom":"Jaune Paille","hex":"#F4E285","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-045","nom":"Jaune Vanille","hex":"#FFF3B0","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-046","nom":"Jaune Ocre Clair","hex":"#E1AD01","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-047","nom":"Jaune Blé","hex":"#F5DEB3","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-048","nom":"Jaune Doré","hex":"#FFC300","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-049","nom":"Jaune Pastel","hex":"#FFFACD","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-050","nom":"Jaune Ambre","hex":"#FFBF00","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-051","nom":"Rose Poudré","hex":"#E8C1C5","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-052","nom":"Rose Saumon","hex":"#FA8072","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-053","nom":"Rose Dragée","hex":"#F7CAD0","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-054","nom":"Rose Vieux","hex":"#C08081","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-055","nom":"Rose Thé","hex":"#F4C2C2","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-056","nom":"Rose Corail Clair","hex":"#F88379","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-057","nom":"Rose Minéral","hex":"#D8A7B1","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-058","nom":"Rose Blush","hex":"#FADADD","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-059","nom":"Rose Framboise Clair","hex":"#E75480","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-060","nom":"Rose Pêche","hex":"#FFDAB9","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-061","nom":"Violet Prune","hex":"#6A0DAD","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-062","nom":"Lavande","hex":"#B57EDC","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-063","nom":"Mauve","hex":"#9370DB","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-064","nom":"Parme","hex":"#D8BFD8","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-065","nom":"Aubergine","hex":"#4B2E39","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-066","nom":"Violet Améthyste","hex":"#9966CC","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-067","nom":"Violet Fumé","hex":"#7F6A93","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-068","nom":"Violet Orchidée","hex":"#DA70D6","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-069","nom":"Violet Pastel","hex":"#C3B1E1","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-070","nom":"Violet Profond","hex":"#301934","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-071","nom":"Orange Brûlé","hex":"#CC5500","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-072","nom":"Orange Mandarine","hex":"#FF8C42","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-073","nom":"Abricot","hex":"#FBCEB1","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-074","nom":"Cuivre","hex":"#B87333","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-075","nom":"Orange Pastel","hex":"#FFD8A8","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-076","nom":"Orange Terre","hex":"#C35817","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-077","nom":"Orange Safrané","hex":"#E97451","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-078","nom":"Orange Pêche Clair","hex":"#FFB347","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-079","nom":"Orange Rouille","hex":"#B7410E","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-080","nom":"Orange Minéral","hex":"#D2691E","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-081","nom":"Beige Rosé","hex":"#D9C4B8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-082","nom":"Beige Sable","hex":"#E5D3B3","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-083","nom":"Ivoire","hex":"#FFFFF0","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-084","nom":"Blanc Cassé","hex":"#F5F5F5","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-085","nom":"Lin Naturel","hex":"#DCD2C8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-086","nom":"Gris Perle","hex":"#C9C9C9","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-087","nom":"Gris Ciment","hex":"#9EA3A8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-088","nom":"Gris Ardoise","hex":"#708090","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-089","nom":"Taupe","hex":"#8B7D7B","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-090","nom":"Gris Fumé","hex":"#6E6E6E","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-091","nom":"Noir Carbone","hex":"#1A1A1A","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-092","nom":"Noir Encre","hex":"#0F0F0F","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-093","nom":"Gris Anthracite","hex":"#303030","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-094","nom":"Gris Clair","hex":"#D3D3D3","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-095","nom":"Gris Minéral","hex":"#A8A9AD","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-096","nom":"Beige Crème","hex":"#F5E6CA","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-097","nom":"Sable Clair","hex":"#EFE1C6","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-098","nom":"Pierre Calcaire","hex":"#E0D8C3","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-099","nom":"Craie","hex":"#F8F8F2","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-100","nom":"Beige Minéral","hex":"#D8C3A5","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-101","nom":"Turquoise","hex":"#40E0D0","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-102","nom":"Bleu Lagune","hex":"#4CB5AE","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-103","nom":"Bleu Azur","hex":"#007FFF","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-104","nom":"Bleu Denim","hex":"#1560BD","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-105","nom":"Bleu Foncé Minéral","hex":"#1F2A44","famille":"Bleus","publique":true,"pantone":"","ral":""},{"id":"CB-106","nom":"Vert Pistache","hex":"#93C572","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-107","nom":"Vert Tilleul","hex":"#BFD8B8","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-108","nom":"Vert Kaki","hex":"#78866B","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-109","nom":"Vert Profond","hex":"#1B4332","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-110","nom":"Vert Eau","hex":"#7ED4AD","famille":"Verts","publique":true,"pantone":"","ral":""},{"id":"CB-111","nom":"Brun Café","hex":"#4B3621","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-112","nom":"Brun Noisette","hex":"#A67B5B","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-113","nom":"Brun Terre","hex":"#6F4E37","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-115","nom":"Sienne Brûlée","hex":"#8A3B12","famille":"Terres","publique":true,"pantone":"","ral":""},{"id":"CB-116","nom":"Jaune Citron","hex":"#FFF44F","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-117","nom":"Jaune Clair Pastel","hex":"#FFF9C4","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-118","nom":"Jaune Doré Foncé","hex":"#DAA520","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-119","nom":"Jaune Ocre Profond","hex":"#C99700","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-120","nom":"Jaune Crème","hex":"#FFFDD0","famille":"Jaunes","publique":true,"pantone":"","ral":""},{"id":"CB-121","nom":"Rose Quartz","hex":"#F7CAC9","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-122","nom":"Rose Pastel Clair","hex":"#FFD1DC","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-125","nom":"Rose Nude","hex":"#E3B7A0","famille":"Roses","publique":true,"pantone":"","ral":""},{"id":"CB-126","nom":"Violet Foncé","hex":"#2E1A47","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-127","nom":"Lilac","hex":"#C8A2C8","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-128","nom":"Violet Gris","hex":"#8F7FA3","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-129","nom":"Prune Minérale","hex":"#5A2A4D","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-130","nom":"Violet Pastel Doux","hex":"#DCD0FF","famille":"Violets","publique":true,"pantone":"","ral":""},{"id":"CB-131","nom":"Orange Clair","hex":"#FFD580","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-132","nom":"Orange Pastel Doux","hex":"#FFE5B4","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-133","nom":"Orange Cuivré Foncé","hex":"#A04000","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-134","nom":"Mandarine Douce","hex":"#FFA552","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-135","nom":"Orange Sable","hex":"#E9A178","famille":"Oranges","publique":true,"pantone":"","ral":""},{"id":"CB-136","nom":"Gris Chaud","hex":"#B0AFAF","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-137","nom":"Gris Froid","hex":"#A7B0B8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-138","nom":"Beige Froid","hex":"#E8E0D5","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-139","nom":"Pierre Grise","hex":"#B8B5A9","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-140","nom":"Ciment Clair","hex":"#D1D1CF","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-141","nom":"Blanc Pur","hex":"#FFFFFF","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-142","nom":"Noir Profond","hex":"#000000","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-143","nom":"Gris Acier","hex":"#7A7F85","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-144","nom":"Beige Sable Foncé","hex":"#C2A383","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-145","nom":"Pierre Beige","hex":"#D7C5A4","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-146","nom":"Calcaire Clair","hex":"#EEE6D8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-147","nom":"Grège","hex":"#CFC6B8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-148","nom":"Sable Minéral","hex":"#E6D3A3","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-149","nom":"Poussière de Pierre","hex":"#DDD6C8","famille":"Neutres","publique":true,"pantone":"","ral":""},{"id":"CB-150","nom":"Craie Minérale","hex":"#F2F1EC","famille":"Neutres","publique":true,"pantone":"","ral":""}]
+[
+  {
+    "Color_ID": "BL001",
+    "Nom couleur": "Bleu turc",
+    "Etat": "Validé",
+    "RAL": "RAL 250 50 35",
+    "Hex": "057BAB"
+  },
+  {
+    "Color_ID": "BL002",
+    "Nom couleur": "Bleu clair",
+    "Etat": "Validé",
+    "RAL": "RAL 5012",
+    "Hex": "0085B3"
+  },
+  {
+    "Color_ID": "BL003",
+    "Nom couleur": "Bleu conte de fées",
+    "Etat": "Validé",
+    "RAL": "RAL 240 60 30",
+    "Hex": "529EC2"
+  },
+  {
+    "Color_ID": "BL004",
+    "Nom couleur": "Bleu Madonna",
+    "Etat": "Validé",
+    "RAL": "RAL 240 70 25",
+    "Hex": "60A8C6"
+  },
+  {
+    "Color_ID": "BL005",
+    "Nom couleur": "Bleu légende",
+    "Etat": "Validé",
+    "RAL": "RAL 230 70 25",
+    "Hex": "79B1C8"
+  },
+  {
+    "Color_ID": "BL006",
+    "Nom couleur": "Bleu délavé",
+    "Etat": "Validé",
+    "RAL": "RAL 230 80 10",
+    "Hex": "A4C1C7"
+  },
+  {
+    "Color_ID": "BL007",
+    "Nom couleur": "Gris turquoise",
+    "Etat": "Validé",
+    "RAL": "RAL 210 80 10",
+    "Hex": "B2C9CA"
+  },
+  {
+    "Color_ID": "GN002",
+    "Nom couleur": "Vert saule blanc",
+    "Etat": "Validé",
+    "RAL": "RAL 140 50 20",
+    "Hex": "627A59"
+  },
+  {
+    "Color_ID": "GN003",
+    "Nom couleur": "Vert épinard",
+    "Etat": "Validé",
+    "RAL": "RAL 140 60 20",
+    "Hex": "7B9675"
+  },
+  {
+    "Color_ID": "GN004",
+    "Nom couleur": "Vert rosé",
+    "Etat": "Validé",
+    "RAL": "RAL140 70 20",
+    "Hex": "94AF8C"
+  },
+  {
+    "Color_ID": "GN005",
+    "Nom couleur": "Vert email",
+    "Etat": "Validé",
+    "RAL": "RAL 130 80 20",
+    "Hex": "B7C8A4"
+  },
+  {
+    "Color_ID": "GN006",
+    "Nom couleur": "Vert gris pastel",
+    "Etat": "Validé",
+    "RAL": "RAL 140 80 10",
+    "Hex": "BBC6B4"
+  },
+  {
+    "Color_ID": "GN011",
+    "Nom couleur": "Vert tampon encreur",
+    "Etat": "Validé",
+    "RAL": "RAL 180 60 35",
+    "Hex": "2F9D88"
+  },
+  {
+    "Color_ID": "GN012",
+    "Nom couleur": "Lac alpin azur",
+    "Etat": "Validé",
+    "RAL": "RAL 180 70 35",
+    "Hex": "49B7A2"
+  },
+  {
+    "Color_ID": "GN013",
+    "Nom couleur": "Turquoise aquatique",
+    "Etat": "Validé",
+    "RAL": "RAL 180 70 30",
+    "Hex": "5FB6A3"
+  },
+  {
+    "Color_ID": "GN014",
+    "Nom couleur": "Vert ciel",
+    "Etat": "Validé",
+    "RAL": "RAL 170 80 20",
+    "Hex": "9FD0BB"
+  },
+  {
+    "Color_ID": "GN015",
+    "Nom couleur": "Vert soleil",
+    "Etat": "Validé",
+    "RAL": "RAL 160 80 15",
+    "Hex": "AACAB6"
+  },
+  {
+    "Color_ID": "GN016",
+    "Nom couleur": "Vert topaze",
+    "Etat": "Validé",
+    "RAL": "RAL 170 85 10",
+    "Hex": "BED6CA"
+  },
+  {
+    "Color_ID": "GN017",
+    "Nom couleur": "Vert mica",
+    "Etat": "Validé",
+    "RAL": "RAL 160 85 10",
+    "Hex": "C0D4C6"
+  },
+  {
+    "Color_ID": "GN021",
+    "Nom couleur": "Vert feuille de mûrier",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 170 50 20",
+    "Hex": "4E7465"
+  },
+  {
+    "Color_ID": "OR002",
+    "Nom couleur": "Jaune orangé",
+    "Etat": "Validé",
+    "RAL": "RAL 050 60 50",
+    "Hex": "D37549"
+  },
+  {
+    "Color_ID": "OR004",
+    "Nom couleur": "Orange clair ambré",
+    "Etat": "Validé",
+    "RAL": "RAL 050 70 40",
+    "Hex": "E69370"
+  },
+  {
+    "Color_ID": "OR005",
+    "Nom couleur": "Orange bougie",
+    "Etat": "Validé",
+    "RAL": "RAL 060 70 40",
+    "Hex": "D2916E"
+  },
+  {
+    "Color_ID": "OR006",
+    "Nom couleur": "Jaune pêche",
+    "Etat": "Validé",
+    "RAL": "RAL 060 70 30",
+    "Hex": "CF9A76"
+  },
+  {
+    "Color_ID": "OR007",
+    "Nom couleur": "Jaune bouton d'or",
+    "Etat": "Validé",
+    "RAL": "RAL 070 80 20",
+    "Hex": "E3C0A1"
+  },
+  {
+    "Color_ID": "OR008",
+    "Nom couleur": "Jaune blé clair",
+    "Etat": "Validé",
+    "RAL": "RAL 075 80 20",
+    "Hex": "E0C1A0"
+  },
+  {
+    "Color_ID": "OR009",
+    "Nom couleur": "Sable pastel",
+    "Etat": "Validé",
+    "RAL": "RAL 080 80 10",
+    "Hex": "D4C2AF"
+  },
+  {
+    "Color_ID": "PP001",
+    "Nom couleur": "Violet tulipe",
+    "Etat": "Validé",
+    "RAL": "RAL 300 50 25",
+    "Hex": "766B94"
+  },
+  {
+    "Color_ID": "PP002",
+    "Nom couleur": "Lilas soie",
+    "Etat": "Validé",
+    "RAL": "RAL 300 60 25",
+    "Hex": "8F83AD"
+  },
+  {
+    "Color_ID": "PP003",
+    "Nom couleur": "Violet dauphinelle",
+    "Etat": "Validé",
+    "RAL": "RAL 300 60 20",
+    "Hex": "9085A7"
+  },
+  {
+    "Color_ID": "PP004",
+    "Nom couleur": "Violet dauphinelle",
+    "Etat": "Annulé",
+    "RAL": "RAL 300 60 20",
+    "Hex": "9085A7"
+  },
+  {
+    "Color_ID": "PP005",
+    "Nom couleur": "Violet brume matinalle",
+    "Etat": "Validé",
+    "RAL": "RAL 300 70 10",
+    "Hex": "AAA2B2"
+  },
+  {
+    "Color_ID": "PP006",
+    "Nom couleur": "Bleu tulipe",
+    "Etat": "Validé",
+    "RAL": "RAL 290 80 10",
+    "Hex": "C1BECE"
+  },
+  {
+    "Color_ID": "PP007",
+    "Nom couleur": "Lilas brume",
+    "Etat": "Validé",
+    "RAL": "RAL 300 80 05",
+    "Hex": "C6C1C7"
+  },
+  {
+    "Color_ID": "PP008",
+    "Nom couleur": "Gris brume",
+    "Etat": "Validé",
+    "RAL": "RAL 000 80 00",
+    "Hex": "C7C5C3"
+  },
+  {
+    "Color_ID": "RD001",
+    "Nom couleur": "Rouge piment",
+    "Etat": "Validé",
+    "RAL": "RAL 030 40 40",
+    "Hex": "964340"
+  },
+  {
+    "Color_ID": "RD004",
+    "Nom couleur": "Vermillon",
+    "Etat": "Validé",
+    "RAL": "RAL 030 50 40",
+    "Hex": "A85E57"
+  },
+  {
+    "Color_ID": "RD005",
+    "Nom couleur": "Rose antique",
+    "Etat": "Validé",
+    "RAL": "RAL 030 60 30",
+    "Hex": "B16962"
+  },
+  {
+    "Color_ID": "RD006",
+    "Nom couleur": "Abricot trouble",
+    "Etat": "Validé",
+    "RAL": "RAL 030 70 20",
+    "Hex": "C68980"
+  },
+  {
+    "Color_ID": "RD007",
+    "Nom couleur": "Terre de sienne claire",
+    "Etat": "Validé",
+    "RAL": "RAL 040 70 20",
+    "Hex": "CF9A8E"
+  },
+  {
+    "Color_ID": "RD009",
+    "Nom couleur": "Rose thulite",
+    "Etat": "Validé",
+    "RAL": "RAL 040 8010",
+    "Hex": "D5B6AB"
+  },
+  {
+    "Color_ID": "RD010",
+    "Nom couleur": "Beige pur",
+    "Etat": "Validé",
+    "RAL": "RAL 050 8510",
+    "Hex": "E4C9BC"
+  },
+  {
+    "Color_ID": "WT000",
+    "Nom couleur": "Blanc",
+    "Etat": "Validé",
+    "RAL": "RAL 090 90 05",
+    "Hex": "E9E0D4"
+  },
+  {
+    "Color_ID": "WT001",
+    "Nom couleur": "Beige biscuit",
+    "Etat": "Validé",
+    "RAL": "RAL 060 80 20",
+    "Hex": "D6B299"
+  },
+  {
+    "Color_ID": "YL001",
+    "Nom couleur": "Jaune nid d'abeille",
+    "Etat": "Validé",
+    "RAL": "RAL 070 70 50",
+    "Hex": "DC9B54"
+  },
+  {
+    "Color_ID": "YL003",
+    "Nom couleur": "Jaune profond bambou",
+    "Etat": "Validé",
+    "RAL": "RAL 075 70 50",
+    "Hex": "DB9F59"
+  },
+  {
+    "Color_ID": "YL005",
+    "Nom couleur": "Jaune paille",
+    "Etat": "Validé",
+    "RAL": "RAL 080 80 40",
+    "Hex": "EBBB77"
+  },
+  {
+    "Color_ID": "YL006",
+    "Nom couleur": "Jaune Vespa",
+    "Etat": "Validé",
+    "RAL": "RAL 080 85 30",
+    "Hex": "EBC594"
+  },
+  {
+    "Color_ID": "YL007",
+    "Nom couleur": "Blond clair",
+    "Etat": "Validé",
+    "RAL": "RAL 085 85 20",
+    "Hex": "E9CDA8"
+  },
+  {
+    "Color_ID": "YL008",
+    "Nom couleur": "Ivoire clair",
+    "Etat": "Validé",
+    "RAL": "RAL 1015",
+    "Hex": "E6D4BA"
+  },
+  {
+    "Color_ID": "YL009",
+    "Nom couleur": "Blanc nature paella",
+    "Etat": "Validé",
+    "RAL": "RAL 090 85 10",
+    "Hex": "DBCFBA"
+  },
+  {
+    "Color_ID": "YL010",
+    "Nom couleur": "Blanc crème",
+    "Etat": "Validé",
+    "RAL": "RAL 9001",
+    "Hex": "E8DED0"
+  },
+  {
+    "Color_ID": "PP012",
+    "Nom couleur": "Mauve pâle",
+    "Etat": "Validé",
+    "RAL": "RAL 010 70 10",
+    "Hex": "BDA1A4"
+  },
+  {
+    "Color_ID": "OR011",
+    "Nom couleur": "Rouge fourmi",
+    "Etat": "Validé",
+    "RAL": "RAL 040 50 40",
+    "Hex": "AE5A47"
+  },
+  {
+    "Color_ID": "BL012",
+    "Nom couleur": "Bleu clair Nordland",
+    "Etat": "Validé",
+    "RAL": "RAL 260 70 15",
+    "Hex": "A0B4C8"
+  },
+  {
+    "Color_ID": "YL011",
+    "Nom couleur": "Vert lichen",
+    "Etat": "Annulé",
+    "RAL": "RAL 085 60 40",
+    "Hex": "B19153"
+  },
+  {
+    "Color_ID": "BK000",
+    "Nom couleur": "Noir ardoise",
+    "Etat": "Validé",
+    "RAL": "RAL 000 20 00",
+    "Hex": "323233"
+  },
+  {
+    "Color_ID": "BL014",
+    "Nom couleur": "Bleu salon",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 270 40 20",
+    "Hex": "465C7A"
+  },
+  {
+    "Color_ID": "RD011",
+    "Nom couleur": "Sel rose",
+    "Etat": "Validé",
+    "RAL": "RAL 030 80 10",
+    "Hex": "D9BCB7"
+  },
+  {
+    "Color_ID": "OR012",
+    "Nom couleur": "Brun abricot",
+    "Etat": "Validé",
+    "RAL": "RAL 050 60 40",
+    "Hex": "C67A57"
+  },
+  {
+    "Color_ID": "BW001",
+    "Nom couleur": "Curry brun",
+    "Etat": "Validé",
+    "RAL": "RAL 050 40 30",
+    "Hex": "81503B"
+  },
+  {
+    "Color_ID": "BK001",
+    "Nom couleur": "Noir onyx",
+    "Etat": "Validé",
+    "RAL": "RAL 000 25 00",
+    "Hex": "3F4143"
+  },
+  {
+    "Color_ID": "BK002",
+    "Nom couleur": "Gris graphite",
+    "Etat": "Validé",
+    "RAL": "RAL 7024",
+    "Hex": "474A4E"
+  },
+  {
+    "Color_ID": "BK003",
+    "Nom couleur": "Gris basalte",
+    "Etat": "Validé",
+    "RAL": "RAL 7012",
+    "Hex": "5E6164"
+  },
+  {
+    "Color_ID": "BK004",
+    "Nom couleur": "Gris acier",
+    "Etat": "Validé",
+    "RAL": "RAL 000 50 00",
+    "Hex": "747679"
+  },
+  {
+    "Color_ID": "BK006",
+    "Nom couleur": "Gris moyen",
+    "Etat": "Validé",
+    "RAL": "RAL 000 55 00",
+    "Hex": "808080"
+  },
+  {
+    "Color_ID": "BK007",
+    "Nom couleur": "Gris cendré",
+    "Etat": "Validé",
+    "RAL": "RAL 000 60 00",
+    "Hex": "8D8C8B"
+  },
+  {
+    "Color_ID": "BK008",
+    "Nom couleur": "Gris marbre",
+    "Etat": "Validé",
+    "RAL": "RAL 000 75 00",
+    "Hex": "B7B5B4"
+  },
+  {
+    "Color_ID": "GN007",
+    "Nom couleur": "Vert ultra léger",
+    "Etat": "Validé",
+    "RAL": "RAL 120 85 10",
+    "Hex": "CED3BD"
+  },
+  {
+    "Color_ID": "BL015",
+    "Nom couleur": "Bleu linoléum",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 250 50 25",
+    "Hex": "357A9A"
+  },
+  {
+    "Color_ID": "BL016",
+    "Nom couleur": "Bleu gousse",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 260 40 10",
+    "Hex": "4B5662"
+  },
+  {
+    "Color_ID": "BL017",
+    "Nom couleur": "Bleu distant",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 5023",
+    "Hex": "496986"
+  },
+  {
+    "Color_ID": "BW002",
+    "Nom couleur": "Rouge cèdre",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 040 60 30",
+    "Hex": "AE6E5B"
+  },
+  {
+    "Color_ID": "BL018",
+    "Nom couleur": "Bleu fleur de sauge",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 270 50 30",
+    "Hex": "5379A8"
+  },
+  {
+    "Color_ID": "BL019",
+    "Nom couleur": "Bleu aquatique",
+    "Etat": "Validé",
+    "RAL": "RAL 210 70 20",
+    "Hex": "8CBCC0"
+  },
+  {
+    "Color_ID": "GN018",
+    "Nom couleur": "Vert toiten cuivre",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 180 60 15",
+    "Hex": "648781"
+  },
+  {
+    "Color_ID": "GN019",
+    "Nom couleur": "Vert brochantite",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 200 40 10",
+    "Hex": "495C5F"
+  },
+  {
+    "Color_ID": "BW003",
+    "Nom couleur": "Brun Vandick",
+    "Etat": "Validé",
+    "RAL": "RAL 040 40 20",
+    "Hex": "7C524A"
+  },
+  {
+    "Color_ID": "BW004",
+    "Nom couleur": "Brun caramel",
+    "Etat": "Validé",
+    "RAL": "RAL 050 60 20",
+    "Hex": "9E7D69"
+  },
+  {
+    "Color_ID": "PP013",
+    "Nom couleur": "Rouge brique",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 010 50 20",
+    "Hex": "845D63"
+  },
+  {
+    "Color_ID": "GN008",
+    "Nom couleur": "Bleu ombragé",
+    "Etat": "Validé",
+    "RAL": "RAL 220 50 20",
+    "Hex": "447882"
+  },
+  {
+    "Color_ID": "GN009",
+    "Nom couleur": "Vert lichen",
+    "Etat": "Validé",
+    "RAL": "RAL 085 60 40",
+    "Hex": "B09354"
+  },
+  {
+    "Color_ID": "PP015",
+    "Nom couleur": "Lilas fleur de montagne",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 290 50 30",
+    "Hex": "6B75AA"
+  },
+  {
+    "Color_ID": "PP016",
+    "Nom couleur": "Violet terne",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 350 50 15",
+    "Hex": "8C6B76"
+  },
+  {
+    "Color_ID": "GN022",
+    "Nom couleur": "Turquoise menthe",
+    "Etat": "Validé",
+    "RAL": "RAL 6033",
+    "Hex": "4E8B7E"
+  },
+  {
+    "Color_ID": "BL020",
+    "Nom couleur": "Lilas lavande",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 280 50 20",
+    "Hex": "657798"
+  },
+  {
+    "Color_ID": "BL021",
+    "Nom couleur": "Bleu cocktail",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 270 50 25",
+    "Hex": "5F7AA7"
+  },
+  {
+    "Color_ID": "BL022",
+    "Nom couleur": "Bleu de Vienne",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 270 50 35",
+    "Hex": "ED72A9"
+  },
+  {
+    "Color_ID": "BL023",
+    "Nom couleur": "Vert mare aux canards",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 190 60 20",
+    "Hex": "5A9691"
+  },
+  {
+    "Color_ID": "GN020",
+    "Nom couleur": "Vert tilleul tomenteux",
+    "Etat": "Validé",
+    "RAL": "RAL 140 60 10",
+    "Hex": "859681"
+  },
+  {
+    "Color_ID": "YL012",
+    "Nom couleur": "Jaune chamotté",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 075 50 30",
+    "Hex": "926E43"
+  },
+  {
+    "Color_ID": "OR015",
+    "Nom couleur": "Terre orangée",
+    "Etat": "Validé",
+    "RAL": "RAL 040 60 40",
+    "Hex": "B46A54"
+  },
+  {
+    "Color_ID": "BL024",
+    "Nom couleur": "Bleu calcaire baroque",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 200 80 10",
+    "Hex": "A8BFBC"
+  },
+  {
+    "Color_ID": "BL025",
+    "Nom couleur": "Bleu baie",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 250 40 20",
+    "Hex": "3D6982"
+  },
+  {
+    "Color_ID": "BW005",
+    "Nom couleur": "Brun champignon",
+    "Etat": "Validé",
+    "RAL": "RAL 060 50 20",
+    "Hex": "916B51"
+  },
+  {
+    "Color_ID": "WT002",
+    "Nom couleur": "Grège clair",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 060 80 10",
+    "Hex": "D7BFAD"
+  },
+  {
+    "Color_ID": "BL026",
+    "Nom couleur": "Bleu Vermeer",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 260 50 35",
+    "Hex": "2C6FA1"
+  },
+  {
+    "Color_ID": "GN024",
+    "Nom couleur": "Vert mur",
+    "Etat": "Validé",
+    "RAL": "RAL 110 70 20",
+    "Hex": "A3A677"
+  },
+  {
+    "Color_ID": "GN026",
+    "Nom couleur": "Olive pic-vert",
+    "Etat": "Validé",
+    "RAL": "RAL 100 50 20",
+    "Hex": "807B5A"
+  },
+  {
+    "Color_ID": "BL027",
+    "Nom couleur": "Bleu acier",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 250 40 15",
+    "Hex": "465E70"
+  },
+  {
+    "Color_ID": "BL028",
+    "Nom couleur": "Bleu vienne",
+    "Etat": "Validé",
+    "RAL": "RAL 270 50 35",
+    "Hex": "3E6BA0"
+  },
+  {
+    "Color_ID": "GN027",
+    "Nom couleur": "Vert azurite",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 180 50 20",
+    "Hex": "3C7870"
+  },
+  {
+    "Color_ID": "BL029",
+    "Nom couleur": "Gris métalique",
+    "Etat": "Validé",
+    "RAL": "RAL 250 50 10",
+    "Hex": "6B7D8B"
+  },
+  {
+    "Color_ID": "GN028",
+    "Nom couleur": "Gris vert sauge",
+    "Etat": "Validé",
+    "RAL": "RAL 150 50 10",
+    "Hex": "687267"
+  },
+  {
+    "Color_ID": "SRD001",
+    "Nom couleur": "Airelle rouge",
+    "Etat": "Validé",
+    "RAL": "RAL 020 50 58",
+    "Hex": "CD4354"
+  },
+  {
+    "Color_ID": "PP020",
+    "Nom couleur": "Bleu clématis",
+    "Etat": "Validé",
+    "RAL": "RAL 300 40 40",
+    "Hex": "6B599A"
+  },
+  {
+    "Color_ID": "PP021",
+    "Nom couleur": "Lilas limpide",
+    "Etat": "Validé",
+    "RAL": "RAL 300 50 40",
+    "Hex": "6F5C9D"
+  },
+  {
+    "Color_ID": "PP022",
+    "Nom couleur": "Lilas d'hiver",
+    "Etat": "Validé",
+    "RAL": "RAL 300 50 35",
+    "Hex": "7D68A7"
+  },
+  {
+    "Color_ID": "PP023",
+    "Nom couleur": "Gris améthyste",
+    "Etat": "Validé",
+    "RAL": "RAL 300 60 35",
+    "Hex": "8B78B1"
+  },
+  {
+    "Color_ID": "PP024",
+    "Nom couleur": "Lilas pivoine",
+    "Etat": "Validé",
+    "RAL": "RAL 310 60 30",
+    "Hex": "9D8DBA"
+  },
+  {
+    "Color_ID": "PP025",
+    "Nom couleur": "Rose bleu",
+    "Etat": "Validé",
+    "RAL": "RAL 310 70 20",
+    "Hex": "AA9BBC"
+  },
+  {
+    "Color_ID": "PP030",
+    "Nom couleur": "Bleu vienne",
+    "Etat": "Annulé",
+    "RAL": "RAL 270 50 35",
+    "Hex": "4571A8"
+  },
+  {
+    "Color_ID": "BL030",
+    "Nom couleur": "Bleu distant",
+    "Etat": "Test",
+    "RAL": "RAL 5023",
+    "Hex": "496986"
+  },
+  {
+    "Color_ID": "PP031",
+    "Nom couleur": "Violet brun terre",
+    "Etat": "Test",
+    "RAL": "RAL 340 40 15",
+    "Hex": "6C4F5D"
+  },
+  {
+    "Color_ID": "RD050",
+    "Nom couleur": "Rose fluo max",
+    "Etat": "Test",
+    "RAL": "???",
+    "Hex": "DC58A3"
+  },
+  {
+    "Color_ID": "RD051",
+    "Nom couleur": "Rose fluo",
+    "Etat": "Test",
+    "RAL": "???",
+    "Hex": "DE64AB"
+  },
+  {
+    "Color_ID": "RD052",
+    "Nom couleur": "Rose flash",
+    "Etat": "Test",
+    "RAL": "???",
+    "Hex": "E078B5"
+  },
+  {
+    "Color_ID": "RD053",
+    "Nom couleur": "Rose bonbon",
+    "Etat": "Test",
+    "RAL": "???",
+    "Hex": "DE7BB6"
+  },
+  {
+    "Color_ID": "RD054",
+    "Nom couleur": "Rose vif ardent",
+    "Etat": "Test",
+    "RAL": "RAL 340 70 35",
+    "Hex": "DF97C2"
+  },
+  {
+    "Color_ID": "RD055",
+    "Nom couleur": "Rose vif clair",
+    "Etat": "Test",
+    "RAL": "RAL 350 80 20",
+    "Hex": "E0ADC8"
+  },
+  {
+    "Color_ID": "RD056",
+    "Nom couleur": "Rose scandale",
+    "Etat": "Test",
+    "RAL": "RAL 340 80 15",
+    "Hex": "DEBACA"
+  },
+  {
+    "Color_ID": "RD057",
+    "Nom couleur": "Rose vénitiens",
+    "Etat": "Test",
+    "RAL": "RAL 360 80 10",
+    "Hex": "D9C2C7"
+  },
+  {
+    "Color_ID": "SRD002",
+    "Nom couleur": "Rosé",
+    "Etat": "Validé",
+    "RAL": "RAL 3017",
+    "Hex": "D05D68"
+  },
+  {
+    "Color_ID": "SRD003",
+    "Nom couleur": "Smoothie à la fraise",
+    "Etat": "Validé",
+    "RAL": "RAL 010 60 40",
+    "Hex": "D36E80"
+  },
+  {
+    "Color_ID": "SRD004",
+    "Nom couleur": "Fleur de cerisier",
+    "Etat": "Validé",
+    "RAL": "RAL 010 70 30",
+    "Hex": "E0929E"
+  },
+  {
+    "Color_ID": "SRD005",
+    "Nom couleur": "Rose clair",
+    "Etat": "Validé",
+    "RAL": "RAL 3015",
+    "Hex": "D0969E"
+  },
+  {
+    "Color_ID": "SRD006",
+    "Nom couleur": "Rose vif givré",
+    "Etat": "Validé",
+    "RAL": "RAL 010 80 15",
+    "Hex": "E2B8BD"
+  },
+  {
+    "Color_ID": "RD060",
+    "Nom couleur": "Brun brique",
+    "Etat": "Validé",
+    "RAL": "RAL 030 40 30",
+    "Hex": "93524B"
+  },
+  {
+    "Color_ID": "RD061",
+    "Nom couleur": "Rouille",
+    "Etat": "Validé",
+    "RAL": "RAL 040 50 30",
+    "Hex": "9E5B4D"
+  },
+  {
+    "Color_ID": "WT003",
+    "Nom couleur": "Beurre de cacahuète",
+    "Etat": "Validé",
+    "RAL": "RAL 060 70 20",
+    "Hex": "CEA889"
+  },
+  {
+    "Color_ID": "OR018",
+    "Nom couleur": "Jaune bougie",
+    "Etat": "Validé",
+    "RAL": "RAL 060 70 40",
+    "Hex": "D29465"
+  },
+  {
+    "Color_ID": "OR019",
+    "Nom couleur": "Terre orangée",
+    "Etat": "Annulé",
+    "RAL": "RAL 040 60 40",
+    "Hex": "B46A54"
+  },
+  {
+    "Color_ID": "GN030",
+    "Nom couleur": "Vert bleu de Chine",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 210 40 15",
+    "Hex": "3F676B"
+  },
+  {
+    "Color_ID": "GN031",
+    "Nom couleur": "Vert jaspe",
+    "Etat": "Chercher un remplacant plus facile",
+    "RAL": "RAL 160 40 05",
+    "Hex": "5C6B65"
+  },
+  {
+    "Color_ID": "GN032",
+    "Nom couleur": "Vert lichen d'Arctique",
+    "Etat": "Validé",
+    "RAL": "RAL 160 50 05",
+    "Hex": "6B716B"
+  },
+  {
+    "Color_ID": "BL032",
+    "Nom couleur": "Bleu éclat de saphir",
+    "Etat": "Validé",
+    "RAL": "RAL 280 50 35",
+    "Hex": "4A66A2"
+  },
+  {
+    "Color_ID": "PP026",
+    "Nom couleur": "Rouge mat dahlia",
+    "Etat": "Validé",
+    "RAL": "RAL 340 40 20",
+    "Hex": "7D596F"
+  },
+  {
+    "Color_ID": "PP029",
+    "Nom couleur": "Violet chagrin",
+    "Etat": "Validé",
+    "RAL": "RAL 300 30 10",
+    "Hex": "545D5C"
+  },
+  {
+    "Color_ID": "PP032",
+    "Nom couleur": "Rouge velours",
+    "Etat": "Validé",
+    "RAL": "RAL 010 40 35",
+    "Hex": "934858"
+  },
+  {
+    "Color_ID": "PP033",
+    "Nom couleur": "Lilas orchidée",
+    "Etat": "Test",
+    "RAL": "RAL 310 50 40",
+    "Hex": "835D9D"
+  },
+  {
+    "Color_ID": "PP034",
+    "Nom couleur": "Bleu iris",
+    "Etat": "Validé",
+    "RAL": "RAL 290 40 40",
+    "Hex": "4B5C9B"
+  },
+  {
+    "Color_ID": "GN033",
+    "Nom couleur": "Turquoise techno",
+    "Etat": "Test",
+    "RAL": "RAL 160 70 40",
+    "Hex": "5EAE7C"
+  },
+  {
+    "Color_ID": "PP035",
+    "Nom couleur": "Violet calcédoine",
+    "Etat": "Test",
+    "RAL": "RAL 290 50 35",
+    "Hex": "5D69A3"
+  },
+  {
+    "Color_ID": "GN034",
+    "Nom couleur": "Vert amer",
+    "Etat": "Test",
+    "RAL": "RAL 140 70 40",
+    "Hex": "83BB70"
+  },
+  {
+    "Color_ID": "RD062",
+    "Nom couleur": "Vermillon",
+    "Etat": "Test",
+    "RAL": "RAL 030 50 40",
+    "Hex": "AA5D56"
+  },
+  {
+    "Color_ID": "RD063",
+    "Nom couleur": "Rose industriel",
+    "Etat": "Test",
+    "RAL": "RAL 040 70 30",
+    "Hex": "DA9781"
+  },
+  {
+    "Color_ID": "RD064",
+    "Nom couleur": "Tomate claire",
+    "Etat": "Test",
+    "RAL": "RAL 030 60 40",
+    "Hex": "C9696A"
+  }
+]

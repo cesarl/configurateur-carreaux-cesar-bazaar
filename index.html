@@ -55,6 +55,9 @@
                                 <span id="cart-quantity" class="header-cart-qty-value">3</span>
                                 <button type="button" id="btn-cart-plus" class="header-cart-qty-btn" aria-label="Augmenter la quantité">+</button>
                             </div>
+                            <span id="dev-mode-header-label" class="dev-mode-header-label" style="display:none; margin-left:8px; font-size:0.85em; color:#b3261e;">
+                                Mode développeur actif : la commande est désactivée.
+                            </span>
                         </div>
                         <div class="header-menu-wrap">
                             <button type="button" id="btn-header-menu" class="header-menu-trigger" aria-label="Menu" aria-expanded="false" aria-haspopup="true">⋯</button>
@@ -140,6 +143,15 @@
                             <input type="checkbox" id="options-show-joints" aria-label="Afficher les joints" />
                             <span>Afficher les joints</span>
                         </label>
+                    </div>
+                    <div class="options-drawer-devmode">
+                        <label class="options-drawer-checkbox">
+                            <input type="checkbox" id="options-dev-mode" aria-label="Activer le mode développeur (afficher les couleurs Test)" />
+                            <span>Mode développeur (afficher les couleurs Test)</span>
+                        </label>
+                        <p id="options-dev-warning" style="display:none; margin-top:4px; font-size:0.9em; color:#b3261e;">
+                            Attention : en mode développeur, le bouton de commande est désactivé et les couleurs en test apparaissent dans le nuancier.
+                        </p>
                     </div>
                 </div>
             </div>
