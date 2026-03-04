@@ -139,7 +139,9 @@
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/continuum-studio-helioscope-vert",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/db34a655-a40b-4b01-8271-f66aabd40a34/carreaux-de-ciment-artisanaux+12.jpg?format=500w"
   },
   {
     "id": "interieur",
@@ -149,7 +151,9 @@
     "variations": ["VAR1", "VAR2"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url":"https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/interieur-julie-bouche-blan-rose",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466702738-SCNABMZD8ZKI4ESM4BBT/interieur-par-julie-bouchet-carreaux-de-ciment-436031.jpg?format=500w"
   },
   {
     "id": "oranger",
@@ -159,7 +163,9 @@
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/oranger-fanny-liennart",
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c1bd951a73a84203c95cc7/1764667736220/oranger1.jpg?format=500w"
   },
   {
     "id": "papyrus",
@@ -169,7 +175,9 @@
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w"
   },
   {
     "id": "serpent-mb",
@@ -237,6 +245,86 @@
     "description": "Collection Quique.",
     "tier": "standard_20x20",
     "variations": ["VAR1"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "brocoli",
+    "nom": "Brocoli",
+    "description": "Collection Brocoli.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "finis-terrae-angolo",
+    "nom": "Finis Terrae Angolo",
+    "description": "Collection Finis Terrae Angolo.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "finis-terrae-linea",
+    "nom": "Finis Terrae Linea",
+    "description": "Collection Finis Terrae Linea.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "finis-terrae-punto",
+    "nom": "Finis Terrae Punto",
+    "description": "Collection Finis Terrae Punto.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "palm-beach",
+    "nom": "Palm Beach",
+    "description": "Collection Palm Beach.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1", "VAR2"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "secret-garden",
+    "nom": "Secret Garden",
+    "description": "Collection Secret Garden.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1", "VAR2"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "tiznit",
+    "nom": "Tiznit",
+    "description": "Collection Tiznit.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1", "VAR2", "VAR3", "VAR4"],
+    "tags": ["Intemporel", "Abstrait"],
+    "defaut_layout": "aleatoire",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
+  },
+  {
+    "id": "tulipe",
+    "nom": "Tulipe",
+    "description": "Collection Tulipe.",
+    "tier": "standard_20x20",
+    "variations": ["VAR1", "VAR2"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
     "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
