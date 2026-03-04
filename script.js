@@ -378,14 +378,16 @@ async function exportPdf() {
                 doc.addPage();
                 y = margin;
             }
-        const hex = normalizeHex(currentColors[zoneId]);
-        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
+        const hex = getHexForColorId(currentColors[zoneId]);
+        const hexNorm = (hex && hex.length === 7) ? hex : normalizeHex(hex || "");
+        if (!hexNorm || hexNorm.length < 7) return;
+        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hexNorm);
         const line = colorInfo
-            ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " " + colorInfo.ral : ""} (Hex: ${hex})`
-            : `${zoneId}: (Hex: ${hex})`;
-            const r = parseInt(hex.slice(1, 3), 16);
-            const g = parseInt(hex.slice(3, 5), 16);
-            const b = parseInt(hex.slice(5, 7), 16);
+            ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " " + colorInfo.ral : ""} (Hex: ${hexNorm})`
+            : `${zoneId}: (Hex: ${hexNorm})`;
+            const r = Math.min(255, Math.max(0, parseInt(hexNorm.slice(1, 3), 16) || 0));
+            const g = Math.min(255, Math.max(0, parseInt(hexNorm.slice(3, 5), 16) || 0));
+            const b = Math.min(255, Math.max(0, parseInt(hexNorm.slice(5, 7), 16) || 0));
             doc.setFillColor(r, g, b);
             doc.circle(circleX, y - 0.5, circleRadius, "F");
             doc.setTextColor(0, 0, 0);
@@ -1538,7 +1540,7 @@ function prepareSVGForPdf(svgString, rotation, variantName, row, col) {
     const fillableSelector = "path, rect, circle, ellipse, polygon";
     svg.querySelectorAll('g[id^="zone-"]').forEach((g) => {
         const zoneId = g.id;
-        const hex = normalizeHex(currentColors[zoneId] || "#cccccc");
+        const hex = getHexForColorId(currentColors[zoneId]) || "#cccccc";
         g.querySelectorAll(fillableSelector).forEach((el) => {
             el.setAttribute("fill", hex);
         });
@@ -1630,7 +1632,7 @@ function getCalepinageSvgStringFromDom() {
         svgClone.querySelectorAll('g[id^="zone-"], g[id^="tapis-"]').forEach((g) => {
             const zoneId = g.id.replace(/^tapis-\d+-\d+-/, "");
             if (!zoneId || !zoneId.startsWith("zone-")) return;
-            const hex = normalizeHex(currentColors[zoneId] || "#cccccc");
+            const hex = getHexForColorId(currentColors[zoneId]) || "#cccccc";
             g.querySelectorAll("path, rect, circle, ellipse, polygon").forEach((el) => {
                 el.setAttribute("fill", hex);
             });
