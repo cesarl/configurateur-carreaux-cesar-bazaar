@@ -7,7 +7,7 @@ const ESTIMATED_DELIVERY_DATE = "mi-juin 2026";
 // En production, le <base href="..."> dans index.html s'occupe de pointer vers la bonne URL GitHub Pages.
 const REPO_URL = "";
 let currentCollection = null;
-let currentColors = {}; // Stocke l'état actuel { "zone-1": "#hex", ... }
+let currentColors = {}; // Maps zone id → Color ID (e.g. BL001). Use getHexForColorId() for display.
 let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];  // Catalogue complet (brut)
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
@@ -108,14 +108,19 @@ function clearDraftLocal() {
 }
 
 // ——— URL : sauvegarde / chargement de la config (collection + couleurs) ———
-/** Lit les paramètres d'URL. Format human readable : ?collection=medina&zone-1=1d355f&zone-2=d9c4b8 ; ?nuancier=complet ou ?allColors=1 pour toutes les couleurs */
+/** Lit les paramètres d'URL. Couleurs : Color ID (ex. BL001) ou legacy hex (3–6 chiffres). Les hex sont résolus en Color ID dans loadCollection une fois le nuancier chargé. */
 function parseConfigFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const collection = params.get("collection") || null;
     const colors = {};
     params.forEach((value, key) => {
-        if (key.startsWith("zone-") && /^[0-9a-fA-F]{3,6}$/.test(value)) {
-            colors[key] = value.startsWith("#") ? value : "#" + value;
+        if (!key.startsWith("zone-")) return;
+        const v = String(value).trim();
+        if (!v) return;
+        if (/^[0-9a-fA-F]{3,6}$/.test(v)) {
+            colors[key] = v.startsWith("#") ? v : "#" + v;
+        } else {
+            colors[key] = v.toUpperCase();
         }
     });
     const nuancierParam = (params.get("nuancier") || "").toLowerCase();
@@ -124,14 +129,13 @@ function parseConfigFromUrl() {
     return { collection, colors };
 }
 
-/** Met à jour l'URL avec la collection et les couleurs (sans # pour lisibilité). */
+/** Met à jour l'URL avec la collection et les couleurs (Color ID par zone, ex. zone-1=BL001). */
 function applyConfigToUrl() {
     if (!currentCollection) return;
     const params = new URLSearchParams();
     params.set("collection", currentCollection.id);
-    Object.entries(currentColors).forEach(([zone, hex]) => {
-        const clean = (hex || "").replace(/^#/, "");
-        if (clean) params.set(zone, clean.toLowerCase());
+    Object.entries(currentColors).forEach(([zone, colorId]) => {
+        if (colorId) params.set(zone, colorId);
     });
     const newSearch = params.toString();
     const url = newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname;
@@ -1328,9 +1332,13 @@ async function loadCollection(id, urlColors = null) {
     renderInterface();
 
     if (urlColors && Object.keys(urlColors).length > 0) {
-        Object.entries(urlColors).forEach(([zone, hex]) => {
-            const normalized = hex.startsWith("#") ? hex : "#" + hex;
-            if (/^#[0-9a-fA-F]{3,6}$/.test(normalized)) currentColors[zone] = normalized;
+        const fallbackId = (nuancierData.find((c) => c.id === "BL001") || nuancierData[0])?.id || "BL001";
+        Object.entries(urlColors).forEach(([zone, value]) => {
+            const v = value && String(value).trim();
+            if (!v) return;
+            const isHex = /^#?[0-9a-fA-F]{3,6}$/.test(v);
+            const colorId = isHex ? getColorIdForHex(v.startsWith("#") ? v : "#" + v) : v.toUpperCase();
+            currentColors[zone] = colorId || fallbackId;
         });
         applyCurrentColors();
         renderActiveColorPills();
@@ -1806,6 +1814,23 @@ function setupPaletteDrawer() {
     if (overlay) overlay.addEventListener("click", closePaletteDrawer);
 }
 
+/** Retourne le hex #rrggbb pour un Color ID (nuancier). Pour affichage uniquement. */
+function getHexForColorId(colorId) {
+    if (!colorId || typeof colorId !== "string") return "#888";
+    const entry = nuancierData.find((c) => (c.id || "").toUpperCase() === String(colorId).trim().toUpperCase());
+    if (entry && entry.hex) return normalizeHex(entry.hex);
+    console.warn("[Nuancier] Color ID non trouvé:", colorId);
+    return "#888";
+}
+
+/** Résout un hex (avec ou sans #) vers un Color ID du nuancier, ou null. */
+function getColorIdForHex(hex) {
+    if (!hex || !nuancierData.length) return null;
+    const norm = normalizeHex(hex);
+    const entry = nuancierData.find((c) => normalizeHex(c.hex) === norm);
+    return entry ? entry.id : null;
+}
+
 /** Normalise un hex pour comparaison (minuscules, 6 caractères, # préfixe) */
 function normalizeHex(hex) {
     if (!hex || typeof hex !== "string") return "";
@@ -1813,6 +1838,23 @@ function normalizeHex(hex) {
     if (h.length === 6) return "#" + h;
     if (h.length === 3) return "#" + h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
     return "#" + h;
+}
+
+/** Retourne le hex #rrggbb pour un Color ID (nuancier). Pour affichage uniquement. */
+function getHexForColorId(colorId) {
+    if (!colorId || typeof colorId !== "string") return "#888";
+    const entry = nuancierData.find((c) => (c.id || "").toUpperCase() === String(colorId).trim().toUpperCase());
+    if (entry && entry.hex) return normalizeHex(entry.hex);
+    console.warn("[Nuancier] Color ID non trouvé:", colorId);
+    return "#888";
+}
+
+/** Résout un hex (avec ou sans #) vers un Color ID du nuancier, ou null. */
+function getColorIdForHex(hex) {
+    if (!hex || !nuancierData.length) return null;
+    const norm = normalizeHex(hex);
+    const entry = nuancierData.find((c) => normalizeHex(c.hex) === norm);
+    return entry ? entry.id : null;
 }
 
 /** Retourne le SVG d’une variante avec les couleurs actuelles appliquées (sans rotation, ids inchangés). Pour le payload add-to-cart. */
@@ -1922,14 +1964,27 @@ function findClosestNuancierHex(hex) {
     return best;
 }
 
-/** Extrait les couleurs par défaut d'un SVG (une variante) et les fusionne dans currentColors. */
+/** Extrait les couleurs par défaut d'un SVG (une variante) et les fusionne dans currentColors. Utilise data-color-id si présent, sinon fill → nuancier par hex. Stocke toujours un Color ID. */
 function extractDefaultColorsFromSvg(svgString) {
     if (!svgString) return;
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, "image/svg+xml");
     const zones = doc.querySelectorAll("svg g[id^='zone-']");
+    const fallbackId = (nuancierData.find((c) => c.id === "BL001") || nuancierData[0])?.id || "BL001";
     zones.forEach((g) => {
         const zoneId = g.id;
+        const dataColorId = (g.getAttribute("data-color-id") || "").trim().toUpperCase();
+        if (dataColorId) {
+            const inNuancier = nuancierData.find((c) => (c.id || "").toUpperCase() === dataColorId);
+            if (inNuancier) {
+                currentColors[zoneId] = inNuancier.id;
+            } else {
+                console.warn("[Nuancier] data-color-id non trouvé dans le nuancier pour la zone", zoneId, "→", dataColorId, "remplacé par", fallbackId);
+                currentColors[zoneId] = fallbackId;
+            }
+            return;
+        }
+        // Legacy SVG sans data-color-id : dériver du fill → hex → nuancier, stocker Color ID
         const fillEl = g.querySelector("path, rect, circle, ellipse, polygon");
         const fillSource = fillEl ? (fillEl.getAttribute("fill") || "") : (g.getAttribute("fill") || "");
         const extractedHex = parseFillToHex(fillSource);
@@ -1937,9 +1992,8 @@ function extractDefaultColorsFromSvg(svgString) {
         const normalized = normalizeHex(extractedHex);
         const inNuancier = nuancierData.find((c) => normalizeHex(c.hex) === normalized);
         if (inNuancier) {
-            currentColors[zoneId] = inNuancier.hex;
+            currentColors[zoneId] = inNuancier.id;
         } else {
-            // Couleur non trouvée dans le nuancier : log + fallback BL001
             const fallback = nuancierData.find((c) => c.id === "BL001") || nuancierData[0];
             console.warn(
                 "[Nuancier] Couleur par défaut du SVG non trouvée dans le nuancier pour la zone",
@@ -1947,13 +2001,9 @@ function extractDefaultColorsFromSvg(svgString) {
                 "couleur SVG:",
                 normalized,
                 "→ remplacement par",
-                fallback ? `${fallback.id} (${fallback.hex})` : "aucun fallback disponible"
+                fallback ? fallback.id : "aucun fallback disponible"
             );
-            if (fallback && fallback.hex) {
-                currentColors[zoneId] = fallback.hex;
-            } else {
-                currentColors[zoneId] = "#057BAB"; // dernier filet de sécurité (BL001 en dur)
-            }
+            currentColors[zoneId] = fallback ? fallback.id : fallbackId;
         }
     });
 }
@@ -1984,7 +2034,7 @@ function renderActiveColorPills() {
         const pill = document.createElement("button");
         pill.type = "button";
         pill.className = "active-color-pill" + (activeZone === zoneId ? " active" : "");
-        pill.style.backgroundColor = currentColors[zoneId] || "#ccc";
+        pill.style.backgroundColor = getHexForColorId(currentColors[zoneId]);
         pill.setAttribute("aria-label", `Zone ${zoneId} : choisir couleur`);
         pill.onclick = () => selectActiveZone(zoneId);
         row.appendChild(pill);
@@ -2097,12 +2147,13 @@ function updateSidebarRecap() {
     list.innerHTML = "";
     const zoneIds = Object.keys(currentColors).sort();
     zoneIds.forEach((zoneId) => {
-        const hex = normalizeHex(currentColors[zoneId]);
-        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hex);
+        const colorId = currentColors[zoneId];
+        const colorInfo = nuancierData.find((c) => (c.id || "").toUpperCase() === String(colorId).toUpperCase());
+        const hex = getHexForColorId(colorId);
         const row = document.createElement("div");
         row.className = "sidebar-recap-row";
         row.innerHTML = `
-            <span class="sidebar-recap-pill" style="background:${currentColors[zoneId]}"></span>
+            <span class="sidebar-recap-pill" style="background:${getHexForColorId(colorId)}"></span>
             <span class="sidebar-recap-info">
                 <span class="recap-name">${colorInfo ? colorInfo.nom : "—"}</span>
                 <span class="recap-code">
@@ -2119,8 +2170,8 @@ function updateSidebarRecap() {
 function updateMoldingWarning() {
     const banner = document.getElementById("molding-warning-banner");
     if (!banner) return;
-    const hexValues = Object.values(currentColors).map(normalizeHex).filter(Boolean);
-    const hasDuplicates = hexValues.length !== new Set(hexValues).size;
+    const colorIds = Object.values(currentColors).filter(Boolean);
+    const hasDuplicates = colorIds.length !== new Set(colorIds).size;
     if (hasDuplicates) {
         banner.textContent = "⚠️ Attention : ce motif est conçu pour des couleurs distinctes par zone. Si deux zones partagent la même couleur, une légère trace peut apparaître sur le carreau final.";
         banner.style.display = "block";
@@ -2131,25 +2182,25 @@ function updateMoldingWarning() {
 
 /** Met à jour la surbrillance du nuancier (couleur de la zone active) et scroll mobile vers cette couleur */
 function updatePaletteHighlight() {
-    const hex = activeZone ? normalizeHex(currentColors[activeZone]) : null;
+    const activeColorId = activeZone ? currentColors[activeZone] : null;
     const swatches = document.querySelectorAll("#color-palette .color-swatch, #color-palette-drawer .color-swatch");
     let found = false;
     swatches.forEach(el => {
-        const elHex = normalizeHex(el.getAttribute("data-hex") || "");
-        const isSelected = !!hex && elHex === hex;
+        const elColorId = (el.getAttribute("data-color-id") || "").toUpperCase();
+        const isSelected = !!activeColorId && elColorId === (activeColorId || "").toUpperCase();
         if (isSelected) found = true;
         el.classList.toggle("selected", isSelected);
     });
-    if (hex && !found) {
-        const drawerHexes = Array.from(document.querySelectorAll("#color-palette-drawer .color-swatch"))
-            .map(el => el.getAttribute("data-hex"));
+    if (activeColorId && !found) {
+        const drawerIds = Array.from(document.querySelectorAll("#color-palette-drawer .color-swatch"))
+            .map(el => el.getAttribute("data-color-id"));
         console.error(
             "[Nuancier] Couleur active non trouvée dans la liste.",
-            { zone: activeZone, recherché: hex, dansLeTiroir: drawerHexes }
+            { zone: activeZone, recherché: activeColorId, dansLeTiroir: drawerIds }
         );
     }
     // Desktop : scroll de la sidebar pour mettre la couleur sélectionnée au plus haut
-    if (window.matchMedia("(min-width: 901px)").matches && hex) {
+    if (window.matchMedia("(min-width: 901px)").matches && activeColorId) {
         const sidebar = document.querySelector(".sidebar");
         const selectedSwatch = document.querySelector("#color-palette .color-swatch.selected");
         if (sidebar && selectedSwatch) {
@@ -2162,7 +2213,7 @@ function updatePaletteHighlight() {
         }
     }
     // Mobile : scroll du tiroir pour amener la couleur sélectionnée au centre
-    if (window.matchMedia("(max-width: 900px)").matches && hex) {
+    if (window.matchMedia("(max-width: 900px)").matches && activeColorId) {
         const drawerBody = document.querySelector(".palette-drawer-body");
         const selectedSwatch = document.querySelector("#color-palette-drawer .color-swatch.selected");
         if (drawerBody && selectedSwatch) {
@@ -2195,6 +2246,8 @@ function renderPalette(colors) {
         sorted.forEach(c => {
             const div = document.createElement("div");
             div.className = "color-swatch";
+            div.setAttribute("data-color-id", c.id || "");
+            div.setAttribute("data-color-id", c.id || "");
             div.setAttribute("data-hex", normalizeHex(c.hex));
             div.style.backgroundColor = c.hex;
             div.title = c.nom;
@@ -2203,7 +2256,7 @@ function renderPalette(colors) {
             div.setAttribute("data-pantone", c.pantone || "");
             div.setAttribute("data-ral", c.ral || "");
             div.onclick = () => {
-                applyColorToActiveZone(c.hex);
+                applyColorToActiveZone(c.id);
                 if (window.matchMedia("(max-width: 900px)").matches) closePaletteDrawer();
             };
             if (isDesktopSidebar && tooltipEl) {
@@ -2225,7 +2278,7 @@ function renderPalette(colors) {
                     tooltipEl.style.transform = "translateY(-100%)";
                     tooltipEl.classList.add("visible");
                     if (activeZone) {
-                        livePreviewRestoreHex = currentColors[activeZone] ? normalizeHex(currentColors[activeZone]) : null;
+                        livePreviewRestoreHex = currentColors[activeZone] ? getHexForColorId(currentColors[activeZone]) : null;
                         const hoverHex = (this.getAttribute("data-hex") || "").startsWith("#") ? this.getAttribute("data-hex") : "#" + (this.getAttribute("data-hex") || "");
                         document.documentElement.style.setProperty(`--color-${activeZone}`, hoverHex);
                     }
@@ -2248,13 +2301,13 @@ function renderPalette(colors) {
 }
 
 // Applique la couleur au calepinage (preview-first : uniquement #grid-container)
-function applyColorToActiveZone(hexColor) {
+function applyColorToActiveZone(colorId) {
     if (!activeZone) {
         alert("Sélectionnez d'abord une zone sur le dessin ou une pastille !");
         return;
     }
-    document.documentElement.style.setProperty(`--color-${activeZone}`, hexColor);
-    currentColors[activeZone] = hexColor;
+    document.documentElement.style.setProperty(`--color-${activeZone}`, getHexForColorId(colorId));
+    currentColors[activeZone] = colorId;
     updatePaletteHighlight();
     if (currentCollection) applyConfigToUrl();
     livePreviewRestoreHex = null; // après validation, plus de restauration au survol
@@ -2264,8 +2317,8 @@ function applyColorToActiveZone(hexColor) {
 }
 
 function applyCurrentColors() {
-    for (const [zone, color] of Object.entries(currentColors)) {
-        document.documentElement.style.setProperty(`--color-${zone}`, color);
+    for (const [zone, colorId] of Object.entries(currentColors)) {
+        document.documentElement.style.setProperty(`--color-${zone}`, getHexForColorId(colorId));
     }
 }
 
