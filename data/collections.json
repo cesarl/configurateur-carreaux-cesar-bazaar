@@ -60,7 +60,7 @@
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471203124-RM7VVWXGC24O9Q4GB0OZ/geo-par-alex-roda-carreaux-de-ciment-910122.jpg?format=500w"
   },
 {
-    "id": "Sixties",
+    "id": "sixties",
     "nom": "Sixties par par Alexandra Pascual",
     "description": "Collection rétro qui rend hommage aux années 60.",
     "tier": "standard_20x20",
@@ -72,245 +72,173 @@
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1674031395808-Z079ASZ341GDGXSTM1X2/test.jpg"
   },
 {
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+    "id": "Abstract",
+    "nom": "Abstract par César Bazaar",
+    "description": "Ha la belle époque où j'avais le temps de dessiner 🥰",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6", "VAR7", "VAR8", "VAR9", "VAR10"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/abstract-par-csar-bazaar",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720467617036-NR8GUV0N0BDOLVRLYEX3/abstract-par-cesar-bazaar-carreaux-de-ciment-999229.jpg?format=500w"
   },
 {
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+    "id": "clair-de-lune",
+    "nom": "Clair de Lune par Bérénice Milon",
+    "description": "Au clair de la lune.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/clair-de-lune-berenice-milon",
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c20f1fc5036825a6a7cd9a/1770353515830/carreaux-de-ciment-artisanaux+53.jpg?format=500w"
   },
 {
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+    "id": "lianes",
+    "nom": "Lianes par Baptiste Vandaele",
+    "description": "Des lianes qui se déploient chez vous.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/lianes-baptiste-vandaele",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/323af0a6-a0bd-4158-8fa6-a6f9c29dd769/SESSION+09-145.jpg?format=500w"
   },
 {
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+    "id": "pannequin",
+    "nom": "Formes expressives par Blandine Pannequin",
+    "description": "Les carreaux en s’assemblant, se répondent, s’entrelacent, créant de nouvelles formes géométriques, de nouvelles courbes.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2", "VAR3","VAR4"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/formes-expressives-blandine-pannequin",
     "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "Safran",
+    "nom": "Safran par Bleu Cobalt",
+    "description": "La douce odeur du safran.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2", "VAR3", "VAR4"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/safran-terracotta-bleu-cobalt",
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/689f5a6186322825a8bd56b3/1755273825888/safran-par-bleu-cobalt-carreaux-de-ciment-550456.jpg?format=500w"
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "continuum",
+    "nom": "Continuum",
+    "description": "Collection Continuum.",
     "tier": "standard_20x20",
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "interieur",
+    "nom": "Intérieur",
+    "description": "Collection Intérieur.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "oranger",
+    "nom": "Oranger",
+    "description": "Collection Oranger.",
     "tier": "standard_20x20",
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "papyrus",
+    "nom": "Papyrus",
+    "description": "Collection Papyrus.",
     "tier": "standard_20x20",
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "serpent-mb",
+    "nom": "Serpent MB",
+    "description": "Collection Serpent MB.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "opale",
+    "nom": "Opale",
+    "description": "Collection Opale.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "onda",
+    "nom": "Onda",
+    "description": "Collection Onda.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "cala-morell",
+    "nom": "Cala Morell",
+    "description": "Collection Cala Morell.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "slip",
+    "nom": "Slip",
+    "description": "Collection Slip.",
     "tier": "standard_20x20",
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "envolee",
+    "nom": "Envolée",
+    "description": "Collection Envolée.",
     "tier": "standard_20x20",
     "variations": ["VAR1", "VAR2", "VAR3"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
+  {
+    "id": "quique",
+    "nom": "Quique",
+    "description": "Collection Quique.",
     "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
+    "variations": ["VAR1"],
     "tags": ["Intemporel", "Abstrait"],
     "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
-  },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
-    "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
-    "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
-  },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
-    "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
-    "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
-  },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
-    "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
-    "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
-  },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
-    "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
-    "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
-  },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
-    "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
-    "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
-  },
-{
-    "id": "Test",
-    "nom": "Test par Bleu Cobalt",
-    "description": "Best-seller de la maison.",
-    "tier": "standard_20x20",
-    "variations": ["VAR1", "VAR2", "VAR3"],
-    "tags": ["Intemporel", "Abstrait"],
-    "defaut_layout": "aleatoire",
-    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "layouts": ["aleatoire", "damier_2", "damier_4", "iflip_4", "damier_4_random", "fresque_bordure"]
   }
 ]
