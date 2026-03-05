@@ -754,5 +754,106 @@
       "damier_4_random",
       "fresque_bordure"
     ]
+  },
+  {
+    "id": "fruits-roda",
+    "nom": "Fruits par Alex Roda",
+    "description": "Collection Fruits.",
+    "tier": "standard_20x20",
+    "variations": [
+      "VAR1",
+      "VAR2",
+      "VAR3",
+      "VAR4",
+      "VAR5",
+      "VAR6",
+      "VAR7",
+      "VAR8"
+    ],
+    "tags": [
+      "Intemporel",
+      "Abstrait"
+    ],
+    "defaut_layout": "aleatoire",
+    "layouts": [
+      "aleatoire",
+      "damier_2",
+      "damier_4",
+      "iflip_4",
+      "damier_4_random",
+      "fresque_bordure"
+    ]
+  },
+  {
+    "id": "ciel",
+    "nom": "Ciel",
+    "description": "Collection Ciel.",
+    "tier": "standard_20x20",
+    "variations": [
+      "VAR1",
+      "VAR2",
+      "VAR3",
+      "VAR4"
+    ],
+    "tags": [
+      "Intemporel",
+      "Abstrait"
+    ],
+    "defaut_layout": "aleatoire",
+    "layouts": [
+      "aleatoire",
+      "damier_2",
+      "damier_4",
+      "iflip_4",
+      "damier_4_random",
+      "fresque_bordure"
+    ]
+  },
+  {
+    "id": "nature-adoree",
+    "nom": "Nature adorée",
+    "description": "Collection Nature adorée.",
+    "tier": "standard_20x20",
+    "variations": [
+      "VAR1",
+      "VAR2",
+      "VAR3",
+      "VAR4"
+    ],
+    "tags": [
+      "Intemporel",
+      "Abstrait"
+    ],
+    "defaut_layout": "aleatoire",
+    "layouts": [
+      "aleatoire",
+      "damier_2",
+      "damier_4",
+      "iflip_4",
+      "damier_4_random",
+      "fresque_bordure"
+    ]
+  },
+  {
+    "id": "fleur-wodarz",
+    "nom": "Fleur Wodarz",
+    "description": "Collection Fleur Wodarz.",
+    "tier": "standard_20x20",
+    "variations": [
+      "VAR1"
+    ],
+    "tags": [
+      "Intemporel",
+      "Abstrait"
+    ],
+    "defaut_layout": "aleatoire",
+    "layouts": [
+      "aleatoire",
+      "damier_2",
+      "damier_4",
+      "iflip_4",
+      "damier_4_random",
+      "fresque_bordure"
+    ]
   }
 ]
