@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collections — Admin Configurateur</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #fff;
+            --border: #e0e0e0;
+            --primary: #1976d2;
+            --primary-hover: #1565c0;
+            --secondary: #5f6368;
+            --error: #b3261e;
+            --danger: #d32f2f;
+            --success: #2e7d32;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: #1a1a1a;
+            padding: 24px;
+        }
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0 0 4px 0;
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 0;
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+        .layout-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 16px 16px 12px;
+            margin-bottom: 16px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toolbar label {
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        .toolbar input[type="search"] {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            min-width: 220px;
+            font-size: 0.9rem;
+        }
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        .toggle input {
+            margin: 0;
+        }
+        .btn {
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: var(--card-bg);
+            color: var(--secondary);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        .btn-danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .btn-danger:hover {
+            background: rgba(211, 47, 47, 0.06);
+        }
+        .btn-ghost {
+            background: transparent;
+        }
+        .btn-icon {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+        .hint {
+            margin: 4px 0 0;
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
+        .split {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            gap: 14px;
+        }
+        @media (max-width: 960px) {
+            body {
+                padding: 16px;
+            }
+            .split {
+                grid-template-columns: 1fr;
+            }
+        }
+        .pane {
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 12px;
+            min-height: 260px;
+        }
+        .pane-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .pane-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .pane-subtitle {
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
+        /* List */
+        .list {
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+            max-height: 520px;
+            overflow: auto;
+        }
+        .list-empty {
+            padding: 18px 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        .collection-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 8px;
+            border-bottom: 1px solid #f2f2f2;
+            cursor: pointer;
+        }
+        .collection-row:hover {
+            background: #f7f9fc;
+        }
+        .collection-row.selected {
+            background: #e3f2fd;
+        }
+        .collection-main-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .collection-id {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.78rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #eef2f7;
+            color: #37474f;
+        }
+        .collection-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .collection-meta-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            border: 1px solid transparent;
+        }
+        .badge-active {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--success);
+            border-color: rgba(46, 125, 50, 0.3);
+        }
+        .badge-inactive {
+            background: rgba(95, 99, 104, 0.1);
+            color: var(--secondary);
+            border-color: rgba(95, 99, 104, 0.3);
+        }
+        .badge-dev {
+            background: rgba(25, 118, 210, 0.06);
+            color: var(--primary);
+            border-color: rgba(25, 118, 210, 0.35);
+        }
+        .badge-tag {
+            background: #f3f6fb;
+            color: #5f6368;
+            border-color: #e0e7ff;
+        }
+        .thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-size: cover;
+            background-position: center;
+            background-color: #fafafa;
+            flex-shrink: 0;
+        }
+        .collection-main-line-right {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .collection-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* Editor */
+        .editor-placeholder {
+            padding: 18px 12px;
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 18px;
+            margin-top: 6px;
+        }
+        .form-row-full {
+            grid-column: 1 / -1;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .field label {
+            font-size: 0.8rem;
+            color: #444;
+        }
+        .field input[type="text"],
+        .field input[type="url"],
+        .field textarea,
+        .field select {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .field textarea {
+            min-height: 72px;
+            resize: vertical;
+        }
+        .field small {
+            font-size: 0.75rem;
+            color: var(--secondary);
+        }
+        .field-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+        .switches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .switches label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #444;
+        }
+        .image-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .image-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-size: cover;
+            background-position: center;
+            background-color: #fafafa;
+            flex-shrink: 0;
+        }
+        .editor-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .validation-messages {
+            font-size: 0.78rem;
+            color: var(--error);
+        }
+        .validation-messages ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .json-preview {
+            margin-top: 6px;
+        }
+        .json-preview textarea {
+            width: 100%;
+            min-height: 110px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.8rem;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #fafafa;
+        }
+        .json-preview-toggle {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .json-preview-toggle:hover {
+            color: #202124;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #323232;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: transform 0.25s, opacity 0.25s;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .pill {
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #f3f6fb;
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: #5f6368;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="header">
+            <h1>Collections</h1>
+            <p>Outil d’édition de <code>data/collections.json</code> : titres, descriptions, images, liens, layouts, ordre et visibilité.</p>
+        </header>
+
+        <section class="layout-card">
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button id="btn-load" type="button" class="btn btn-primary">Charger les collections</button>
+                    <button id="btn-add" type="button" class="btn">Ajouter une collection</button>
+                </div>
+                <div class="toolbar-group">
+                    <label for="search-input">Recherche</label>
+                    <input id="search-input" type="search" placeholder="nom, id, tags…" autocomplete="off">
+                </div>
+                <div class="toolbar-group">
+                    <label class="toggle">
+                        <input id="dev-mode-toggle" type="checkbox">
+                        <span>Mode développeur (affiche les collections dev_only et inactives)</span>
+                    </label>
+                </div>
+            </div>
+            <p class="hint">
+                Pour fonctionner correctement, ouvrez cette page via un petit serveur local (même dossier que <code>data/collections.json</code>),
+                par exemple avec l’extension Live Server ou <code>npx serve</code>.
+            </p>
+        </section>
+
+        <section class="split">
+            <aside class="pane" aria-label="Liste des collections">
+                <div class="pane-header">
+                    <div>
+                        <div class="pane-title">Collections</div>
+                        <div class="pane-subtitle" id="collections-count">Aucune collection chargée</div>
+                    </div>
+                </div>
+                <div id="collections-list" class="list" aria-label="Collections"></div>
+            </aside>
+
+            <section class="pane" aria-label="Éditeur de collection">
+                <div class="pane-header">
+                    <div>
+                        <div class="pane-title">Détails de la collection</div>
+                        <div class="pane-subtitle" id="editor-subtitle">Sélectionnez une collection ou créez-en une.</div>
+                    </div>
+                </div>
+                <div id="editor-placeholder" class="editor-placeholder">
+                    Aucune collection sélectionnée. Cliquez sur une collection à gauche ou utilisez «&nbsp;Ajouter une collection&nbsp;».
+                </div>
+                <form id="collection-form" style="display:none;" autocomplete="off">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="field-id">Identifiant interne <span style="color:var(--error);">*</span></label>
+                            <input id="field-id" type="text" required>
+                            <small>Utilisé dans les URLs, noms de fichiers SVG, etc. Exemple : <code>medina</code>.</small>
+                        </div>
+                        <div class="field">
+                            <label for="field-nom">Nom affiché</label>
+                            <input id="field-nom" type="text">
+                        </div>
+
+                        <div class="field">
+                            <label for="field-tier">Tier / format</label>
+                            <input id="field-tier" type="text" placeholder="ex. standard_20x20">
+                        </div>
+                        <div class="field">
+                            <label for="field-variations">Variations</label>
+                            <input id="field-variations" type="text" placeholder="VAR1, VAR2, VAR3…">
+                            <small>Liste séparée par des virgules. Sera enregistrée comme tableau JSON.</small>
+                        </div>
+
+                        <div class="field form-row-full">
+                            <label for="field-description">Description</label>
+                            <textarea id="field-description" placeholder="Texte descriptif pour la collection."></textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="field-tags">Tags</label>
+                            <input id="field-tags" type="text" placeholder="Intemporel, Abstrait…">
+                            <small>Liste séparée par des virgules. Exemple : <code>Intemporel, Abstrait</code>.</small>
+                        </div>
+                        <div class="field">
+                            <label for="field-layouts-other">Layouts supplémentaires</label>
+                            <input id="field-layouts-other" type="text" placeholder="autres ids de calepinage, séparés par des virgules">
+                            <small>Les cases à cocher ci-dessous couvrent les layouts connus. Ici vous pouvez ajouter des ids libres.</small>
+                        </div>
+
+                        <div class="field form-row-full">
+                            <label>Layouts proposés pour cette collection</label>
+                            <div id="layouts-checkboxes" class="pill-list"></div>
+                            <small>Ces ids doivent exister dans <code>data/calepinages.json</code>. Le layout par défaut doit en faire partie.</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="field-defaut-layout">Layout par défaut</label>
+                            <select id="field-defaut-layout"></select>
+                            <small>Choisi par défaut dans le configurateur.</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="field-collection-url">URL de la collection</label>
+                            <div class="field-inline">
+                                <input id="field-collection-url" type="url" placeholder="https://…">
+                                <button id="btn-open-collection-url" type="button" class="btn btn-ghost btn-icon">Ouvrir</button>
+                            </div>
+                        </div>
+
+                        <div class="field form-row-full">
+                            <label for="field-collection-image">Image de la collection</label>
+                            <div class="image-preview-wrap">
+                                <div id="image-preview" class="image-preview" aria-hidden="true"></div>
+                                <div style="flex:1; min-width:0;">
+                                    <div class="field-inline">
+                                        <input id="field-collection-image" type="url" placeholder="https://…">
+                                        <button id="btn-open-collection-image" type="button" class="btn btn-ghost btn-icon">Ouvrir</button>
+                                    </div>
+                                    <small>Utilisée dans la grille de la gallery. Un aperçu est affiché à gauche.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field form-row-full">
+                            <label>Visibilité</label>
+                            <div class="switches">
+                                <label>
+                                    <input id="field-active" type="checkbox">
+                                    <span>Active (affichée dans la gallery)</span>
+                                </label>
+                                <label>
+                                    <input id="field-dev-only" type="checkbox">
+                                    <span>Réservée au mode développeur (dev_only)</span>
+                                </label>
+                            </div>
+                            <small>
+                                Si <strong>dev_only</strong> est coché, la collection n’apparaît pas dans la gallery publique.
+                                Si <strong>Active</strong> est décoché, elle est masquée même en production.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="editor-footer">
+                        <div class="validation-messages" id="validation-messages"></div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button id="btn-duplicate-current" type="button" class="btn">Dupliquer</button>
+                            <button id="btn-delete-current" type="button" class="btn btn-danger">Supprimer</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </section>
+
+        <section class="layout-card">
+            <div class="pane-header">
+                <div>
+                    <div class="pane-title">Export JSON</div>
+                    <div class="pane-subtitle">Téléchargez ou copiez le contenu actuel de <code>collections.json</code>.</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="btn-download-json" type="button" class="btn btn-primary">Télécharger JSON</button>
+                    <button id="btn-copy-json" type="button" class="btn">Copier JSON</button>
+                </div>
+            </div>
+            <div class="json-preview">
+                <span id="btn-toggle-preview" class="json-preview-toggle">Afficher un aperçu JSON</span>
+                <textarea id="json-preview" readonly style="display:none;"></textarea>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script>
+        (function () {
+            "use strict";
+
+            const DEV_MODE_STORAGE_KEY = "collectionsAdminDevMode";
+
+            const state = {
+                rawCollections: [],
+                collections: [],
+                selectedIndex: null,
+                searchTerm: "",
+                devMode: false,
+                calepinageIds: [],
+                showJsonPreview: false
+            };
+
+            const els = {};
+
+            function $(id) {
+                return document.getElementById(id);
+            }
+
+            function initEls() {
+                els.btnLoad = $("btn-load");
+                els.btnAdd = $("btn-add");
+                els.searchInput = $("search-input");
+                els.devModeToggle = $("dev-mode-toggle");
+                els.collectionsList = $("collections-list");
+                els.collectionsCount = $("collections-count");
+                els.editorSubtitle = $("editor-subtitle");
+                els.editorPlaceholder = $("editor-placeholder");
+                els.form = $("collection-form");
+                els.fieldId = $("field-id");
+                els.fieldNom = $("field-nom");
+                els.fieldTier = $("field-tier");
+                els.fieldDescription = $("field-description");
+                els.fieldVariations = $("field-variations");
+                els.fieldTags = $("field-tags");
+                els.fieldLayoutsOther = $("field-layouts-other");
+                els.layoutsCheckboxes = $("layouts-checkboxes");
+                els.fieldDefautLayout = $("field-defaut-layout");
+                els.fieldCollectionUrl = $("field-collection-url");
+                els.btnOpenCollectionUrl = $("btn-open-collection-url");
+                els.fieldCollectionImage = $("field-collection-image");
+                els.btnOpenCollectionImage = $("btn-open-collection-image");
+                els.imagePreview = $("image-preview");
+                els.fieldActive = $("field-active");
+                els.fieldDevOnly = $("field-dev-only");
+                els.validationMessages = $("validation-messages");
+                els.btnDuplicateCurrent = $("btn-duplicate-current");
+                els.btnDeleteCurrent = $("btn-delete-current");
+                els.btnDownloadJson = $("btn-download-json");
+                els.btnCopyJson = $("btn-copy-json");
+                els.btnTogglePreview = $("btn-toggle-preview");
+                els.jsonPreview = $("json-preview");
+                els.toast = $("toast");
+            }
+
+            function showToast(message) {
+                if (!els.toast) return;
+                els.toast.textContent = message;
+                els.toast.classList.add("show");
+                setTimeout(function () {
+                    els.toast.classList.remove("show");
+                }, 2200);
+            }
+
+            function loadStoredDevMode() {
+                try {
+                    const v = localStorage.getItem(DEV_MODE_STORAGE_KEY);
+                    state.devMode = v === "1" || v === "true";
+                } catch (e) {
+                    state.devMode = false;
+                }
+                if (els.devModeToggle) {
+                    els.devModeToggle.checked = state.devMode;
+                }
+            }
+
+            function saveStoredDevMode() {
+                try {
+                    localStorage.setItem(DEV_MODE_STORAGE_KEY, state.devMode ? "1" : "0");
+                } catch (e) {}
+            }
+
+            function normalizeArrayFromField(value, options) {
+                const text = (value || "").trim();
+                if (!text) return [];
+                const parts = text.split(",").map(function (p) {
+                    return p.trim();
+                }).filter(Boolean);
+                if (!parts.length) return [];
+                if (options && options.uppercase) {
+                    return parts.map(function (p) { return p.toUpperCase(); });
+                }
+                return parts;
+            }
+
+            function normalizeCollection(raw) {
+                const copy = Object.assign({}, raw || {});
+
+                copy.id = (copy.id || "").trim();
+                copy.nom = copy.nom || "";
+                copy.description = copy.description || "";
+                copy.tier = copy.tier || "";
+
+                if (Array.isArray(copy.variations)) {
+                    if (copy.variations.length === 1 && typeof copy.variations[0] === "string" && copy.variations[0].includes(",")) {
+                        copy.variations = copy.variations[0].split(",").map(function (v) { return v.trim().toUpperCase(); }).filter(Boolean);
+                    } else {
+                        copy.variations = copy.variations.map(function (v) {
+                            return typeof v === "string" ? v.trim().toUpperCase() : v;
+                        }).filter(Boolean);
+                    }
+                } else if (typeof copy.variations === "string") {
+                    copy.variations = copy.variations.split(",").map(function (v) { return v.trim().toUpperCase(); }).filter(Boolean);
+                } else {
+                    copy.variations = [];
+                }
+
+                if (Array.isArray(copy.tags)) {
+                    copy.tags = copy.tags.map(function (t) {
+                        return typeof t === "string" ? t.trim() : t;
+                    }).filter(Boolean);
+                } else if (typeof copy.tags === "string") {
+                    copy.tags = copy.tags.split(",").map(function (t) { return t.trim(); }).filter(Boolean);
+                } else {
+                    copy.tags = [];
+                }
+
+                if (Array.isArray(copy.layouts)) {
+                    copy.layouts = copy.layouts.map(function (l) {
+                        return typeof l === "string" ? l.trim() : l;
+                    }).filter(Boolean);
+                } else if (typeof copy.layouts === "string") {
+                    copy.layouts = copy.layouts.split(",").map(function (l) { return l.trim(); }).filter(Boolean);
+                } else {
+                    copy.layouts = [];
+                }
+
+                copy.defaut_layout = (copy.defaut_layout || "").trim();
+                copy.collection_url = (copy.collection_url || "").trim();
+                copy.collection_image = (copy.collection_image || "").trim();
+
+                if (typeof copy.active === "undefined") copy.active = true;
+                if (typeof copy.dev_only === "undefined") copy.dev_only = false;
+
+                return copy;
+            }
+
+            function serializeCollections() {
+                const out = state.collections.map(function (c) {
+                    const item = {
+                        id: c.id || "",
+                        nom: c.nom || "",
+                        description: c.description || "",
+                        tier: c.tier || "",
+                        variations: Array.isArray(c.variations) ? c.variations.slice() : [],
+                        tags: Array.isArray(c.tags) ? c.tags.slice() : [],
+                        defaut_layout: c.defaut_layout || "",
+                        layouts: Array.isArray(c.layouts) ? c.layouts.slice() : []
+                    };
+                    if (c.collection_url) item.collection_url = c.collection_url;
+                    if (c.collection_image) item.collection_image = c.collection_image;
+                    if (c.active === false) item.active = false;
+                    if (c.dev_only === true) item.dev_only = true;
+                    return item;
+                });
+                return JSON.stringify(out, null, 2);
+            }
+
+            function updateJsonPreview() {
+                if (!els.jsonPreview) return;
+                if (!state.collections.length) {
+                    els.jsonPreview.value = "";
+                    return;
+                }
+                els.jsonPreview.value = serializeCollections();
+            }
+
+            function getAllLayoutIdsFromData() {
+                const set = new Set();
+                state.collections.forEach(function (c) {
+                    (c.layouts || []).forEach(function (id) {
+                        if (id) set.add(id);
+                    });
+                    if (c.defaut_layout) set.add(c.defaut_layout);
+                });
+                (state.calepinageIds || []).forEach(function (id) {
+                    if (id) set.add(id);
+                });
+                return Array.from(set).sort();
+            }
+
+            function renderLayoutsCheckboxes(selectedLayouts) {
+                if (!els.layoutsCheckboxes) return;
+                els.layoutsCheckboxes.innerHTML = "";
+                const allIds = getAllLayoutIdsFromData();
+                if (!allIds.length) {
+                    const span = document.createElement("span");
+                    span.textContent = "Aucun calepinage connu. Vérifiez data/calepinages.json ou ajoutez au moins un layout via le champ ci-dessus.";
+                    span.style.fontSize = "0.78rem";
+                    span.style.color = "var(--secondary)";
+                    els.layoutsCheckboxes.appendChild(span);
+                    return;
+                }
+                const selectedSet = new Set(selectedLayouts || []);
+                allIds.forEach(function (id) {
+                    const label = document.createElement("label");
+                    label.className = "pill";
+                    const input = document.createElement("input");
+                    input.type = "checkbox";
+                    input.value = id;
+                    input.checked = selectedSet.has(id);
+                    input.style.marginRight = "4px";
+                    input.addEventListener("change", onLayoutsChanged);
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(id));
+                    els.layoutsCheckboxes.appendChild(label);
+                });
+            }
+
+            function setImagePreview(url) {
+                if (!els.imagePreview) return;
+                if (url) {
+                    els.imagePreview.style.backgroundImage = "url('" + url + "')";
+                    els.imagePreview.setAttribute("aria-hidden", "false");
+                } else {
+                    els.imagePreview.style.backgroundImage = "none";
+                    els.imagePreview.setAttribute("aria-hidden", "true");
+                }
+            }
+
+            function getVisibleIndices() {
+                const indices = [];
+                const term = (state.searchTerm || "").toLowerCase();
+                const isDev = state.devMode;
+                for (let i = 0; i < state.collections.length; i++) {
+                    const c = state.collections[i];
+                    const active = c.active !== false;
+                    const devOnly = c.dev_only === true;
+                    if (!isDev) {
+                        if (!active || devOnly) continue;
+                    }
+                    if (term) {
+                        const haystack = ((c.id || "") + " " + (c.nom || "") + " " + (Array.isArray(c.tags) ? c.tags.join(" ") : "")).toLowerCase();
+                        if (!haystack.includes(term)) continue;
+                    }
+                    indices.push(i);
+                }
+                return indices;
+            }
+
+            function renderCollectionsList() {
+                if (!els.collectionsList || !els.collectionsCount) return;
+
+                const visibleIndices = getVisibleIndices();
+                els.collectionsList.innerHTML = "";
+
+                if (!state.collections.length) {
+                    els.collectionsCount.textContent = "Aucune collection chargée";
+                    const empty = document.createElement("div");
+                    empty.className = "list-empty";
+                    empty.textContent = "Cliquez sur « Charger les collections » pour commencer.";
+                    els.collectionsList.appendChild(empty);
+                    return;
+                }
+
+                const total = state.collections.length;
+                const visibleCount = visibleIndices.length;
+                if (visibleCount === total) {
+                    els.collectionsCount.textContent = visibleCount + " collection(s)";
+                } else {
+                    els.collectionsCount.textContent = visibleCount + " visibles sur " + total;
+                }
+
+                if (!visibleIndices.length) {
+                    const emptyFilter = document.createElement("div");
+                    emptyFilter.className = "list-empty";
+                    emptyFilter.textContent = "Aucune collection ne correspond au filtre actuel / mode développeur.";
+                    els.collectionsList.appendChild(emptyFilter);
+                    return;
+                }
+
+                visibleIndices.forEach(function (idx, visiblePos) {
+                    const c = state.collections[idx];
+                    const row = document.createElement("div");
+                    row.className = "collection-row";
+                    row.dataset.index = String(idx);
+
+                    if (state.selectedIndex === idx) {
+                        row.classList.add("selected");
+                    }
+
+                    const mainLine = document.createElement("div");
+                    mainLine.className = "collection-main-line";
+
+                    const thumb = document.createElement("div");
+                    thumb.className = "thumb";
+                    if (c.collection_image) {
+                        thumb.style.backgroundImage = "url('" + c.collection_image + "')";
+                    }
+
+                    const idSpan = document.createElement("span");
+                    idSpan.className = "collection-id";
+                    idSpan.textContent = c.id || "(sans id)";
+
+                    const nameSpan = document.createElement("span");
+                    nameSpan.className = "collection-name";
+                    nameSpan.textContent = c.nom || "";
+
+                    const right = document.createElement("div");
+                    right.className = "collection-main-line-right";
+
+                    const actions = document.createElement("div");
+                    actions.className = "collection-actions";
+
+                    const btnUp = document.createElement("button");
+                    btnUp.type = "button";
+                    btnUp.className = "btn btn-ghost btn-icon";
+                    btnUp.textContent = "↑";
+                    btnUp.title = "Monter";
+                    btnUp.addEventListener("click", function (ev) {
+                        ev.stopPropagation();
+                        moveCollectionInVisibleOrder(idx, visiblePos, -1, visibleIndices);
+                    });
+
+                    const btnDown = document.createElement("button");
+                    btnDown.type = "button";
+                    btnDown.className = "btn btn-ghost btn-icon";
+                    btnDown.textContent = "↓";
+                    btnDown.title = "Descendre";
+                    btnDown.addEventListener("click", function (ev) {
+                        ev.stopPropagation();
+                        moveCollectionInVisibleOrder(idx, visiblePos, +1, visibleIndices);
+                    });
+
+                    const btnDup = document.createElement("button");
+                    btnDup.type = "button";
+                    btnDup.className = "btn btn-ghost btn-icon";
+                    btnDup.textContent = "Dupliquer";
+                    btnDup.addEventListener("click", function (ev) {
+                        ev.stopPropagation();
+                        duplicateCollection(idx);
+                    });
+
+                    const btnDel = document.createElement("button");
+                    btnDel.type = "button";
+                    btnDel.className = "btn btn-ghost btn-icon";
+                    btnDel.textContent = "✕";
+                    btnDel.title = "Supprimer";
+                    btnDel.addEventListener("click", function (ev) {
+                        ev.stopPropagation();
+                        deleteCollection(idx);
+                    });
+
+                    actions.appendChild(btnUp);
+                    actions.appendChild(btnDown);
+                    actions.appendChild(btnDup);
+                    actions.appendChild(btnDel);
+
+                    right.appendChild(actions);
+
+                    mainLine.appendChild(thumb);
+                    mainLine.appendChild(idSpan);
+                    mainLine.appendChild(nameSpan);
+                    mainLine.appendChild(right);
+
+                    const metaLine = document.createElement("div");
+                    metaLine.className = "collection-meta-line";
+
+                    const active = c.active !== false;
+                    const devOnly = c.dev_only === true;
+                    const badgeActive = document.createElement("span");
+                    badgeActive.className = "badge " + (active ? "badge-active" : "badge-inactive");
+                    badgeActive.textContent = active ? "Active" : "Inactive";
+                    metaLine.appendChild(badgeActive);
+
+                    if (devOnly) {
+                        const badgeDev = document.createElement("span");
+                        badgeDev.className = "badge badge-dev";
+                        badgeDev.textContent = "dev_only";
+                        metaLine.appendChild(badgeDev);
+                    }
+
+                    if (Array.isArray(c.tags) && c.tags.length) {
+                        c.tags.slice(0, 3).forEach(function (tag) {
+                            const tagBadge = document.createElement("span");
+                            tagBadge.className = "badge badge-tag";
+                            tagBadge.textContent = tag;
+                            metaLine.appendChild(tagBadge);
+                        });
+                    }
+
+                    row.appendChild(mainLine);
+                    row.appendChild(metaLine);
+
+                    row.addEventListener("click", function () {
+                        selectCollection(idx);
+                    });
+
+                    els.collectionsList.appendChild(row);
+                });
+            }
+
+            function selectCollection(index) {
+                if (index == null || index < 0 || index >= state.collections.length) {
+                    state.selectedIndex = null;
+                    renderEditor();
+                    renderCollectionsList();
+                    return;
+                }
+                state.selectedIndex = index;
+                renderEditor();
+                renderCollectionsList();
+            }
+
+            function renderEditor() {
+                if (!els.form || !els.editorPlaceholder || !els.editorSubtitle) return;
+                const idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) {
+                    els.form.style.display = "none";
+                    els.editorPlaceholder.style.display = "block";
+                    els.editorSubtitle.textContent = "Sélectionnez une collection ou créez-en une.";
+                    els.validationMessages.textContent = "";
+                    return;
+                }
+
+                const c = state.collections[idx];
+                els.editorSubtitle.textContent = "Édition de \"" + (c.nom || c.id || "") + "\"";
+                els.editorPlaceholder.style.display = "none";
+                els.form.style.display = "block";
+
+                els.fieldId.value = c.id || "";
+                els.fieldNom.value = c.nom || "";
+                els.fieldTier.value = c.tier || "";
+                els.fieldDescription.value = c.description || "";
+                els.fieldVariations.value = Array.isArray(c.variations) ? c.variations.join(", ") : "";
+                els.fieldTags.value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
+
+                const allLayouts = getAllLayoutIdsFromData();
+                const selectedLayouts = Array.isArray(c.layouts) ? c.layouts.slice() : [];
+                const extraLayouts = selectedLayouts.filter(function (id) { return allLayouts.indexOf(id) === -1; });
+                els.fieldLayoutsOther.value = extraLayouts.join(", ");
+                renderLayoutsCheckboxes(selectedLayouts);
+
+                els.fieldCollectionUrl.value = c.collection_url || "";
+                els.fieldCollectionImage.value = c.collection_image || "";
+                setImagePreview(c.collection_image || "");
+
+                els.fieldActive.checked = c.active !== false;
+                els.fieldDevOnly.checked = c.dev_only === true;
+
+                updateDefautLayoutSelect();
+                runValidation();
+            }
+
+            function updateDefautLayoutSelect() {
+                if (!els.fieldDefautLayout) return;
+                const idx = state.selectedIndex;
+                let options = [];
+                let selected = "";
+                if (idx != null && idx >= 0 && idx < state.collections.length) {
+                    const c = state.collections[idx];
+                    const layouts = Array.isArray(c.layouts) ? c.layouts : [];
+                    options = layouts.slice();
+                    selected = c.defaut_layout || "";
+                    if (!selected && layouts.length) {
+                        selected = layouts[0];
+                        c.defaut_layout = selected;
+                    }
+                    if (selected && layouts.indexOf(selected) === -1 && layouts.length) {
+                        selected = layouts[0];
+                        c.defaut_layout = selected;
+                    }
+                }
+                els.fieldDefautLayout.innerHTML = "";
+                if (!options.length) {
+                    const optEmpty = document.createElement("option");
+                    optEmpty.value = "";
+                    optEmpty.textContent = "— Aucun layout défini —";
+                    els.fieldDefautLayout.appendChild(optEmpty);
+                    els.fieldDefautLayout.disabled = true;
+                    return;
+                }
+                els.fieldDefautLayout.disabled = false;
+                options.forEach(function (id) {
+                    const opt = document.createElement("option");
+                    opt.value = id;
+                    opt.textContent = id;
+                    if (selected && selected === id) {
+                        opt.selected = true;
+                    }
+                    els.fieldDefautLayout.appendChild(opt);
+                });
+            }
+
+            function onLayoutsChanged() {
+                const idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) return;
+                const c = state.collections[idx];
+
+                const checkboxes = els.layoutsCheckboxes ? els.layoutsCheckboxes.querySelectorAll("input[type='checkbox']") : [];
+                const selected = [];
+                Array.prototype.forEach.call(checkboxes, function (input) {
+                    if (input.checked && input.value) {
+                        selected.push(input.value);
+                    }
+                });
+
+                const extra = normalizeArrayFromField(els.fieldLayoutsOther.value, { uppercase: false });
+                const all = Array.from(new Set(selected.concat(extra)));
+                c.layouts = all;
+                if (!c.defaut_layout && all.length) {
+                    c.defaut_layout = all[0];
+                }
+                updateDefautLayoutSelect();
+                updateJsonPreview();
+                runValidation();
+                renderCollectionsList();
+            }
+
+            function applyFormToCollection() {
+                const idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) return;
+                const c = state.collections[idx];
+
+                c.id = (els.fieldId.value || "").trim();
+                c.nom = (els.fieldNom.value || "").trim();
+                c.tier = (els.fieldTier.value || "").trim();
+                c.description = (els.fieldDescription.value || "").trim();
+                c.variations = normalizeArrayFromField(els.fieldVariations.value, { uppercase: true });
+                c.tags = normalizeArrayFromField(els.fieldTags.value, { uppercase: false });
+
+                const checkboxes = els.layoutsCheckboxes ? els.layoutsCheckboxes.querySelectorAll("input[type='checkbox']") : [];
+                const selectedLayouts = [];
+                Array.prototype.forEach.call(checkboxes, function (input) {
+                    if (input.checked && input.value) {
+                        selectedLayouts.push(input.value);
+                    }
+                });
+                const extraLayouts = normalizeArrayFromField(els.fieldLayoutsOther.value, { uppercase: false });
+                const allLayouts = Array.from(new Set(selectedLayouts.concat(extraLayouts)));
+                c.layouts = allLayouts;
+
+                c.defaut_layout = (els.fieldDefautLayout.value || "").trim();
+                c.collection_url = (els.fieldCollectionUrl.value || "").trim();
+                c.collection_image = (els.fieldCollectionImage.value || "").trim();
+                c.active = !!els.fieldActive.checked;
+                c.dev_only = !!els.fieldDevOnly.checked;
+
+                setImagePreview(c.collection_image || "");
+                updateDefautLayoutSelect();
+                runValidation();
+                updateJsonPreview();
+                renderCollectionsList();
+            }
+
+            function runValidation() {
+                if (!els.validationMessages) return;
+                const messages = [];
+                const idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) {
+                    els.validationMessages.textContent = "";
+                    return;
+                }
+                const current = state.collections[idx];
+
+                if (!current.id) {
+                    messages.push("L’identifiant (id) ne doit pas être vide.");
+                }
+
+                if (current.id) {
+                    const duplicates = state.collections.filter(function (c, i) { return i !== idx && c.id === current.id; });
+                    if (duplicates.length) {
+                        messages.push("Un autre élément utilise déjà l’id \"" + current.id + "\".");
+                    }
+                }
+
+                if (Array.isArray(current.layouts) && current.layouts.length) {
+                    if (!current.defaut_layout || current.layouts.indexOf(current.defaut_layout) === -1) {
+                        messages.push("Le layout par défaut doit être parmi les layouts sélectionnés.");
+                    }
+                }
+
+                if (messages.length) {
+                    const ul = document.createElement("ul");
+                    messages.forEach(function (m) {
+                        const li = document.createElement("li");
+                        li.textContent = m;
+                        ul.appendChild(li);
+                    });
+                    els.validationMessages.innerHTML = "";
+                    els.validationMessages.appendChild(ul);
+                } else {
+                    els.validationMessages.textContent = "";
+                }
+            }
+
+            function moveCollectionInVisibleOrder(actualIndex, visiblePos, direction, visibleIndices) {
+                if (!visibleIndices || !visibleIndices.length) return;
+                const targetPos = visiblePos + direction;
+                if (targetPos < 0 || targetPos >= visibleIndices.length) return;
+                const otherIndex = visibleIndices[targetPos];
+                const a = Math.min(actualIndex, otherIndex);
+                const b = Math.max(actualIndex, otherIndex);
+                const arr = state.collections;
+                const tmp = arr[a];
+                arr[a] = arr[b];
+                arr[b] = tmp;
+
+                if (state.selectedIndex === actualIndex) {
+                    state.selectedIndex = otherIndex;
+                } else if (state.selectedIndex === otherIndex) {
+                    state.selectedIndex = actualIndex;
+                }
+
+                renderCollectionsList();
+                renderEditor();
+                updateJsonPreview();
+            }
+
+            function duplicateCollection(index) {
+                if (index == null || index < 0 || index >= state.collections.length) return;
+                const original = state.collections[index];
+                const copy = JSON.parse(JSON.stringify(original));
+                let baseId = (copy.id || "nouvelle-collection").trim();
+                if (!baseId) baseId = "nouvelle-collection";
+                let newId = baseId + "-copy";
+                let i = 2;
+                const usedIds = new Set(state.collections.map(function (c) { return c.id; }));
+                while (usedIds.has(newId)) {
+                    newId = baseId + "-copy-" + i;
+                    i++;
+                }
+                copy.id = newId;
+                copy.nom = copy.nom ? copy.nom + " (copie)" : "";
+                state.collections.splice(index + 1, 0, copy);
+                state.selectedIndex = index + 1;
+                renderCollectionsList();
+                renderEditor();
+                updateJsonPreview();
+                showToast("Collection dupliquée.");
+            }
+
+            function deleteCollection(index) {
+                if (index == null || index < 0 || index >= state.collections.length) return;
+                const c = state.collections[index];
+                const label = c.nom || c.id || "cette collection";
+                if (!window.confirm("Supprimer \"" + label + "\" ? Cette opération est irréversible dans l’outil, mais vous pouvez toujours annuler dans Git.")) {
+                    return;
+                }
+                state.collections.splice(index, 1);
+                if (!state.collections.length) {
+                    state.selectedIndex = null;
+                } else if (index >= state.collections.length) {
+                    state.selectedIndex = state.collections.length - 1;
+                } else {
+                    state.selectedIndex = index;
+                }
+                renderCollectionsList();
+                renderEditor();
+                updateJsonPreview();
+                showToast("Collection supprimée.");
+            }
+
+            function addNewCollection() {
+                const base = {
+                    id: "",
+                    nom: "",
+                    description: "",
+                    tier: "standard_20x20",
+                    variations: ["VAR1"],
+                    tags: [],
+                    defaut_layout: "aleatoire",
+                    layouts: ["aleatoire"],
+                    collection_url: "",
+                    collection_image: "",
+                    active: true,
+                    dev_only: false
+                };
+                state.collections.push(base);
+                state.selectedIndex = state.collections.length - 1;
+                renderCollectionsList();
+                renderEditor();
+                updateJsonPreview();
+                showToast("Nouvelle collection ajoutée.");
+            }
+
+            function loadCollections() {
+                els.btnLoad.disabled = true;
+                fetch("data/collections.json")
+                    .then(function (res) {
+                        if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        if (!Array.isArray(data)) {
+                            throw new Error("Le JSON de collections doit être un tableau.");
+                        }
+                        state.rawCollections = data.slice();
+                        state.collections = data.map(normalizeCollection);
+                        state.selectedIndex = state.collections.length ? 0 : null;
+                        renderCollectionsList();
+                        renderEditor();
+                        updateJsonPreview();
+                        showToast("Collections chargées (" + state.collections.length + ").");
+                    })
+                    .catch(function (err) {
+                        console.error("Erreur chargement collections.json", err);
+                        showToast("Erreur pour charger data/collections.json (voir console).");
+                    })
+                    .finally(function () {
+                        els.btnLoad.disabled = false;
+                    });
+            }
+
+            function loadCalepinages() {
+                fetch("data/calepinages.json")
+                    .then(function (res) {
+                        if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        if (!Array.isArray(data)) return;
+                        state.calepinageIds = data.map(function (c) { return c.id; }).filter(Boolean);
+                        if (state.collections.length && state.selectedIndex != null) {
+                            renderEditor();
+                        }
+                    })
+                    .catch(function () {
+                        state.calepinageIds = [];
+                    });
+            }
+
+            function attachEvents() {
+                if (els.btnLoad) {
+                    els.btnLoad.addEventListener("click", function () {
+                        loadCollections();
+                    });
+                }
+                if (els.btnAdd) {
+                    els.btnAdd.addEventListener("click", function () {
+                        addNewCollection();
+                    });
+                }
+                if (els.searchInput) {
+                    els.searchInput.addEventListener("input", function () {
+                        state.searchTerm = this.value || "";
+                        renderCollectionsList();
+                    });
+                }
+                if (els.devModeToggle) {
+                    els.devModeToggle.addEventListener("change", function () {
+                        state.devMode = !!this.checked;
+                        saveStoredDevMode();
+                        renderCollectionsList();
+                    });
+                }
+
+                if (els.fieldId) els.fieldId.addEventListener("input", applyFormToCollection);
+                if (els.fieldNom) els.fieldNom.addEventListener("input", applyFormToCollection);
+                if (els.fieldTier) els.fieldTier.addEventListener("input", applyFormToCollection);
+                if (els.fieldDescription) els.fieldDescription.addEventListener("input", applyFormToCollection);
+                if (els.fieldVariations) els.fieldVariations.addEventListener("input", applyFormToCollection);
+                if (els.fieldTags) els.fieldTags.addEventListener("input", applyFormToCollection);
+                if (els.fieldLayoutsOther) els.fieldLayoutsOther.addEventListener("input", function () {
+                    onLayoutsChanged();
+                });
+                if (els.fieldDefautLayout) els.fieldDefautLayout.addEventListener("change", function () {
+                    applyFormToCollection();
+                });
+                if (els.fieldCollectionUrl) els.fieldCollectionUrl.addEventListener("input", applyFormToCollection);
+                if (els.fieldCollectionImage) els.fieldCollectionImage.addEventListener("input", applyFormToCollection);
+                if (els.fieldActive) els.fieldActive.addEventListener("change", applyFormToCollection);
+                if (els.fieldDevOnly) els.fieldDevOnly.addEventListener("change", applyFormToCollection);
+
+                if (els.btnOpenCollectionUrl) {
+                    els.btnOpenCollectionUrl.addEventListener("click", function () {
+                        const url = (els.fieldCollectionUrl && els.fieldCollectionUrl.value) || "";
+                        if (url) window.open(url, "_blank", "noopener");
+                    });
+                }
+                if (els.btnOpenCollectionImage) {
+                    els.btnOpenCollectionImage.addEventListener("click", function () {
+                        const url = (els.fieldCollectionImage && els.fieldCollectionImage.value) || "";
+                        if (url) window.open(url, "_blank", "noopener");
+                    });
+                }
+
+                if (els.btnDuplicateCurrent) {
+                    els.btnDuplicateCurrent.addEventListener("click", function () {
+                        if (state.selectedIndex != null) {
+                            duplicateCollection(state.selectedIndex);
+                        }
+                    });
+                }
+                if (els.btnDeleteCurrent) {
+                    els.btnDeleteCurrent.addEventListener("click", function () {
+                        if (state.selectedIndex != null) {
+                            deleteCollection(state.selectedIndex);
+                        }
+                    });
+                }
+
+                if (els.btnDownloadJson) {
+                    els.btnDownloadJson.addEventListener("click", function () {
+                        if (!state.collections.length) {
+                            showToast("Aucune collection à exporter.");
+                            return;
+                        }
+                        const json = serializeCollections();
+                        const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = "collections.json";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(a.href);
+                        showToast("Téléchargement de collections.json lancé.");
+                    });
+                }
+
+                if (els.btnCopyJson) {
+                    els.btnCopyJson.addEventListener("click", function () {
+                        if (!state.collections.length) {
+                            showToast("Aucune collection à copier.");
+                            return;
+                        }
+                        const json = serializeCollections();
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(json)
+                                .then(function () {
+                                    showToast("JSON copié dans le presse-papiers.");
+                                })
+                                .catch(function () {
+                                    showToast("Impossible de copier le JSON.");
+                                });
+                        } else {
+                            showToast("API clipboard non disponible dans ce navigateur.");
+                        }
+                    });
+                }
+
+                if (els.btnTogglePreview && els.jsonPreview) {
+                    els.btnTogglePreview.addEventListener("click", function () {
+                        state.showJsonPreview = !state.showJsonPreview;
+                        if (state.showJsonPreview) {
+                            els.jsonPreview.style.display = "block";
+                            els.btnTogglePreview.textContent = "Masquer l’aperçu JSON";
+                            updateJsonPreview();
+                        } else {
+                            els.jsonPreview.style.display = "none";
+                            els.btnTogglePreview.textContent = "Afficher un aperçu JSON";
+                        }
+                    });
+                }
+            }
+
+            function init() {
+                initEls();
+                loadStoredDevMode();
+                attachEvents();
+                loadCalepinages();
+                renderCollectionsList();
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>
+

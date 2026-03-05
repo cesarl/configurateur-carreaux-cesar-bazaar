@@ -6,6 +6,32 @@ const ESTIMATED_DELIVERY_DATE = "mi-juin 2026";
 // Utilise toujours des chemins relatifs aux fichiers du projet.
 // En production, le <base href="..."> dans index.html s'occupe de pointer vers la bonne URL GitHub Pages.
 const REPO_URL = "";
+
+// Indique si la gallery doit inclure les collections marquées comme dev_only ou inactives.
+// Activable via le paramètre d'URL ?dev=1 ou ?dev=true.
+const IS_DEV_GALLERY = (function () {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const flag = (params.get("dev") || "").toLowerCase();
+        return flag === "1" || flag === "true";
+    } catch (e) {
+        return false;
+    }
+})();
+
+function isCollectionVisibleInGallery(collection, isDevMode) {
+    if (!collection) return false;
+    const active = collection.active !== false;         // par défaut, true
+    const devOnly = collection.dev_only === true;       // par défaut, false
+    if (!isDevMode && devOnly) return false;
+    return active;
+}
+
+function filterCollectionsForGallery(collections) {
+    if (!Array.isArray(collections)) return [];
+    const isDev = IS_DEV_GALLERY;
+    return collections.filter((c) => isCollectionVisibleInGallery(c, isDev));
+}
 let currentCollection = null;
 let currentColors = {}; // Maps zone id → Color ID (e.g. BL001). Use getHexForColorId() for display.
 let activeZone = null;  // La zone qu'on est en train de modifier
@@ -1220,17 +1246,18 @@ async function renderGallery() {
             return;
         }
         const collections = await res.json();
+        const visibleCollections = filterCollectionsForGallery(collections);
         const galleryGrid = document.getElementById("gallery-grid");
         if (!galleryGrid) {
             console.error("Élément #gallery-grid introuvable");
             return;
         }
         galleryGrid.innerHTML = "";
-        if (collections.length === 0) {
+        if (visibleCollections.length === 0) {
             galleryGrid.innerHTML = "<p style='padding: 20px; text-align: center; color: #666;'>Aucune collection disponible</p>";
             return;
         }
-        collections.forEach((collection) => {
+        visibleCollections.forEach((collection) => {
             const card = document.createElement("div");
             card.className = "gallery-card";
             card.onclick = async () => {
@@ -1278,18 +1305,27 @@ async function renderGallery() {
 async function loadCollection(id, urlColors = null) {
     const res = await fetch(`${REPO_URL}data/collections.json`);
     const collections = await res.json();
-    currentCollection = collections.find(c => c.id.toLowerCase() === String(id).toLowerCase()) || collections.find(c => c.id === id);
+    const visibleCollections = filterCollectionsForGallery(collections);
 
-    // Si la collection n'est pas trouvée, charger la première disponible
-    if (!currentCollection) {
-        if (collections.length === 0) {
+    // 1. On essaie d'abord de retrouver la collection demandée (compat : id sensible/insensible à la casse)
+    let found = collections.find(c => c.id.toLowerCase() === String(id).toLowerCase()) || collections.find(c => c.id === id);
+
+    // 2. Si non trouvée OU pas visible dans la gallery actuelle, on bascule sur une collection visible
+    if (!found || !isCollectionVisibleInGallery(found, IS_DEV_GALLERY)) {
+        if (!visibleCollections.length) {
             alert("Aucune collection disponible");
             showGallery();
             return;
         }
-        console.warn(`Collection "${id}" introuvable, chargement de "${collections[0].id}"`);
-        currentCollection = collections[0];
+        if (found) {
+            console.warn(`Collection "${id}" marquée comme inactive ou dev_only pour cette vue. Chargement de "${visibleCollections[0].id}".`);
+        } else {
+            console.warn(`Collection "${id}" introuvable, chargement de "${visibleCollections[0].id}"`);
+        }
+        found = visibleCollections[0];
     }
+
+    currentCollection = found;
     const collectionLink = document.getElementById("collection-link");
     if (collectionLink) {
         collectionLink.textContent = currentCollection.nom;
