@@ -672,6 +672,67 @@
             const btnCopy = document.getElementById("btn-copy");
             const btnDownload = document.getElementById("btn-download");
 
+            function processSvgResults(results) {
+                var filesData = [];
+                var globalMap = new Map();
+                var globalOrder = [];
+                var failed = [];
+                results.forEach(function (res, fileIndex) {
+                    var analysis = analyzeSvg(res.text);
+                    var name = (res.nameBase || "fichier-" + (fileIndex + 1)) + ".svg";
+                    if (analysis.error) {
+                        failed.push({ name: name, reason: analysis.error });
+                        return;
+                    }
+                    var nameBase = res.nameBase || ("export-" + (fileIndex + 1));
+                    filesData.push({
+                        nameBase: nameBase,
+                        viewBox: analysis.viewBox,
+                        groups: analysis.groups
+                    });
+                });
+                if (!filesData.length) {
+                    resultSection.classList.add("visible");
+                    errorEl.style.display = "block";
+                    errorEl.textContent = "Aucun des fichiers SVG n'a pu être analysé (pas de viewBox ou pas de formes).";
+                    if (failed.length) {
+                        errorEl.textContent += " " + failed.map(function (f) { return f.name + " : " + f.reason; }).join(" ; ");
+                    }
+                    document.getElementById("files-loaded-line").style.display = "none";
+                    return;
+                }
+                filesData.forEach(function (fileData, fileIndex) {
+                    fileData.groups.forEach(function (g) {
+                        var key = normalizeHex(g.hex);
+                        if (!globalMap.has(key)) {
+                            globalMap.set(key, { key: key, currentHex: key, selectedColorId: g.colorIdFromSvg || "", perFile: [] });
+                            globalOrder.push(key);
+                        }
+                        globalMap.get(key).perFile.push({
+                            fileIndex: fileIndex,
+                            elements: g.elements
+                        });
+                    });
+                });
+                state.files = filesData;
+                state.droppedFileNames = filesData.map(function (f) { return f.nameBase; });
+                state.previewFileIndex = 0;
+                state.globalZones = globalOrder.map(function (key) { return globalMap.get(key); });
+                syncZonesWithNuancier();
+                resultSection.classList.add("visible");
+                errorEl.style.display = "none";
+                var filesLine = document.getElementById("files-loaded-line");
+                filesLine.style.display = "block";
+                var count = filesData.length;
+                var names = state.droppedFileNames.map(function (n) { return n + ".svg"; }).join(", ");
+                filesLine.innerHTML = "<span>" + count + " fichier(s) chargé(s) : " + names + "</span>";
+                if (failed.length) {
+                    filesLine.innerHTML += " — Non chargé(s) : " + failed.map(function (f) { return f.name; }).join(", ");
+                }
+                renderZonesList();
+                renderPreview();
+            }
+
             function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
             ["dragenter", "dragover", "dragleave", "drop"].forEach(function (ev) {
                 dropZone.addEventListener(ev, preventDefaults, false);
@@ -702,73 +763,12 @@
                 });
 
                 Promise.all(readers).then(function (results) {
-                    const filesData = [];
-                    const globalMap = new Map();
-                    const globalOrder = [];
-                    const failed = [];
-
-                    results.forEach(function (res, fileIndex) {
-                        const analysis = analyzeSvg(res.text);
+                    const toProcess = results.map(function (res, fileIndex) {
                         const name = res.file.name || "fichier-" + (fileIndex + 1);
-                        if (analysis.error) {
-                            failed.push({ name: name, reason: analysis.error });
-                            return;
-                        }
-                        const nameBase = res.file.name.replace(/\.svg$/i, "") || ("export-" + (fileIndex + 1));
-                        filesData.push({
-                            nameBase: nameBase,
-                            viewBox: analysis.viewBox,
-                            groups: analysis.groups
-                        });
+                        const nameBase = res.file.name ? res.file.name.replace(/\.svg$/i, "") : ("export-" + (fileIndex + 1));
+                        return { text: res.text, nameBase: nameBase };
                     });
-
-                    if (!filesData.length) {
-                        resultSection.classList.add("visible");
-                        errorEl.style.display = "block";
-                        errorEl.textContent = "Aucun des fichiers SVG n'a pu être analysé (pas de viewBox ou pas de formes).";
-                        if (failed.length) {
-                            errorEl.textContent += " " + failed.map(function (f) { return f.name + " : " + f.reason; }).join(" ; ");
-                        }
-                        document.getElementById("files-loaded-line").style.display = "none";
-                        return;
-                    }
-
-                    filesData.forEach(function (fileData, fileIndex) {
-                        fileData.groups.forEach(function (g) {
-                            const key = normalizeHex(g.hex);
-                            if (!globalMap.has(key)) {
-                                globalMap.set(key, { key: key, currentHex: key, selectedColorId: g.colorIdFromSvg || "", perFile: [] });
-                                globalOrder.push(key);
-                            }
-                            globalMap.get(key).perFile.push({
-                                fileIndex: fileIndex,
-                                elements: g.elements
-                            });
-                        });
-                    });
-
-                    state.files = filesData;
-                    state.droppedFileNames = filesData.map(function (f) { return f.nameBase; });
-                    state.previewFileIndex = 0;
-                    state.globalZones = globalOrder.map(function (key) { return globalMap.get(key); });
-
-                    // Tente d'associer automatiquement les hex exacts au nuancier
-                    syncZonesWithNuancier();
-
-                    resultSection.classList.add("visible");
-                    errorEl.style.display = "none";
-
-                    var filesLine = document.getElementById("files-loaded-line");
-                    filesLine.style.display = "block";
-                    var count = filesData.length;
-                    var names = state.droppedFileNames.map(function (n) { return n + ".svg"; }).join(", ");
-                    filesLine.innerHTML = "<span>" + count + " fichier(s) chargé(s) : " + names + "</span>";
-                    if (failed.length) {
-                        filesLine.innerHTML += " — Non chargé(s) : " + failed.map(function (f) { return f.name; }).join(", ");
-                    }
-
-                    renderZonesList();
-                    renderPreview();
+                    processSvgResults(toProcess);
                 }).catch(function (err) {
                     resultSection.classList.add("visible");
                     errorEl.style.display = "block";
@@ -779,10 +779,45 @@
 
             loadNuancier().then(function (data) {
                 nuancierData = data;
-                // Après chargement du nuancier, synchroniser les zones déjà détectées
                 syncZonesWithNuancier();
                 renderZonesList();
                 renderPreview();
+
+                var params = {};
+                location.search.slice(1).split("&").forEach(function (pair) {
+                    var parts = pair.split("=");
+                    if (parts.length >= 2) {
+                        try {
+                            params[decodeURIComponent(parts[0].trim())] = decodeURIComponent(parts.slice(1).join("=").trim());
+                        } catch (_) {}
+                    }
+                });
+                if (params.collection && params.variations) {
+                    var collectionId = (params.collection || "").toUpperCase().trim();
+                    var count = Math.max(1, parseInt(params.variations, 10) || 1);
+                    var baseUrl = "assets/svg/";
+                    var promises = [];
+                    for (var i = 1; i <= count; i++) {
+                        (function (nameBase) {
+                            promises.push(
+                                fetch(baseUrl + nameBase + ".svg")
+                                    .then(function (res) {
+                                        if (!res.ok) throw new Error(res.status + " " + nameBase + ".svg");
+                                        return res.text();
+                                    })
+                                    .then(function (text) { return { text: text, nameBase: nameBase }; })
+                            );
+                        })(collectionId + "-VAR" + i);
+                    }
+                    Promise.all(promises).then(function (results) {
+                        processSvgResults(results);
+                    }).catch(function (err) {
+                        resultSection.classList.add("visible");
+                        errorEl.style.display = "block";
+                        errorEl.textContent = "Impossible de charger les SVG de la collection : " + (err && err.message ? err.message : String(err));
+                        document.getElementById("files-loaded-line").style.display = "none";
+                    });
+                }
             });
 
             function renderZonesList() {

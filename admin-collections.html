@@ -127,6 +127,46 @@
             font-size: 0.8rem;
             color: var(--secondary);
         }
+        .field-inline-variations {
+            align-items: center;
+        }
+        .variation-thumbnails {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .variation-thumb-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 56px;
+        }
+        .variation-thumb-item img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        .variation-thumb-item.error img {
+            border-color: var(--error);
+            background: rgba(179, 38, 30, 0.06);
+        }
+        .variation-thumb-item .label {
+            font-size: 0.7rem;
+            color: var(--secondary);
+            margin-top: 2px;
+        }
+        .variation-thumb-item.error .label {
+            color: var(--error);
+        }
+        .variation-thumbnails-error {
+            font-size: 0.85rem;
+            color: var(--error);
+            margin-top: 8px;
+        }
         .split {
             display: grid;
             grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -479,9 +519,14 @@
                             <input id="field-tier" type="text" placeholder="ex. standard_20x20">
                         </div>
                         <div class="field">
-                            <label for="field-variations">Variations</label>
-                            <input id="field-variations" type="text" placeholder="VAR1, VAR2, VAR3…">
-                            <small>Liste séparée par des virgules. Sera enregistrée comme tableau JSON.</small>
+                            <label for="field-variations">Nombre de variations</label>
+                            <div class="field-inline field-inline-variations">
+                                <input id="field-variations" type="number" min="1" max="99" placeholder="1" style="width: 4rem;">
+                                <button id="btn-refresh-variations" type="button" class="btn btn-ghost btn-icon" title="Rafraîchir les aperçus SVG">↻</button>
+                                <button id="btn-edit-variations" type="button" class="btn btn-primary" title="Ouvrir les variations dans la moulinette SVG">Éditer les variations</button>
+                            </div>
+                            <small>Fichiers attendus : <code>assets/svg/{id}-VAR1.svg</code>, <code>VAR2.svg</code>, etc.</small>
+                            <div id="variation-thumbnails" class="variation-thumbnails" aria-live="polite"></div>
                         </div>
 
                         <div class="field form-row-full">
@@ -621,6 +666,9 @@
                 els.fieldTier = $("field-tier");
                 els.fieldDescription = $("field-description");
                 els.fieldVariations = $("field-variations");
+                els.btnRefreshVariations = $("btn-refresh-variations");
+                els.btnEditVariations = $("btn-edit-variations");
+                els.variationThumbnails = $("variation-thumbnails");
                 els.fieldTags = $("field-tags");
                 els.fieldLayoutsOther = $("field-layouts-other");
                 els.layoutsCheckboxes = $("layouts-checkboxes");
@@ -690,18 +738,15 @@
                 copy.description = copy.description || "";
                 copy.tier = copy.tier || "";
 
-                if (Array.isArray(copy.variations)) {
-                    if (copy.variations.length === 1 && typeof copy.variations[0] === "string" && copy.variations[0].includes(",")) {
-                        copy.variations = copy.variations[0].split(",").map(function (v) { return v.trim().toUpperCase(); }).filter(Boolean);
-                    } else {
-                        copy.variations = copy.variations.map(function (v) {
-                            return typeof v === "string" ? v.trim().toUpperCase() : v;
-                        }).filter(Boolean);
-                    }
+                if (typeof copy.variations === "number" && copy.variations >= 1) {
+                    copy.variations = Math.max(1, Math.floor(copy.variations));
+                } else if (Array.isArray(copy.variations)) {
+                    copy.variations = Math.max(1, copy.variations.length);
                 } else if (typeof copy.variations === "string") {
-                    copy.variations = copy.variations.split(",").map(function (v) { return v.trim().toUpperCase(); }).filter(Boolean);
+                    const arr = copy.variations.split(",").map(function (v) { return v.trim().toUpperCase(); }).filter(Boolean);
+                    copy.variations = Math.max(1, arr.length);
                 } else {
-                    copy.variations = [];
+                    copy.variations = 1;
                 }
 
                 if (Array.isArray(copy.tags)) {
@@ -741,7 +786,7 @@
                         nom: c.nom || "",
                         description: c.description || "",
                         tier: c.tier || "",
-                        variations: Array.isArray(c.variations) ? c.variations.slice() : [],
+                        variations: typeof c.variations === "number" ? c.variations : (Array.isArray(c.variations) ? c.variations.length : 1),
                         tags: Array.isArray(c.tags) ? c.tags.slice() : [],
                         defaut_layout: c.defaut_layout || "",
                         layouts: Array.isArray(c.layouts) ? c.layouts.slice() : []
@@ -1001,6 +1046,62 @@
                 renderCollectionsList();
             }
 
+            function getVariationThumbnailsBaseUrl() {
+                var a = document.createElement("a");
+                a.href = "assets/svg/";
+                return a.href;
+            }
+
+            function renderVariationThumbnails() {
+                var container = els.variationThumbnails;
+                if (!container) return;
+                var idx = state.selectedIndex;
+                var id = (els.fieldId && els.fieldId.value || "").trim();
+                var count = Math.max(1, parseInt(els.fieldVariations.value, 10) || 1);
+                container.innerHTML = "";
+                if (!id) {
+                    container.appendChild(document.createTextNode("Renseignez l’id de la collection pour prévisualiser les SVG."));
+                    return;
+                }
+                var baseUrl = getVariationThumbnailsBaseUrl();
+                var safeId = id.toUpperCase();
+                var errors = [];
+                for (var i = 1; i <= count; i++) {
+                    var fileName = safeId + "-VAR" + i + ".svg";
+                    var url = baseUrl + fileName;
+                    var wrap = document.createElement("div");
+                    wrap.className = "variation-thumb-item";
+                    var label = document.createElement("span");
+                    label.className = "label";
+                    label.textContent = "VAR" + i;
+                    var img = document.createElement("img");
+                    img.alt = fileName;
+                    img.src = url + "?t=" + Date.now();
+                    img.onload = function () {
+                        wrap.classList.remove("error");
+                    };
+                    img.onerror = function () {
+                        wrap.classList.add("error");
+                        var errZone = container.querySelector(".variation-thumbnails-error");
+                        if (!errZone) {
+                            errZone = document.createElement("div");
+                            errZone.className = "variation-thumbnails-error";
+                            container.appendChild(errZone);
+                        }
+                        var failed = [];
+                        var items = container.querySelectorAll(".variation-thumb-item.error");
+                        for (var j = 0; j < items.length; j++) {
+                            var lbl = items[j].querySelector(".label");
+                            if (lbl) failed.push(lbl.textContent);
+                        }
+                        errZone.textContent = failed.length ? "Fichier(s) introuvable(s) : " + failed.map(function (x) { return x + ".svg"; }).join(", ") : "";
+                    };
+                    wrap.appendChild(img);
+                    wrap.appendChild(label);
+                    container.appendChild(wrap);
+                }
+            }
+
             function renderEditor() {
                 if (!els.form || !els.editorPlaceholder || !els.editorSubtitle) return;
                 const idx = state.selectedIndex;
@@ -1021,7 +1122,8 @@
                 els.fieldNom.value = c.nom || "";
                 els.fieldTier.value = c.tier || "";
                 els.fieldDescription.value = c.description || "";
-                els.fieldVariations.value = Array.isArray(c.variations) ? c.variations.join(", ") : "";
+                els.fieldVariations.value = typeof c.variations === "number" ? String(c.variations) : (Array.isArray(c.variations) ? String(c.variations.length) : "1");
+                renderVariationThumbnails();
                 els.fieldTags.value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
 
                 const allLayouts = getAllLayoutIdsFromData();
@@ -1115,7 +1217,7 @@
                 c.nom = (els.fieldNom.value || "").trim();
                 c.tier = (els.fieldTier.value || "").trim();
                 c.description = (els.fieldDescription.value || "").trim();
-                c.variations = normalizeArrayFromField(els.fieldVariations.value, { uppercase: true });
+                c.variations = Math.max(1, parseInt(els.fieldVariations.value, 10) || 1);
                 c.tags = normalizeArrayFromField(els.fieldTags.value, { uppercase: false });
 
                 const checkboxes = els.layoutsCheckboxes ? els.layoutsCheckboxes.querySelectorAll("input[type='checkbox']") : [];
@@ -1140,6 +1242,7 @@
                 runValidation();
                 updateJsonPreview();
                 renderCollectionsList();
+                renderVariationThumbnails();
             }
 
             function runValidation() {
@@ -1256,7 +1359,7 @@
                     nom: "",
                     description: "",
                     tier: "standard_20x20",
-                    variations: ["VAR1"],
+                    variations: 1,
                     tags: [],
                     defaut_layout: "aleatoire",
                     layouts: ["aleatoire"],
@@ -1348,7 +1451,25 @@
                 if (els.fieldNom) els.fieldNom.addEventListener("input", applyFormToCollection);
                 if (els.fieldTier) els.fieldTier.addEventListener("input", applyFormToCollection);
                 if (els.fieldDescription) els.fieldDescription.addEventListener("input", applyFormToCollection);
-                if (els.fieldVariations) els.fieldVariations.addEventListener("input", applyFormToCollection);
+                if (els.fieldVariations) els.fieldVariations.addEventListener("input", function () {
+                    applyFormToCollection();
+                });
+                if (els.fieldVariations) els.fieldVariations.addEventListener("change", function () {
+                    renderVariationThumbnails();
+                });
+                if (els.btnRefreshVariations) els.btnRefreshVariations.addEventListener("click", function () {
+                    renderVariationThumbnails();
+                });
+                if (els.btnEditVariations) els.btnEditVariations.addEventListener("click", function () {
+                    var id = (els.fieldId && els.fieldId.value || "").trim();
+                    var count = Math.max(1, parseInt(els.fieldVariations.value, 10) || 1);
+                    if (!id) {
+                        showToast("Renseignez l'id de la collection.");
+                        return;
+                    }
+                    var url = "admin-svg.html?collection=" + encodeURIComponent(id) + "&variations=" + encodeURIComponent(String(count));
+                    window.open(url, "_blank", "noopener,noreferrer");
+                });
                 if (els.fieldTags) els.fieldTags.addEventListener("input", applyFormToCollection);
                 if (els.fieldLayoutsOther) els.fieldLayoutsOther.addEventListener("input", function () {
                     onLayoutsChanged();

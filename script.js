@@ -1336,19 +1336,19 @@ async function loadCollection(id, urlColors = null) {
         modalCollectionLink.href = collectionLink.href;
     }
 
-    // 2. Parser les variations (peut être une chaîne "VAR1, VAR2, VAR3" ou un tableau)
+    // 2. Parser les variations : soit un nombre n (→ VAR1..VARn), soit legacy tableau/chaîne
     let variationsList = [];
-    if (Array.isArray(currentCollection.variations)) {
-        // Si c'est un tableau, vérifier si c'est une chaîne unique ou plusieurs éléments
-        if (currentCollection.variations.length === 1 && typeof currentCollection.variations[0] === 'string' && currentCollection.variations[0].includes(',')) {
-            // Parser la chaîne "VAR1, VAR2, VAR3"
-            variationsList = currentCollection.variations[0].split(',').map(v => v.trim().toUpperCase());
+    const raw = currentCollection.variations;
+    if (typeof raw === "number" && raw >= 1) {
+        for (let i = 1; i <= raw; i++) variationsList.push("VAR" + i);
+    } else if (Array.isArray(raw)) {
+        if (raw.length === 1 && typeof raw[0] === "string" && raw[0].includes(",")) {
+            variationsList = raw[0].split(",").map((v) => v.trim().toUpperCase());
         } else {
-            // Tableau normal
-            variationsList = currentCollection.variations.map(v => typeof v === 'string' ? v.trim().toUpperCase() : v);
+            variationsList = raw.map((v) => (typeof v === "string" ? v.trim().toUpperCase() : v));
         }
-    } else if (typeof currentCollection.variations === 'string') {
-        variationsList = currentCollection.variations.split(',').map(v => v.trim().toUpperCase());
+    } else if (typeof raw === "string") {
+        variationsList = raw.split(",").map((v) => v.trim().toUpperCase());
     }
 
     // 3. Réinitialiser le cache et les couleurs
@@ -2046,18 +2046,21 @@ function extractDefaultColorsFromSvg(svgString) {
     });
 }
 
-/** Retourne la liste des variantes à utiliser : celles du JSON collection présentes dans le cache (plus de ROOT) */
+/** Retourne la liste des variantes à utiliser : VAR1..VARn si variations est un nombre, sinon legacy. Filtrée par le cache. */
 function getVariantsList() {
-    if (!currentCollection || !currentCollection.variations) return [];
+    if (!currentCollection) return [];
+    const raw = currentCollection.variations;
     let list = [];
-    if (Array.isArray(currentCollection.variations)) {
-        if (currentCollection.variations.length === 1 && typeof currentCollection.variations[0] === "string" && currentCollection.variations[0].includes(",")) {
-            list = currentCollection.variations[0].split(",").map((v) => v.trim().toUpperCase());
+    if (typeof raw === "number" && raw >= 1) {
+        for (let i = 1; i <= raw; i++) list.push("VAR" + i);
+    } else if (Array.isArray(raw)) {
+        if (raw.length === 1 && typeof raw[0] === "string" && raw[0].includes(",")) {
+            list = raw[0].split(",").map((v) => v.trim().toUpperCase());
         } else {
-            list = currentCollection.variations.map((v) => (typeof v === "string" ? v.trim().toUpperCase() : v));
+            list = raw.map((v) => (typeof v === "string" ? v.trim().toUpperCase() : v));
         }
-    } else if (typeof currentCollection.variations === "string") {
-        list = currentCollection.variations.split(",").map((v) => v.trim().toUpperCase());
+    } else if (typeof raw === "string") {
+        list = raw.split(",").map((v) => v.trim().toUpperCase());
     }
     return list.filter((v) => v && svgCache[v]);
 }
