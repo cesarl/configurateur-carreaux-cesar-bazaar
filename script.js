@@ -19,6 +19,35 @@ const IS_DEV_GALLERY = (function () {
     }
 })();
 
+/** Blocs de texte d'information pour le PDF : règles de commande sur mesure et simulateur. Sans emojis, titres en gras et liens. */
+function getPdfInfoBlocks() {
+    const collectionUrl = (currentCollection && currentCollection.collection_url) ? currentCollection.collection_url : "https://www.cesarbazaar.fr/";
+    const faqUrl = "https://www.cesarbazaar.fr/faq-carreaux-de-ciment";
+    return [
+        { type: "heading", text: "Le configurateur" },
+        { type: "para", text: "Ce configurateur fonctionne bien sur mobile et encore mieux sur ordinateur. Vous pouvez partager et sauvegarder votre configuration grâce au lien de cette page, et revenir plus tard pour la finaliser. Un PDF récapitulatif et un SVG vectoriel pour les logiciels 3D sont disponibles dans le menu en haut à droite." },
+        { type: "heading", text: "Format des cartons et motifs" },
+        { type: "para", text: "La vente se fait par carton complet : 16 carreaux (format 20 x 20 cm). Minimum 3 cartons pour une commande personnalisée. La répartition des motifs dans un carton est fixe. Consultez la description de la collection pour les détails." },
+        { type: "link", text: "Voir la page de cette collection", url: collectionUrl },
+        { type: "heading", text: "Calendrier de production" },
+        { type: "para", text: "Les productions fonctionnent par cycles. Pour cette session : commandes ouvertes jusqu'au " + ORDER_DEADLINE_DATE + ". Livraison estimée aux alentours de " + ESTIMATED_DELIVERY_DATE + "." },
+        { type: "heading", text: "Fabrication : Maroc ou France" },
+        { type: "para", text: "Par défaut, les carreaux sont fabriqués au Maroc. Une fabrication 100 % Made in France ou un passage à l'atelier pour les fabriquer vous-même est possible sur demande. Contactez-moi en envoyant le lien de votre personnalisation." },
+        { type: "heading", text: "Couleurs (point indicatif)" },
+        { type: "para", text: "Les codes RAL du nuancier sont donnés à titre indicatif. Le carreau de ciment est une matière vivante et artisanale : les nuances peuvent varier légèrement. Privilégiez une teinte qui s'harmonisera avec le carreau." },
+        { type: "heading", text: "Prototype" },
+        { type: "para", text: "Un prototype sur-mesure peut être fabriqué en atelier en France : 120 € (livraison comprise), offert pour toute commande finale supérieure ou égale à 2000 € TTC." },
+        { type: "heading", text: "Une question ?" },
+        { type: "para", text: "Consultez la FAQ sur le site, envoyez un mail ou appelez-nous. Nous sommes là pour vous accompagner." },
+        { type: "link", text: "Foire aux questions (FAQ)", url: faqUrl }
+    ];
+}
+
+/** Texte d'information pour le PDF (version plain pour compatibilité). */
+function getPdfInfoText() {
+    return getPdfInfoBlocks().filter(b => b.type === "para" || b.type === "heading").map(b => b.text).join("\n\n");
+}
+
 function isCollectionVisibleInGallery(collection, isDevMode) {
     if (!collection) return false;
     const active = collection.active !== false;         // par défaut, true
@@ -323,6 +352,48 @@ function downloadImageFromBlob(blob, baseName) {
 }
 
 // ——— Export PDF ———
+/** Charge le logo César Bazaar et retourne une data URL JPEG, ou null en cas d'échec (CORS, fichier manquant). */
+async function loadLogoAsDataUrl() {
+    const logoPath = "assets/Logo-BAZAAR.jpg";
+    try {
+        const base = typeof document !== "undefined" && document.querySelector("base");
+        const url = base ? new URL(logoPath, base.href).href : new URL(logoPath, window.location.href).href;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const blob = await res.blob();
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("FileReader error"));
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        return null;
+    }
+}
+
+/** Convertit une chaîne SVG en data URL JPEG aux dimensions données (en mm). */
+function svgStringToImageDataUrl(svgString, widthMm, heightMm) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const dpi = 200;
+            const canvasPxW = Math.max(1, Math.round((widthMm / 25.4) * dpi));
+            const canvasPxH = Math.max(1, Math.round((heightMm / 25.4) * dpi));
+            const c = document.createElement("canvas");
+            c.width = canvasPxW;
+            c.height = canvasPxH;
+            const ctx = c.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, 0, 0, canvasPxW, canvasPxH);
+            resolve(c.toDataURL("image/jpeg", 0.88));
+        };
+        img.onerror = () => reject(new Error("SVG load failed"));
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
+    });
+}
+
 function showPdfLoadingOverlay() {
     const el = document.getElementById("pdf-loading-overlay");
     if (el) {
@@ -353,7 +424,7 @@ function setPdfProgress(percent, label, subtext) {
     if (subtextEl && subtext !== undefined) subtextEl.textContent = subtext;
 }
 
-/** Génère et télécharge un PDF : page d'info (collection, couleurs, lien) + une page avec le calepinage uniquement (pas les mockups). Le calepinage est généré en SVG puis converti en image (sans html2canvas). */
+/** Génère et télécharge un PDF : logo + titre, date/heure, lien, ligne de variantes, couleurs, calepinage, texte d'info, footer avec liens. */
 async function exportPdf() {
     if (typeof jspdf === "undefined") {
         if (typeof alert !== "undefined") alert("Export PDF indisponible (bibliothèque jsPDF non chargée).");
@@ -372,9 +443,19 @@ async function exportPdf() {
     applyConfigToUrl();
     const restoreUrl = window.location.href;
 
+    let logoDataUrl = null;
+    try {
+        logoDataUrl = await loadLogoAsDataUrl();
+    } catch (e) {
+        // continuer sans logo
+    }
+
     try {
         const { jsPDF } = jspdf;
-        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        // Une seule longue page pour éviter les zones blanches entre pages (PDF "pageless")
+        const pageWidthA4 = 210;
+        const pageHeightLong = 4000;
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [pageWidthA4, pageHeightLong] });
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
         const margin = 15;
@@ -386,14 +467,69 @@ async function exportPdf() {
             doc.setProperties({ title: docTitle });
         }
 
-        doc.setFontSize(18);
-        doc.text(collectionTitle, margin, y);
-        y += 10;
-        if (currentCollection.description) {
-            doc.setFontSize(10);
-            doc.text(currentCollection.description, margin, y);
-            y += 8;
+        // 1. En-tête : logo carré (haut gauche) puis titre en dessous (avec retour à la ligne si trop long)
+        const logoSize = 18;
+        if (logoDataUrl) {
+            try {
+                doc.addImage(logoDataUrl, "JPEG", margin, y, logoSize, logoSize);
+            } catch (e) {}
+            y += logoSize + 10;
         }
+        doc.setFontSize(18);
+        doc.setTextColor(0, 0, 0);
+        const maxTitleWidth = pageW - 2 * margin;
+        const titleLines = doc.splitTextToSize(collectionTitle, maxTitleWidth);
+        titleLines.forEach((line) => {
+            doc.text(line, margin, y);
+            y += 5;
+        });
+        if (!logoDataUrl) y += 4;
+        else y += 2;
+
+        // 2. Date et heure d'édition
+        doc.setFontSize(10);
+        const editionDate = new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
+        doc.text("Édition du " + editionDate, margin, y);
+        y += 6;
+
+        // 3. Lien unique : phrase centrée, plus grande, cliquable vers l'éditeur
+        const linkSentence = "Retrouvez votre collection personnalisée, modifiez-la et passez commande.";
+        doc.setFontSize(12);
+        const linkTextWidth = doc.getTextWidth(linkSentence);
+        doc.setTextColor(0, 0, 255);
+        doc.textWithLink(linkSentence, (pageW - linkTextWidth) / 2, y, { url: restoreUrl });
+        doc.setTextColor(0, 0, 0);
+        y += 10;
+
+        // 4. Ligne de variantes : carreaux centrés et plus gros
+        const variants = getVariantsList();
+        if (variants.length > 0) {
+            const variantRowHeightMm = 26;
+            const variantGapMm = 3;
+            const n = variants.length;
+            const totalGaps = (n - 1) * variantGapMm;
+            const availableWidth = pageW - 2 * margin - totalGaps;
+            const tileSizeMm = Math.min(availableWidth / n, variantRowHeightMm);
+            const totalRowWidth = n * tileSizeMm + totalGaps;
+            const startX = margin + (pageW - 2 * margin - totalRowWidth) / 2;
+            setPdfProgress(15, "Génération des variantes…");
+            for (let i = 0; i < n; i++) {
+                const v = variants[i];
+                const svgContent = prepareSVGForPdf(svgCache[v], 0, v, 0, 0);
+                const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 566.93 566.93" width="566.93" height="566.93">${svgContent}</svg>`;
+                try {
+                    const imgData = await svgStringToImageDataUrl(fullSvg, tileSizeMm, tileSizeMm);
+                    if (imgData) {
+                        doc.addImage(imgData, "JPEG", startX + i * (tileSizeMm + variantGapMm), y, tileSizeMm, tileSizeMm);
+                    }
+                } catch (err) {
+                    console.warn("Variante PDF échouée", v, err);
+                }
+            }
+            y += variantRowHeightMm + 6;
+        }
+
+        // 5. Bloc couleurs et collections (description des couleurs + collections qui les utilisent)
         doc.setFontSize(12);
         doc.text("Couleurs choisies", margin, y);
         y += 6;
@@ -402,18 +538,14 @@ async function exportPdf() {
         const circleX = margin + circleRadius + 0.5;
         const textStartX = margin + circleRadius * 2 + 2;
         zoneIds.forEach((zoneId) => {
-            if (y > pageH - margin - 10) {
-                doc.addPage();
-                y = margin;
-            }
-        const colorId = currentColors[zoneId];
-        const hex = getHexForColorId(colorId);
-        const hexNorm = (hex && hex.length === 7) ? hex : normalizeHex(hex || "");
-        if (!hexNorm || hexNorm.length < 7) return;
-        const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hexNorm);
-        const line = colorInfo
-            ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " " + colorInfo.ral : ""} (Hex: ${hexNorm})`
-            : `${zoneId}: (Hex: ${hexNorm})`;
+            const colorId = currentColors[zoneId];
+            const hex = getHexForColorId(colorId);
+            const hexNorm = (hex && hex.length === 7) ? hex : normalizeHex(hex || "");
+            if (!hexNorm || hexNorm.length < 7) return;
+            const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hexNorm);
+            const line = colorInfo
+                ? `${zoneId}: ${colorInfo.nom || ""} ${colorInfo.id || ""} ${colorInfo.pantone ? " Pantone " + colorInfo.pantone : ""} ${colorInfo.ral ? " " + colorInfo.ral : ""} (Hex: ${hexNorm})`
+                : `${zoneId}: (Hex: ${hexNorm})`;
             const r = Math.min(255, Math.max(0, parseInt(hexNorm.slice(1, 3), 16) || 0));
             const g = Math.min(255, Math.max(0, parseInt(hexNorm.slice(3, 5), 16) || 0));
             const b = Math.min(255, Math.max(0, parseInt(hexNorm.slice(5, 7), 16) || 0));
@@ -427,20 +559,12 @@ async function exportPdf() {
                 (c) => !currentCollection || (c.id || "").toLowerCase() !== (currentCollection.id || "").toLowerCase()
             );
             if (collectionsWithColor.length > 0) {
-                if (y > pageH - margin - 15) {
-                    doc.addPage();
-                    y = margin;
-                }
                 doc.setFontSize(8);
                 doc.setTextColor(80, 80, 80);
                 doc.text("Autres collections avec cette couleur :", textStartX, y);
                 y += 4;
                 doc.setTextColor(0, 0, 0);
                 collectionsWithColor.forEach((coll) => {
-                    if (y > pageH - margin - 10) {
-                        doc.addPage();
-                        y = margin;
-                    }
                     const label = (coll.nom || coll.id || "Collection").substring(0, 60);
                     const url = coll.collection_url || "#";
                     doc.setTextColor(0, 0, 255);
@@ -452,24 +576,9 @@ async function exportPdf() {
             }
         });
         y += 6;
-        if (y > pageH - margin - 15) {
-            doc.addPage();
-            y = margin;
-        }
-        doc.setFontSize(10);
-        const linkText = "Retrouvez ici la configuration que vous avez fait de la collection " + (currentCollection.nom || "cette collection");
-        doc.setTextColor(0, 0, 255);
-        doc.textWithLink(linkText, margin, y, { url: restoreUrl });
-        doc.setTextColor(0, 0, 0);
-        y += 15;
 
-        if (y > pageH - 20) {
-            doc.addPage();
-            y = margin;
-        }
-
+        // 6. Grille de calepinage (comme dans le simulateur)
         setPdfProgress(30, "Génération du calepinage…", "La capture peut prendre du temps, merci de patienter.");
-
         const svgString = getCalepinageSvgStringFromDom() || getCalepinageSvgString();
         if (svgString) {
             setPdfProgress(50, "Ajout du calepinage au PDF…", "Presque terminé…");
@@ -482,17 +591,13 @@ async function exportPdf() {
                     img.src = svgDataUrl;
                 });
                 const maxW = pageW - 2 * margin;
-                const maxH = pageH - 2 * margin;
+                const maxH = pageH - y - margin - 80;
                 const ratio = img.height / img.width;
                 let w = maxW;
                 let h = w * ratio;
                 if (h > maxH) {
                     h = maxH;
                     w = h / ratio;
-                }
-                if (y + h > pageH - margin) {
-                    doc.addPage();
-                    y = margin;
                 }
                 const dpi = 200;
                 const canvasPxW = Math.round((w / 25.4) * dpi);
@@ -511,6 +616,62 @@ async function exportPdf() {
                 console.warn("Ajout calepinage PDF échoué", e);
             }
         }
+
+        // 7. Texte d'information : propre, clair, lisible, ne dépasse pas (pas d'emoji)
+        doc.setFontSize(12);
+        doc.setFont(undefined, "bold");
+        doc.text("Informations pratiques", margin, y);
+        doc.setFont(undefined, "normal");
+        y += 8;
+        const lineHeight = 5.5;
+        const maxTextWidth = pageW - 2 * margin;
+        const blocks = getPdfInfoBlocks();
+        for (let i = 0; i < blocks.length; i++) {
+            const block = blocks[i];
+            if (block.type === "heading") {
+                doc.setFontSize(10);
+                doc.setFont(undefined, "bold");
+                const headLines = doc.splitTextToSize(block.text, maxTextWidth);
+                headLines.forEach((line) => {
+                    doc.text(line, margin, y);
+                    y += lineHeight;
+                });
+                doc.setFont(undefined, "normal");
+                doc.setFontSize(9);
+                y += 3;
+            } else if (block.type === "para") {
+                const lines = doc.splitTextToSize(block.text, maxTextWidth);
+                lines.forEach((line) => {
+                    doc.text(line, margin, y);
+                    y += lineHeight;
+                });
+                y += 4;
+            } else if (block.type === "link") {
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 255);
+                const linkLines = doc.splitTextToSize(block.text, maxTextWidth);
+                linkLines.forEach((line) => {
+                    doc.textWithLink(line, margin, y, { url: block.url });
+                    y += lineHeight;
+                });
+                doc.setTextColor(0, 0, 0);
+                y += 4;
+            }
+        }
+
+        // 8. Footer : ligne + liens site, Instagram, email
+        y += 4;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, y, pageW - margin, y);
+        y += 5;
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 255);
+        doc.textWithLink("Site : www.cesarbazaar.fr", margin, y, { url: "https://www.cesarbazaar.fr" });
+        y += 5;
+        doc.textWithLink("Instagram : instagram.com/cesar.bazaar/", margin, y, { url: "https://www.instagram.com/cesar.bazaar/" });
+        y += 5;
+        doc.textWithLink("Email : coucou@cesarbazaar.com", margin, y, { url: "mailto:coucou@cesarbazaar.com" });
+        doc.setTextColor(0, 0, 0);
 
         setPdfProgress(100, "Téléchargement…");
         restoreCarouselSlide(track, slides, savedIndex);
