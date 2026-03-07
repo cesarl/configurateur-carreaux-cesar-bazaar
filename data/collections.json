@@ -4,6 +4,7 @@
     "nom": "Medina par Bleu Cobalt",
     "description": "Best-seller de la maison.",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -17,15 +18,21 @@
       "fresque_bordure",
       "iflip_4"
     ],
+    "colors": [
+      "OR008",
+      "WT001",
+      "BL017",
+      "BW002"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469053011-AJEAUMTICOR1XYB903FF/medina-par-bleu-cobalt-carreaux-de-ciment-708365.jpg?format=500w",
-    "variations": 4
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469053011-AJEAUMTICOR1XYB903FF/medina-par-bleu-cobalt-carreaux-de-ciment-708365.jpg?format=500w"
   },
   {
     "id": "Dunes",
     "nom": "Dunes par Bleu Cobalt",
     "description": "Le ver des sables !",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -39,15 +46,19 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "WT001",
+      "BL017"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/dune-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469137901-ILWN4HWAK9CXY98JCHPI/dune-par-bleu-cobalt-carreaux-de-ciment-435783.gif",
-    "variations": 4
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469137901-ILWN4HWAK9CXY98JCHPI/dune-par-bleu-cobalt-carreaux-de-ciment-435783.gif"
   },
   {
     "id": "fleurs-roda",
     "nom": "Fleurs par Alex Roda",
     "description": "Vive les fleurs.",
     "tier": "standard_20x20",
+    "variations": 16,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -61,15 +72,24 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "YL008",
+      "RD001",
+      "GN018",
+      "BL027",
+      "YL001",
+      "RD005",
+      "GN026"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466279795-9GNDC58VDDTWD33774A1/fleurs-par-alex-roda-carreaux-de-ciment-634622.jpg?format=500w",
-    "variations": 16
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466279795-9GNDC58VDDTWD33774A1/fleurs-par-alex-roda-carreaux-de-ciment-634622.jpg?format=500w"
   },
   {
     "id": "sunrise",
     "nom": "Sunrise par Laurie Lecou",
     "description": "Une nouvelle pepitte.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -83,15 +103,16 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/sunrise-laurie-lecou-tournesol",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/82fabab0-fc80-4feb-a456-8cb5851c4f37/CESARBAZAAR-FALL25-075-ezgif.com-resize.webp?format=500w",
-    "variations": 1
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/82fabab0-fc80-4feb-a456-8cb5851c4f37/CESARBAZAAR-FALL25-075-ezgif.com-resize.webp?format=500w"
   },
   {
     "id": "geo-roda",
     "nom": "Geo par Alex Roda",
     "description": "Carreaux de ciment dessiné par Alex Roda à Madrid.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -105,15 +126,22 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "WT000",
+      "PP002",
+      "YL001",
+      "OR002",
+      "RD006"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/go-par-alex-roda",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471203124-RM7VVWXGC24O9Q4GB0OZ/geo-par-alex-roda-carreaux-de-ciment-910122.jpg?format=500w",
-    "variations": 2
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471203124-RM7VVWXGC24O9Q4GB0OZ/geo-par-alex-roda-carreaux-de-ciment-910122.jpg?format=500w"
   },
   {
     "id": "sixties",
     "nom": "Sixties par par Alexandra Pascual",
     "description": "Collection rétro qui rend hommage aux années 60.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -127,15 +155,22 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "YL001",
+      "BK008",
+      "OR002",
+      "RD001",
+      "WT000"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/alexandra-pascual-retros-annees-60",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1674031395808-Z079ASZ341GDGXSTM1X2/test.jpg",
-    "variations": 1
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1674031395808-Z079ASZ341GDGXSTM1X2/test.jpg"
   },
   {
     "id": "Abstract",
     "nom": "Abstract par César Bazaar",
     "description": "Ha la belle époque où j'avais le temps de dessiner 🥰",
     "tier": "standard_20x20",
+    "variations": 10,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -149,15 +184,22 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "WT000",
+      "GN003",
+      "BL002",
+      "RD001",
+      "YL001"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/abstract-par-csar-bazaar",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720467617036-NR8GUV0N0BDOLVRLYEX3/abstract-par-cesar-bazaar-carreaux-de-ciment-999229.jpg?format=500w",
-    "variations": 10
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720467617036-NR8GUV0N0BDOLVRLYEX3/abstract-par-cesar-bazaar-carreaux-de-ciment-999229.jpg?format=500w"
   },
   {
     "id": "clair-de-lune",
     "nom": "Clair de Lune par Bérénice Milon",
     "description": "Au clair de la lune.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -171,15 +213,22 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "WT000",
+      "BL028",
+      "BL012",
+      "GN027",
+      "RD061"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/clair-de-lune-berenice-milon",
-    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c20f1fc5036825a6a7cd9a/1770353515830/carreaux-de-ciment-artisanaux+53.jpg?format=500w",
-    "variations": 2
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c20f1fc5036825a6a7cd9a/1770353515830/carreaux-de-ciment-artisanaux+53.jpg?format=500w"
   },
   {
     "id": "lianes",
     "nom": "Lianes par Baptiste Vandaele",
     "description": "Des lianes qui se déploient chez vous.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -193,15 +242,20 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "GN002",
+      "GN005",
+      "WT000"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/lianes-baptiste-vandaele",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/323af0a6-a0bd-4158-8fa6-a6f9c29dd769/SESSION+09-145.jpg?format=500w",
-    "variations": 2
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/323af0a6-a0bd-4158-8fa6-a6f9c29dd769/SESSION+09-145.jpg?format=500w"
   },
   {
     "id": "pannequin",
     "nom": "Formes expressives par Blandine Pannequin",
     "description": "Les carreaux en s’assemblant, se répondent, s’entrelacent, créant de nouvelles formes géométriques, de nouvelles courbes.",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -215,15 +269,21 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "YL003",
+      "OR011",
+      "YL008",
+      "GN008"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/formes-expressives-blandine-pannequin",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg",
-    "variations": 4
+    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
   },
   {
     "id": "Safran",
     "nom": "Safran par Bleu Cobalt",
     "description": "La douce odeur du safran.",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -237,15 +297,22 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "WT000",
+      "BW002",
+      "BL017",
+      "WT001",
+      "OR008"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/safran-terracotta-bleu-cobalt",
-    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/689f5a6186322825a8bd56b3/1755273825888/safran-par-bleu-cobalt-carreaux-de-ciment-550456.jpg?format=500w",
-    "variations": 4
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/689f5a6186322825a8bd56b3/1755273825888/safran-par-bleu-cobalt-carreaux-de-ciment-550456.jpg?format=500w"
   },
   {
     "id": "continuum",
     "nom": "Continuum",
     "description": "Collection Continuum.",
     "tier": "standard_20x20",
+    "variations": 3,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -259,15 +326,21 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "BL026",
+      "WT000",
+      "BK002",
+      "GN024"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/continuum-studio-helioscope-vert",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/db34a655-a40b-4b01-8271-f66aabd40a34/carreaux-de-ciment-artisanaux+12.jpg?format=500w",
-    "variations": 3
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/db34a655-a40b-4b01-8271-f66aabd40a34/carreaux-de-ciment-artisanaux+12.jpg?format=500w"
   },
   {
     "id": "interieur",
     "nom": "Intérieur",
     "description": "Collection Intérieur.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -281,15 +354,19 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "RD009",
+      "WT000"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/interieur-julie-bouche-blan-rose",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466702738-SCNABMZD8ZKI4ESM4BBT/interieur-par-julie-bouchet-carreaux-de-ciment-436031.jpg?format=500w",
-    "variations": 2
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466702738-SCNABMZD8ZKI4ESM4BBT/interieur-par-julie-bouchet-carreaux-de-ciment-436031.jpg?format=500w"
   },
   {
     "id": "oranger",
     "nom": "Oranger",
     "description": "Collection Oranger.",
     "tier": "standard_20x20",
+    "variations": 3,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -303,15 +380,20 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "GN002",
+      "BL006",
+      "YL001"
+    ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/oranger-fanny-liennart",
-    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c1bd951a73a84203c95cc7/1764667736220/oranger1.jpg?format=500w",
-    "variations": 3
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c1bd951a73a84203c95cc7/1764667736220/oranger1.jpg?format=500w"
   },
   {
     "id": "papyrus",
     "nom": "Papyrus",
     "description": "Collection Papyrus.",
     "tier": "standard_20x20",
+    "variations": 3,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -325,35 +407,42 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "colors": [
+      "WT000",
+      "BL001",
+      "YL003",
+      "GN011"
+    ],
     "collection_url": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w",
-    "variations": 3
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w"
   },
   {
     "id": "serpent-mb",
     "nom": "Serpent MB",
     "description": "Collection Serpent MB.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "damier",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier"
     ],
-    "variations": 1
+    "colors": [
+      "RD009",
+      "PP015"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/serpent-marie-blanche-huet-rose-violet",
+    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1720468385861-JP59ZVXBLFB3PN6E49QK/serpent-par-marie-blanche-huet-carreaux-de-ciment-181355.jpg?content-type=image%2Fjpeg"
   },
   {
     "id": "opale",
     "nom": "Opale",
     "description": "Collection Opale.",
     "tier": "standard_20x20",
+    "variations": 6,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -363,17 +452,25 @@
       "aleatoire",
       "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "fresque_bordure",
+      "iflip_4"
     ],
-    "variations": 6
+    "colors": [
+      "WT001",
+      "BW002",
+      "BL017",
+      "BK000"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/carreaux-de-ciment-opale-marie-blanche-huet",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471570973-3XE11TKB2KOM82QINBC2/opale-par-marie-blanche-huet-carreaux-de-ciment-539641.png?format=800w"
   },
   {
     "id": "onda",
     "nom": "Onda",
     "description": "Collection Onda.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -383,17 +480,23 @@
       "aleatoire",
       "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "fresque_bordure",
+      "iflip_4"
     ],
-    "variations": 1
+    "colors": [
+      "BL019",
+      "WT000"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/onda-piscine-lemon-curves-designs",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/25d3d4ce-e204-4e6c-9e7f-73b9de2241da/CESARBAZAAR-FALL25-097.jpg?format=500w"
   },
   {
     "id": "cala-morell",
     "nom": "Cala Morell",
     "description": "Collection Cala Morell.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -407,13 +510,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 1
+    "colors": []
   },
   {
     "id": "slip",
     "nom": "Slip",
     "description": "Collection Slip.",
     "tier": "standard_20x20",
+    "variations": 3,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -427,13 +531,19 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 3
+    "colors": [
+      "BL027",
+      "OR007",
+      "BL029",
+      "GN028"
+    ]
   },
   {
     "id": "envolee",
     "nom": "Envolée",
     "description": "Collection Envolée.",
     "tier": "standard_20x20",
+    "variations": 3,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -447,13 +557,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 3
+    "colors": []
   },
   {
     "id": "quique",
     "nom": "Quique",
     "description": "Collection Quique.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -467,13 +578,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 1
+    "colors": []
   },
   {
     "id": "brocoli",
     "nom": "Brocoli",
     "description": "Collection Brocoli.",
     "tier": "standard_20x20",
+    "variations": 6,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -487,13 +599,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 6
+    "colors": []
   },
   {
     "id": "finis-terrae-angolo",
     "nom": "Finis Terrae Angolo",
     "description": "Collection Finis Terrae Angolo.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -507,13 +620,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 1
+    "colors": []
   },
   {
     "id": "finis-terrae-linea",
     "nom": "Finis Terrae Linea",
     "description": "Collection Finis Terrae Linea.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -527,13 +641,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 1
+    "colors": []
   },
   {
     "id": "finis-terrae-punto",
     "nom": "Finis Terrae Punto",
     "description": "Collection Finis Terrae Punto.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -547,13 +662,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 1
+    "colors": []
   },
   {
     "id": "palm-beach",
     "nom": "Palm Beach",
     "description": "Collection Palm Beach.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -567,13 +683,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 2
+    "colors": []
   },
   {
     "id": "secret-garden",
     "nom": "Secret Garden",
     "description": "Collection Secret Garden.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -587,13 +704,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 2
+    "colors": []
   },
   {
     "id": "tiznit",
     "nom": "Tiznit",
     "description": "Collection Tiznit.",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -607,13 +725,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 4
+    "colors": []
   },
   {
     "id": "tulipe",
     "nom": "Tulipe",
     "description": "Collection Tulipe.",
     "tier": "standard_20x20",
+    "variations": 2,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -627,13 +746,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 2
+    "colors": []
   },
   {
     "id": "fruits-roda",
     "nom": "Fruits par Alex Roda",
     "description": "Collection Fruits.",
     "tier": "standard_20x20",
+    "variations": 8,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -647,13 +767,22 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 8
+    "colors": [
+      "YL001",
+      "YL008",
+      "GN026",
+      "RD001",
+      "RD005",
+      "GN018",
+      "BL027"
+    ]
   },
   {
     "id": "ciel",
     "nom": "Ciel",
     "description": "Collection Ciel.",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -667,13 +796,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 4
+    "colors": []
   },
   {
     "id": "nature-adoree",
     "nom": "Nature adorée",
     "description": "Collection Nature adorée.",
     "tier": "standard_20x20",
+    "variations": 4,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -687,13 +817,14 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 4
+    "colors": []
   },
   {
     "id": "fleur-wodarz",
     "nom": "Fleur Wodarz",
     "description": "Collection Fleur Wodarz.",
     "tier": "standard_20x20",
+    "variations": 1,
     "tags": [
       "Intemporel",
       "Abstrait"
@@ -707,6 +838,10 @@
       "damier_4_random",
       "fresque_bordure"
     ],
-    "variations": 1
+    "colors": [
+      "OR011",
+      "YL005",
+      "WT000"
+    ]
   }
 ]
