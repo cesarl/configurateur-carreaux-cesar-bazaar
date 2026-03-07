@@ -41,9 +41,11 @@ let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
 let devMode = false;       // Mode développeur : inclut les couleurs "Test" et désactive la commande
 let currentLayout = "aleatoire"; // Layout de calepinage (id du calepinage ou "solo")
 let calepinagesData = []; // Calepinages chargés depuis data/calepinages.json
+let collectionsData = []; // Liste complète des collections (avec colors) pour récap "collections qui ont cette couleur"
 let mockupsData = []; // Mockups en situation (data/mockups.json)
 let carouselIndex = 0; // Index de la slide du carrousel (0 = grille plate)
 let livePreviewRestoreHex = null; // Couleur à restaurer au mouseleave (live preview)
+let paletteSearchQuery = ""; // Filtre recherche dans le nuancier (desktop sidebar uniquement)
 const SIMULATION_GRID_SIZE = 5;    // Fallback pour setGridMode / legacy
 const CALEPINAGE_ZOOM_MIN = 2;     // Zoom max = 2×2 carreaux
 const CALEPINAGE_ZOOM_MAX = 20;    // Zoom min = 20×20 carreaux
@@ -404,7 +406,8 @@ async function exportPdf() {
                 doc.addPage();
                 y = margin;
             }
-        const hex = getHexForColorId(currentColors[zoneId]);
+        const colorId = currentColors[zoneId];
+        const hex = getHexForColorId(colorId);
         const hexNorm = (hex && hex.length === 7) ? hex : normalizeHex(hex || "");
         if (!hexNorm || hexNorm.length < 7) return;
         const colorInfo = nuancierData.find((c) => normalizeHex(c.hex) === hexNorm);
@@ -420,6 +423,33 @@ async function exportPdf() {
             doc.setFontSize(9);
             doc.text(line, textStartX, y);
             y += 5;
+            const collectionsWithColor = getCollectionsForColor(colorId).filter(
+                (c) => !currentCollection || (c.id || "").toLowerCase() !== (currentCollection.id || "").toLowerCase()
+            );
+            if (collectionsWithColor.length > 0) {
+                if (y > pageH - margin - 15) {
+                    doc.addPage();
+                    y = margin;
+                }
+                doc.setFontSize(8);
+                doc.setTextColor(80, 80, 80);
+                doc.text("Autres collections avec cette couleur :", textStartX, y);
+                y += 4;
+                doc.setTextColor(0, 0, 0);
+                collectionsWithColor.forEach((coll) => {
+                    if (y > pageH - margin - 10) {
+                        doc.addPage();
+                        y = margin;
+                    }
+                    const label = (coll.nom || coll.id || "Collection").substring(0, 60);
+                    const url = coll.collection_url || "#";
+                    doc.setTextColor(0, 0, 255);
+                    doc.textWithLink("  • " + label, textStartX, y, { url: url });
+                    doc.setTextColor(0, 0, 0);
+                    y += 4;
+                });
+                y += 2;
+            }
         });
         y += 6;
         if (y > pageH - margin - 15) {
@@ -693,6 +723,32 @@ function getVisibleNuancier() {
     });
 }
 
+/** Retourne les collections qui contiennent la couleur donnée (Color ID). Utilise collectionsData.colors. */
+function getCollectionsForColor(colorId) {
+    if (!colorId || !Array.isArray(collectionsData)) return [];
+    const idUpper = String(colorId).trim().toUpperCase();
+    return collectionsData.filter((c) => {
+        const colors = c.colors;
+        if (!Array.isArray(colors)) return false;
+        return colors.some((cid) => String(cid).trim().toUpperCase() === idUpper);
+    });
+}
+
+/** Retourne les couleurs du nuancier visible filtrées par la recherche du tiroir (id, nom, hex, ral, pantone). */
+function getNuancierFilteredBySearch() {
+    const base = getVisibleNuancier();
+    const q = (paletteSearchQuery || "").trim().toLowerCase();
+    if (!q) return base;
+    return base.filter((c) => {
+        const id = (c.id || "").toLowerCase();
+        const nom = (c.nom || "").toLowerCase();
+        const hex = normalizeHex(c.hex || "").toLowerCase();
+        const ral = (c.ral || "").toLowerCase();
+        const pantone = (c.pantone || "").toLowerCase();
+        return id.includes(q) || nom.includes(q) || hex.includes(q) || ral.includes(q) || pantone.includes(q);
+    });
+}
+
 async function loadData() {
     try {
         const res = await fetch(`${REPO_URL}data/nuancier.json`);
@@ -737,6 +793,16 @@ async function loadData() {
         }
         renderPalette(getVisibleNuancier());
         setupPaletteDrawer();
+        try {
+            const resCollections = await fetch(`${REPO_URL}data/collections.json`);
+            if (resCollections.ok) {
+                const raw = await resCollections.json();
+                collectionsData = Array.isArray(raw) ? raw : [];
+            }
+        } catch (e) {
+            console.warn("Impossible de charger collections.json pour le récap couleurs.", e);
+            collectionsData = [];
+        }
         try {
             const resCal = await fetch(`${REPO_URL}data/calepinages.json`);
             if (resCal.ok) {
@@ -785,6 +851,12 @@ function setupNavigation() {
     const btnExportPdf = document.getElementById("btn-export-pdf");
     if (btnExportPdf) {
         btnExportPdf.addEventListener("click", () => {
+            exportPdf();
+        });
+    }
+    const btnSavePdf = document.getElementById("btn-save-pdf");
+    if (btnSavePdf) {
+        btnSavePdf.addEventListener("click", () => {
             exportPdf();
         });
     }
@@ -1124,7 +1196,8 @@ function setupOptionsDrawer() {
             }
             // Met à jour nuancier + récap + header (bouton panier / label)
             renderPalette(getVisibleNuancier());
-            updateSidebarRecap();
+        updateSidebarRecap();
+        updateDrawerRecap();
             // Le header est géré par setupNavigation -> on force la mise à jour de son état devMode
             // via un événement personnalisé pour éviter le couplage direct.
             document.dispatchEvent(new CustomEvent("devmode:changed", { detail: { devMode } }));
@@ -1171,7 +1244,8 @@ function resetCollectionToDefault() {
     // 3. Appliquer sur le calepinage et mettre à jour toute l'interface
     applyCurrentColors();
     renderActiveColorPills();
-    updateSidebarRecap();
+        updateSidebarRecap();
+        updateDrawerRecap();
     updatePaletteHighlight();
     updateMoldingWarning();
     applyConfigToUrl();
@@ -1381,6 +1455,7 @@ async function loadCollection(id, urlColors = null) {
         applyCurrentColors();
         renderActiveColorPills();
         updateSidebarRecap();
+        updateDrawerRecap();
         updatePaletteHighlight();
         updateMoldingWarning();
     }
@@ -1800,12 +1875,14 @@ function scanZones() {
     }
 }
 
-// Preview-first : sidebar toujours visible sur desktop ; on affiche/masque le message "aucune zone"
+// Preview-first : sidebar toujours visible sur desktop ; on affiche/masque le message "aucune zone" et le champ recherche
 function updateSidebarVisibility() {
     const msg = document.getElementById("sidebar-no-zone-msg");
     const palette = document.getElementById("color-palette");
+    const searchWrap = document.querySelector(".sidebar-search");
     if (msg) msg.style.display = activeZone ? "none" : "block";
     if (palette) palette.style.display = activeZone ? "grid" : "none";
+    if (searchWrap) searchWrap.style.display = activeZone ? "block" : "none";
 }
 
 function selectActiveZone(zoneId) {
@@ -1850,6 +1927,17 @@ function closePaletteDrawer() {
 function setupPaletteDrawer() {
     const overlay = document.getElementById("palette-drawer-overlay");
     if (overlay) overlay.addEventListener("click", closePaletteDrawer);
+    const searchInput = document.getElementById("sidebar-palette-search");
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            paletteSearchQuery = searchInput.value || "";
+            renderPalette(getVisibleNuancier());
+        });
+        searchInput.addEventListener("search", () => {
+            paletteSearchQuery = searchInput.value || "";
+            renderPalette(getVisibleNuancier());
+        });
+    }
 }
 
 /** Retourne le hex #rrggbb pour un Color ID (nuancier). Pour affichage uniquement. */
@@ -2181,7 +2269,7 @@ function renderCalepinageOnly(overrideLayout) {
     }
 }
 
-/** Récapitulatif sidebar : pastille + Nom, Code, Pantone, RAL par zone */
+/** Récapitulatif sidebar : pastille + Nom, Code, Pantone, RAL par zone ; lignes déroulantes avec détail + collections */
 function updateSidebarRecap() {
     const list = document.getElementById("sidebar-recap-list");
     if (!list) return;
@@ -2191,10 +2279,48 @@ function updateSidebarRecap() {
         const colorId = currentColors[zoneId];
         const colorInfo = nuancierData.find((c) => (c.id || "").toUpperCase() === String(colorId).toUpperCase());
         const hex = getHexForColorId(colorId);
+        const collections = getCollectionsForColor(colorId);
+
+        const rowWrap = document.createElement("div");
+        rowWrap.className = "sidebar-recap-row-wrap";
         const row = document.createElement("div");
         row.className = "sidebar-recap-row";
+        row.setAttribute("data-zone", zoneId);
+
+        const toggle = document.createElement("span");
+        toggle.className = "sidebar-recap-row-toggle";
+        toggle.setAttribute("aria-hidden", "true");
+        toggle.textContent = "▼";
+
+        const details = document.createElement("div");
+        details.className = "sidebar-recap-details";
+        const detailParts = [];
+        if (colorInfo) {
+            if (colorInfo.nom) detailParts.push(`Nom : ${colorInfo.nom}`);
+            if (colorInfo.id) detailParts.push(`Code : ${colorInfo.id}`);
+            if (hex) detailParts.push(`Hex : ${hex}`);
+            if (colorInfo.ral) detailParts.push(`RAL : ${colorInfo.ral}`);
+            if (colorInfo.pantone) detailParts.push(`Pantone : ${colorInfo.pantone}`);
+        } else {
+            detailParts.push(`Hex : ${hex}`);
+        }
+        details.innerHTML = detailParts.map((p) => `<div class="recap-detail-line">${p}</div>`).join("");
+        if (collections.length > 0) {
+            const collectionItems = collections.map((c) => {
+                const url = (c.collection_url || "#").replace(/"/g, "&quot;");
+                const label = (c.nom || c.id || "").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+                return `<li><a href="${url}" target="_blank" rel="noopener noreferrer" class="recap-collection-link">${label}</a></li>`;
+            }).join("");
+            details.innerHTML += `<div class="recap-collections-title">Collections avec cette couleur</div><ul class="recap-collections-list">${collectionItems}</ul>`;
+            details.querySelectorAll(".recap-collection-link").forEach((link) => {
+                link.addEventListener("click", (e) => e.stopPropagation());
+            });
+        } else {
+            details.innerHTML += `<div class="recap-collections-title">Collections avec cette couleur</div><p class="recap-detail-line">Aucune (ou couleurs non renseignées).</p>`;
+        }
+
         row.innerHTML = `
-            <span class="sidebar-recap-pill" style="background:${getHexForColorId(colorId)}"></span>
+            <span class="sidebar-recap-pill" style="background:${hex}"></span>
             <span class="sidebar-recap-info">
                 <span class="recap-name">${colorInfo ? colorInfo.nom : "—"}</span>
                 <span class="recap-code">
@@ -2202,6 +2328,35 @@ function updateSidebarRecap() {
                     ${colorInfo && colorInfo.ral ? " · " + colorInfo.ral : ""}
                     · Hex: ${hex}
                 </span>
+            </span>`;
+        row.appendChild(toggle);
+        rowWrap.appendChild(row);
+        rowWrap.appendChild(details);
+
+        row.addEventListener("click", () => {
+            rowWrap.classList.toggle("expanded");
+        });
+        list.appendChild(rowWrap);
+    });
+}
+
+/** Récapitulatif tiroir mobile : fixe en bas, pastille + nom/code par zone (compact) */
+function updateDrawerRecap() {
+    const list = document.getElementById("palette-drawer-recap-list");
+    if (!list) return;
+    list.innerHTML = "";
+    const zoneIds = Object.keys(currentColors).sort();
+    zoneIds.forEach((zoneId) => {
+        const colorId = currentColors[zoneId];
+        const colorInfo = nuancierData.find((c) => (c.id || "").toUpperCase() === String(colorId).toUpperCase());
+        const hex = getHexForColorId(colorId);
+        const row = document.createElement("div");
+        row.className = "palette-drawer-recap-row";
+        row.innerHTML = `
+            <span class="palette-drawer-recap-pill" style="background:${hex}"></span>
+            <span class="palette-drawer-recap-info">
+                <span class="recap-name">${colorInfo ? (colorInfo.nom || "—") : "—"}</span>
+                <span class="recap-code">${colorInfo ? colorInfo.id : ""} · ${hex}</span>
             </span>`;
         list.appendChild(row);
     });
@@ -2270,7 +2425,10 @@ function updatePaletteHighlight() {
 }
 
 function renderPalette(colors) {
-    const sorted = sortColorsForGradient(colors);
+    const drawerColors = getVisibleNuancier();
+    const sortedDrawer = sortColorsForGradient(drawerColors);
+    const sidebarColors = getNuancierFilteredBySearch();
+    const sortedSidebar = sortColorsForGradient(sidebarColors);
     let tooltipEl = document.getElementById("color-swatch-tooltip");
     if (!tooltipEl && document.getElementById("color-palette")) {
         tooltipEl = document.createElement("div");
@@ -2280,11 +2438,12 @@ function renderPalette(colors) {
         document.body.appendChild(tooltipEl);
     }
 
-    const renderInto = (containerId, isDesktopSidebar) => {
+    const renderInto = (containerId, isDesktopSidebar, colorsToUse) => {
+        const list = colorsToUse;
         const container = document.getElementById(containerId);
         if (!container) return;
         container.innerHTML = "";
-        sorted.forEach(c => {
+        list.forEach(c => {
             const div = document.createElement("div");
             div.className = "color-swatch";
             div.setAttribute("data-color-id", c.id || "");
@@ -2337,8 +2496,8 @@ function renderPalette(colors) {
         });
         updatePaletteHighlight();
     };
-    renderInto("color-palette", true);
-    renderInto("color-palette-drawer", false);
+    renderInto("color-palette", true, sortedSidebar);
+    renderInto("color-palette-drawer", false, sortedDrawer);
 }
 
 // Applique la couleur au calepinage (preview-first : uniquement #grid-container)
@@ -2353,7 +2512,8 @@ function applyColorToActiveZone(colorId) {
     if (currentCollection) applyConfigToUrl();
     livePreviewRestoreHex = null; // après validation, plus de restauration au survol
     renderActiveColorPills();
-    updateSidebarRecap();
+        updateSidebarRecap();
+        updateDrawerRecap();
     updateMoldingWarning();
 }
 
@@ -2381,7 +2541,8 @@ function renderInterface() {
     renderActiveColorPills();
     renderLayoutSelector();
     updatePaletteHighlight();
-    updateSidebarRecap();
+        updateSidebarRecap();
+        updateDrawerRecap();
     updateSidebarVisibility();
     updateMoldingWarning();
     setupCarousel();

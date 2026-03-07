@@ -55,6 +55,10 @@
                                 <span id="cart-quantity" class="header-cart-qty-value">3</span>
                                 <button type="button" id="btn-cart-plus" class="header-cart-qty-btn" aria-label="Augmenter la quantité">+</button>
                             </div>
+                            <button type="button" id="btn-save-pdf" class="header-save-trigger" aria-label="Télécharger le PDF" title="Sauvegarder (télécharger le PDF)">
+                                <svg class="header-save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span class="header-save-label">Sauvegarder</span>
+                            </button>
                             <span id="dev-mode-header-label" class="dev-mode-header-label" style="display:none; margin-left:8px; font-size:0.85em; color:#b3261e;">
                                 Mode développeur actif : la commande est désactivée.
                             </span>
@@ -111,6 +115,9 @@
                 <aside class="sidebar sidebar-palette-desktop" id="sidebar-palette-desktop" aria-hidden="false">
                     <h3>Nuancier</h3>
                     <p class="sidebar-no-zone-msg" id="sidebar-no-zone-msg">Cliquez sur une zone ou une pastille pour choisir une couleur.</p>
+                    <div class="sidebar-search">
+                        <input type="search" id="sidebar-palette-search" class="sidebar-palette-search-input" placeholder="Rechercher une couleur…" aria-label="Rechercher une couleur" autocomplete="off">
+                    </div>
                     <div id="color-palette" class="palette-grid"></div>
                     <div class="sidebar-recap" id="sidebar-recap">
                         <h4>Récapitulatif</h4>
@@ -121,10 +128,14 @@
 
             <!-- Overlay transparent : clic en dehors ferme le tiroir (sans griser l’écran) -->
             <div id="palette-drawer-overlay" class="palette-drawer-overlay" aria-hidden="true"></div>
-            <!-- Tiroir minimaliste : uniquement les couleurs -->
+            <!-- Tiroir mobile : pastilles (scroll) + récap fixe en bas -->
             <div id="palette-drawer" class="palette-drawer" aria-hidden="true">
                 <div class="palette-drawer-body">
                     <div id="color-palette-drawer" class="palette-grid"></div>
+                </div>
+                <div class="palette-drawer-recap">
+                    <h4 class="palette-drawer-recap-title">Récapitulatif</h4>
+                    <div id="palette-drawer-recap-list" class="palette-drawer-recap-list"></div>
                 </div>
             </div>
 

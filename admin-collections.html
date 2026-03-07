@@ -167,6 +167,15 @@
             color: var(--error);
             margin-top: 8px;
         }
+        .collection-colors-display {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        .collection-colors-display.has-colors {
+            font-family: ui-monospace, monospace;
+            color: #37474f;
+        }
         .split {
             display: grid;
             grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -529,6 +538,14 @@
                             <div id="variation-thumbnails" class="variation-thumbnails" aria-live="polite"></div>
                         </div>
 
+                        <div class="field">
+                            <label>Couleurs (extraites des SVG)</label>
+                            <div class="field-inline" style="flex-wrap: wrap; gap: 8px;">
+                                <button id="btn-extract-colors" type="button" class="btn btn-primary" title="Extraire les couleurs des SVG de cette collection">Extraire les couleurs des SVG</button>
+                            </div>
+                            <div id="collection-colors-display" class="collection-colors-display" aria-live="polite"></div>
+                        </div>
+
                         <div class="field form-row-full">
                             <label for="field-description">Description</label>
                             <textarea id="field-description" placeholder="Texte descriptif pour la collection."></textarea>
@@ -613,9 +630,10 @@
             <div class="pane-header">
                 <div>
                     <div class="pane-title">Export JSON</div>
-                    <div class="pane-subtitle">Téléchargez ou copiez le contenu actuel de <code>collections.json</code>.</div>
+                    <div class="pane-subtitle">Téléchargez ou copiez le contenu actuel de <code>collections.json</code>. Utilisez « Extraire toutes les couleurs » pour remplir le champ <code>colors</code> de chaque collection à partir des SVG.</div>
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button id="btn-extract-colors-global" type="button" class="btn btn-primary" title="Extraire les couleurs des SVG pour toutes les collections d'un coup">Extraire toutes les couleurs des SVG</button>
                     <button id="btn-download-json" type="button" class="btn btn-primary">Télécharger JSON</button>
                     <button id="btn-copy-json" type="button" class="btn">Copier JSON</button>
                 </div>
@@ -669,6 +687,8 @@
                 els.btnRefreshVariations = $("btn-refresh-variations");
                 els.btnEditVariations = $("btn-edit-variations");
                 els.variationThumbnails = $("variation-thumbnails");
+                els.btnExtractColors = $("btn-extract-colors");
+                els.collectionColorsDisplay = $("collection-colors-display");
                 els.fieldTags = $("field-tags");
                 els.fieldLayoutsOther = $("field-layouts-other");
                 els.layoutsCheckboxes = $("layouts-checkboxes");
@@ -685,6 +705,7 @@
                 els.btnDeleteCurrent = $("btn-delete-current");
                 els.btnDownloadJson = $("btn-download-json");
                 els.btnCopyJson = $("btn-copy-json");
+                els.btnExtractColorsGlobal = $("btn-extract-colors-global");
                 els.btnTogglePreview = $("btn-toggle-preview");
                 els.jsonPreview = $("json-preview");
                 els.toast = $("toast");
@@ -776,6 +797,10 @@
                 if (typeof copy.active === "undefined") copy.active = true;
                 if (typeof copy.dev_only === "undefined") copy.dev_only = false;
 
+                if (Array.isArray(copy.colors)) {
+                    copy.colors = copy.colors.map(function (cid) { return String(cid).trim().toUpperCase(); }).filter(Boolean);
+                }
+
                 return copy;
             }
 
@@ -791,6 +816,7 @@
                         defaut_layout: c.defaut_layout || "",
                         layouts: Array.isArray(c.layouts) ? c.layouts.slice() : []
                     };
+                    if (Array.isArray(c.colors)) item.colors = c.colors.slice();
                     if (c.collection_url) item.collection_url = c.collection_url;
                     if (c.collection_image) item.collection_image = c.collection_image;
                     if (c.active === false) item.active = false;
@@ -1102,6 +1128,197 @@
                 }
             }
 
+            var nuancierCache = [];
+
+            function loadNuancier() {
+                return fetch("data/nuancier.json")
+                    .then(function (res) { return res.ok ? res.json() : Promise.reject(new Error("nuancier.json non trouvé")); })
+                    .then(function (raw) {
+                        if (!Array.isArray(raw)) return [];
+                        nuancierCache = raw.map(function (c) {
+                            var hasNew = typeof c.Color_ID !== "undefined" || typeof c["Nom couleur"] !== "undefined" || typeof c.Hex !== "undefined";
+                            var id = hasNew ? (c.Color_ID || "") : (c.id || "");
+                            var hexRaw = hasNew ? (c.Hex ? String(c.Hex).replace(/^#/, "") : "") : (c.hex || "").replace(/^#/, "");
+                            var hex = hexRaw ? ("#" + hexRaw.toLowerCase()) : "";
+                            if (hex.length === 7) {} else if (hexRaw.length === 3) {
+                                hex = "#" + hexRaw[0] + hexRaw[0] + hexRaw[1] + hexRaw[1] + hexRaw[2] + hexRaw[2];
+                            }
+                            return { id: id, hex: hex };
+                        }).filter(function (x) { return x.id && x.hex; });
+                        return nuancierCache;
+                    });
+            }
+
+            function normalizeHexAdmin(hex) {
+                if (!hex || typeof hex !== "string") return "";
+                var h = hex.replace(/#/g, "").trim().toLowerCase();
+                if (h.length === 6) return "#" + h;
+                if (h.length === 3) return "#" + h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+                return "#" + h;
+            }
+
+            function parseFillToHexAdmin(fill) {
+                if (!fill || String(fill).trim() === "" || String(fill).toLowerCase() === "none") return null;
+                var s = String(fill).trim();
+                if (s.indexOf("#") === 0) return normalizeHexAdmin(s) || null;
+                var rgbMatch = s.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+                if (rgbMatch) {
+                    var r = parseInt(rgbMatch[1], 10).toString(16).padStart(2, "0");
+                    var g = parseInt(rgbMatch[2], 10).toString(16).padStart(2, "0");
+                    var b = parseInt(rgbMatch[3], 10).toString(16).padStart(2, "0");
+                    return "#" + r + g + b;
+                }
+                return null;
+            }
+
+            function getColorIdForHexAdmin(hex, nuancier) {
+                var norm = normalizeHexAdmin(hex);
+                if (!norm || !nuancier || !nuancier.length) return null;
+                for (var i = 0; i < nuancier.length; i++) {
+                    if (normalizeHexAdmin(nuancier[i].hex) === norm) return nuancier[i].id;
+                }
+                return null;
+            }
+
+            var FILLABLE_SELECTOR = "path, rect, polygon, circle, ellipse";
+
+            function parseSvgForColorIds(svgText, nuancier) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(svgText, "image/svg+xml");
+                var svg = doc.querySelector("svg");
+                if (!svg) return [];
+                var ids = [];
+                var seen = {};
+                var shapes = svg.querySelectorAll(FILLABLE_SELECTOR);
+                for (var i = 0; i < shapes.length; i++) {
+                    var el = shapes[i];
+                    var fillRaw = el.getAttribute("fill") || el.style.fill || "";
+                    var hex = parseFillToHexAdmin(fillRaw);
+                    var colorIdFromSvg = "";
+                    var parent = el.parentElement;
+                    while (parent && parent !== svg) {
+                        if (parent.getAttribute && parent.getAttribute("id") && /^zone-\d+$/.test(parent.getAttribute("id") || "")) {
+                            var cid = parent.getAttribute("data-color-id");
+                            if (cid) colorIdFromSvg = (cid + "").trim();
+                            break;
+                        }
+                        parent = parent.parentElement;
+                    }
+                    if (colorIdFromSvg) {
+                        var idUp = colorIdFromSvg.toUpperCase();
+                        if (!seen[idUp]) { seen[idUp] = true; ids.push(idUp); }
+                    } else if (hex && nuancier && nuancier.length) {
+                        var resolved = getColorIdForHexAdmin(hex, nuancier);
+                        if (resolved) {
+                            var idUp = String(resolved).toUpperCase();
+                            if (!seen[idUp]) { seen[idUp] = true; ids.push(idUp); }
+                        }
+                    }
+                }
+                return ids;
+            }
+
+            function extractColorsForCollection(collection) {
+                var id = (collection.id || "").trim();
+                if (!id) return Promise.resolve([]);
+                var count = typeof collection.variations === "number" ? Math.max(1, collection.variations) : 1;
+                var safeId = id.toUpperCase();
+                var baseUrl = getVariationThumbnailsBaseUrl();
+                var allIds = [];
+                var promises = [];
+                for (var i = 1; i <= count; i++) {
+                    (function (varIndex) {
+                        var url = baseUrl + safeId + "-VAR" + varIndex + ".svg";
+                        promises.push(
+                            fetch(url).then(function (res) { return res.ok ? res.text() : Promise.resolve(""); }).then(function (text) {
+                                return parseSvgForColorIds(text, nuancierCache);
+                            }).catch(function () { return []; })
+                        );
+                    })(i);
+                }
+                return Promise.all(promises).then(function (results) {
+                    var seen = {};
+                    results.forEach(function (arr) {
+                        arr.forEach(function (cid) {
+                            var idUp = String(cid).toUpperCase();
+                            if (!seen[idUp]) { seen[idUp] = true; allIds.push(idUp); }
+                        });
+                    });
+                    return allIds;
+                });
+            }
+
+            function renderCollectionColorsDisplay() {
+                var container = els.collectionColorsDisplay;
+                if (!container) return;
+                var idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) {
+                    container.textContent = "";
+                    container.classList.remove("has-colors");
+                    return;
+                }
+                var c = state.collections[idx];
+                var colors = c.colors;
+                if (!Array.isArray(colors) || !colors.length) {
+                    container.textContent = "Aucune couleur extraite. Cliquez sur « Extraire les couleurs des SVG ».";
+                    container.classList.remove("has-colors");
+                    return;
+                }
+                container.textContent = colors.join(", ");
+                container.classList.add("has-colors");
+            }
+
+            function runExtractColorsForCurrent() {
+                var idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) {
+                    showToast("Sélectionnez une collection.");
+                    return;
+                }
+                var c = state.collections[idx];
+                if (!(els.btnExtractColors)) return;
+                els.btnExtractColors.disabled = true;
+                loadNuancier().then(function () {
+                    return extractColorsForCollection(c);
+                }).then(function (ids) {
+                    c.colors = ids;
+                    renderCollectionColorsDisplay();
+                    updateJsonPreview();
+                    renderCollectionsList();
+                    showToast("Couleurs extraites : " + ids.length + ".");
+                }).catch(function (err) {
+                    console.error(err);
+                    showToast("Erreur lors de l'extraction (voir console).");
+                }).finally(function () {
+                    if (els.btnExtractColors) els.btnExtractColors.disabled = false;
+                });
+            }
+
+            function runExtractColorsForAll() {
+                if (!state.collections.length) {
+                    showToast("Aucune collection chargée.");
+                    return;
+                }
+                if (els.btnExtractColorsGlobal) els.btnExtractColorsGlobal.disabled = true;
+                loadNuancier().then(function () {
+                    var promises = state.collections.map(function (c) {
+                        return extractColorsForCollection(c).then(function (ids) {
+                            c.colors = ids;
+                        });
+                    });
+                    return Promise.all(promises);
+                }).then(function () {
+                    renderCollectionColorsDisplay();
+                    updateJsonPreview();
+                    renderCollectionsList();
+                    showToast("Couleurs extraites pour toutes les collections.");
+                }).catch(function (err) {
+                    console.error(err);
+                    showToast("Erreur lors de l'extraction (voir console).");
+                }).finally(function () {
+                    if (els.btnExtractColorsGlobal) els.btnExtractColorsGlobal.disabled = false;
+                });
+            }
+
             function renderEditor() {
                 if (!els.form || !els.editorPlaceholder || !els.editorSubtitle) return;
                 const idx = state.selectedIndex;
@@ -1124,6 +1341,7 @@
                 els.fieldDescription.value = c.description || "";
                 els.fieldVariations.value = typeof c.variations === "number" ? String(c.variations) : (Array.isArray(c.variations) ? String(c.variations.length) : "1");
                 renderVariationThumbnails();
+                renderCollectionColorsDisplay();
                 els.fieldTags.value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
 
                 const allLayouts = getAllLayoutIdsFromData();
@@ -1470,6 +1688,7 @@
                     var url = "admin-svg.html?collection=" + encodeURIComponent(id) + "&variations=" + encodeURIComponent(String(count));
                     window.open(url, "_blank", "noopener,noreferrer");
                 });
+                if (els.btnExtractColors) els.btnExtractColors.addEventListener("click", runExtractColorsForCurrent);
                 if (els.fieldTags) els.fieldTags.addEventListener("input", applyFormToCollection);
                 if (els.fieldLayoutsOther) els.fieldLayoutsOther.addEventListener("input", function () {
                     onLayoutsChanged();
@@ -1547,6 +1766,12 @@
                         } else {
                             showToast("API clipboard non disponible dans ce navigateur.");
                         }
+                    });
+                }
+
+                if (els.btnExtractColorsGlobal) {
+                    els.btnExtractColorsGlobal.addEventListener("click", function () {
+                        runExtractColorsForAll();
                     });
                 }
 
