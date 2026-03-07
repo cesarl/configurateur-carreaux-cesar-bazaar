@@ -63,6 +63,8 @@ function filterCollectionsForGallery(collections) {
 }
 let currentCollection = null;
 let currentColors = {}; // Maps zone id → Color ID (e.g. BL001). Use getHexForColorId() for display.
+/** Couleurs par défaut du SVG de la collection courante (1re recommandation « L'artiste vous recommande »). */
+let defaultCollectionColorsForRecommendations = {};
 let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];  // Catalogue complet (brut)
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
@@ -209,6 +211,56 @@ function applyConfigToUrl() {
 function getRestoreUrl() {
     applyConfigToUrl();
     return window.location.href;
+}
+
+/** Parse une URL de recommandation (complète ou query string) et retourne un objet { "zone-1": "BL001", "zone-2": "WT001", ... }. */
+function parseRecommendationUrl(url) {
+    if (!url || typeof url !== "string") return {};
+    const trimmed = url.trim();
+    if (!trimmed) return {};
+    let search = trimmed;
+    try {
+        if (trimmed.startsWith("http") || trimmed.startsWith("/") || trimmed.startsWith("?")) {
+            const u = new URL(trimmed, window.location.origin);
+            search = u.search ? u.search.slice(1) : "";
+        } else if (trimmed.startsWith("?")) {
+            search = trimmed.slice(1);
+        }
+    } catch (e) {
+        return {};
+    }
+    const params = new URLSearchParams(search);
+    const colors = {};
+    params.forEach((value, key) => {
+        if (!key.startsWith("zone-")) return;
+        const v = String(value).trim();
+        if (!v) return;
+        colors[key] = /^[0-9a-fA-F]{3,6}$/.test(v) ? (v.startsWith("#") ? v.toUpperCase() : "#" + v.toUpperCase()) : v.toUpperCase();
+    });
+    return colors;
+}
+
+/** Applique une palette de recommandation (objet zone → colorId), met à jour l'URL et rafraîchit l'interface. */
+function applyRecommendationColors(colorsObj) {
+    if (!currentCollection || !colorsObj || typeof colorsObj !== "object") return;
+    const zoneIds = Object.keys(currentColors).sort();
+    if (!zoneIds.length) return;
+    const fallbackId = (nuancierData.find((c) => c.id === "BL001") || nuancierData[0])?.id || "BL001";
+    zoneIds.forEach((zoneId) => {
+        const colorId = colorsObj[zoneId];
+        if (colorId) {
+            const isHex = /^#?[0-9a-fA-F]{3,6}$/.test(colorId);
+            const hexNorm = colorId.startsWith("#") ? colorId : "#" + colorId;
+            currentColors[zoneId] = isHex ? (getColorIdForHex(hexNorm) || fallbackId) : colorId.toUpperCase();
+        }
+    });
+    applyCurrentColors();
+    applyConfigToUrl();
+    renderActiveColorPills();
+    updateSidebarRecap();
+    updateDrawerRecap();
+    updatePaletteHighlight();
+    updateMoldingWarning();
 }
 
 /** True si la slide est une vue mockup en perspective 3D (html2canvas ne la restitue pas, on exclut de la capture). */
@@ -2521,6 +2573,62 @@ function updateDrawerRecap() {
             </span>`;
         list.appendChild(row);
     });
+    updateArtistRecommendations();
+}
+
+/** Remplit les listes « L'artiste vous recommande » (sidebar + drawer). 1re entrée = couleurs par défaut du SVG, puis artist_recommendations. */
+function updateArtistRecommendations() {
+    const drawerList = document.getElementById("palette-drawer-recommendations-list");
+    const sidebarList = document.getElementById("sidebar-recommendations-list");
+    const sidebarWrap = document.getElementById("sidebar-recommendations-wrap");
+    const zoneOrder = Object.keys(currentColors).sort();
+    const defaultColors = defaultCollectionColorsForRecommendations && Object.keys(defaultCollectionColorsForRecommendations).length > 0
+        ? defaultCollectionColorsForRecommendations
+        : null;
+    const recommendations = currentCollection && Array.isArray(currentCollection.artist_recommendations)
+        ? currentCollection.artist_recommendations.filter((url) => url && String(url).trim())
+        : [];
+    const hasDefaultStrip = !!defaultColors;
+    const hasAnyRecommendations = hasDefaultStrip || recommendations.length > 0;
+
+    function addStrip(container, colorsObj, ariaLabel) {
+        const strip = document.createElement("button");
+        strip.type = "button";
+        strip.className = "artist-recommendation-strip";
+        strip.setAttribute("aria-label", ariaLabel || "Appliquer cette combinaison de couleurs");
+        zoneOrder.forEach((zoneId) => {
+            const colorId = colorsObj[zoneId];
+            const hex = colorId ? getHexForColorId(colorId) : "#e0e0e0";
+            const span = document.createElement("span");
+            span.style.backgroundColor = hex;
+            strip.appendChild(span);
+        });
+        strip.addEventListener("click", () => applyRecommendationColors(colorsObj));
+        container.appendChild(strip);
+    }
+
+    function fillList(container) {
+        if (!container) return;
+        container.innerHTML = "";
+        if (defaultColors) {
+            addStrip(container, defaultColors, "Appliquer les couleurs par défaut du motif");
+        }
+        recommendations.forEach((url) => {
+            const colors = parseRecommendationUrl(url);
+            if (Object.keys(colors).length === 0) return;
+            addStrip(container, colors, "Appliquer cette combinaison de couleurs");
+        });
+    }
+
+    fillList(drawerList);
+    fillList(sidebarList);
+    if (sidebarWrap) {
+        sidebarWrap.setAttribute("aria-hidden", hasAnyRecommendations ? "false" : "true");
+    }
+    const drawerSection = document.getElementById("palette-drawer-recommendations");
+    if (drawerSection) {
+        drawerSection.style.display = hasAnyRecommendations ? "" : "none";
+    }
 }
 
 /** Affiche ou masque la bannière warning si deux zones ont la même couleur */
@@ -2696,6 +2804,7 @@ function renderInterface() {
     }
     currentColors = {};
     variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v]));
+    defaultCollectionColorsForRecommendations = { ...currentColors };
     renderCalepinageOnly();
     buildCarouselMockupSlides();
     renderMockupSlides();

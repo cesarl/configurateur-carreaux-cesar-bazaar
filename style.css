@@ -512,6 +512,59 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     color: #888;
     margin: 0 0 6px 0;
 }
+/* Artist recommendations: full-width strips above recap */
+.palette-drawer-recommendations {
+    flex-shrink: 0;
+    padding: 10px 16px 12px;
+    border-top: 1px solid var(--border);
+    background: #fafafa;
+}
+.palette-drawer-recommendations-title,
+.artist-recommendations-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin: 0 0 8px 0;
+}
+.artist-recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.artist-recommendation-strip {
+    display: flex;
+    width: 100%;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.12);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.artist-recommendation-strip:hover {
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.artist-recommendation-strip:active {
+    transform: scale(0.99);
+}
+.artist-recommendation-strip span {
+    flex: 1;
+    min-width: 0;
+}
+.sidebar .artist-recommendations-wrap {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+.sidebar .artist-recommendations-wrap[aria-hidden="true"] {
+    display: none;
+}
+.sidebar .artist-recommendations-wrap[aria-hidden="false"] {
+    display: block;
+}
 .palette-drawer-recap-list {
     display: flex;
     flex-direction: column;

@@ -597,6 +597,13 @@
                         </div>
 
                         <div class="field form-row-full">
+                            <label>Recommandations de l'artiste</label>
+                            <small>URLs de combinaisons de couleurs (ex. <code>?zone-1=BL001&amp;zone-2=WT001&amp;zone-3=OR008</code> ou l’URL complète du configurateur). Une par ligne ou un champ par recommandation.</small>
+                            <div id="artist-recommendations-container" class="artist-recommendations-editor"></div>
+                            <button id="btn-add-recommendation" type="button" class="btn btn-ghost">+ Ajouter une recommandation</button>
+                        </div>
+
+                        <div class="field form-row-full">
                             <label>Visibilité</label>
                             <div class="switches">
                                 <label>
@@ -698,6 +705,8 @@
                 els.fieldCollectionImage = $("field-collection-image");
                 els.btnOpenCollectionImage = $("btn-open-collection-image");
                 els.imagePreview = $("image-preview");
+                els.artistRecommendationsContainer = $("artist-recommendations-container");
+                els.btnAddRecommendation = $("btn-add-recommendation");
                 els.fieldActive = $("field-active");
                 els.fieldDevOnly = $("field-dev-only");
                 els.validationMessages = $("validation-messages");
@@ -797,6 +806,12 @@
                 if (typeof copy.active === "undefined") copy.active = true;
                 if (typeof copy.dev_only === "undefined") copy.dev_only = false;
 
+                if (Array.isArray(copy.artist_recommendations)) {
+                    copy.artist_recommendations = copy.artist_recommendations.map(function (u) { return String(u).trim(); }).filter(Boolean);
+                } else {
+                    copy.artist_recommendations = [];
+                }
+
                 if (Array.isArray(copy.colors)) {
                     copy.colors = copy.colors.map(function (cid) { return String(cid).trim().toUpperCase(); }).filter(Boolean);
                 }
@@ -819,6 +834,7 @@
                     if (Array.isArray(c.colors)) item.colors = c.colors.slice();
                     if (c.collection_url) item.collection_url = c.collection_url;
                     if (c.collection_image) item.collection_image = c.collection_image;
+                    if (Array.isArray(c.artist_recommendations) && c.artist_recommendations.length) item.artist_recommendations = c.artist_recommendations.slice();
                     if (c.active === false) item.active = false;
                     if (c.dev_only === true) item.dev_only = true;
                     return item;
@@ -1354,11 +1370,71 @@
                 els.fieldCollectionImage.value = c.collection_image || "";
                 setImagePreview(c.collection_image || "");
 
+                renderArtistRecommendationsEditor();
+
                 els.fieldActive.checked = c.active !== false;
                 els.fieldDevOnly.checked = c.dev_only === true;
 
                 updateDefautLayoutSelect();
                 runValidation();
+            }
+
+            function renderArtistRecommendationsEditor() {
+                const container = els.artistRecommendationsContainer;
+                if (!container) return;
+                const idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) {
+                    container.innerHTML = "";
+                    return;
+                }
+                const c = state.collections[idx];
+                const list = Array.isArray(c.artist_recommendations) ? c.artist_recommendations.slice() : [];
+                container.innerHTML = "";
+                list.forEach(function (url, i) {
+                    const row = document.createElement("div");
+                    row.className = "field-inline artist-recommendation-row";
+                    row.style.marginTop = "6px";
+                    row.style.alignItems = "center";
+                    const input = document.createElement("input");
+                    input.type = "url";
+                    input.placeholder = "https://…?zone-1=BL001&zone-2=WT001…";
+                    input.className = "artist-recommendation-url";
+                    input.value = url;
+                    input.style.flex = "1";
+                    input.style.minWidth = "0";
+                    input.addEventListener("change", function () {
+                        c.artist_recommendations[i] = (input.value || "").trim();
+                        updateJsonPreview();
+                    });
+                    input.addEventListener("blur", function () {
+                        c.artist_recommendations[i] = (input.value || "").trim();
+                        updateJsonPreview();
+                    });
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "btn btn-ghost btn-icon";
+                    btn.textContent = "✕";
+                    btn.title = "Supprimer";
+                    btn.addEventListener("click", function () {
+                        c.artist_recommendations.splice(i, 1);
+                        renderArtistRecommendationsEditor();
+                        updateJsonPreview();
+                        renderCollectionsList();
+                    });
+                    row.appendChild(input);
+                    row.appendChild(btn);
+                    container.appendChild(row);
+                });
+            }
+
+            function onAddRecommendation() {
+                const idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) return;
+                const c = state.collections[idx];
+                if (!Array.isArray(c.artist_recommendations)) c.artist_recommendations = [];
+                c.artist_recommendations.push("");
+                renderArtistRecommendationsEditor();
+                updateJsonPreview();
             }
 
             function updateDefautLayoutSelect() {
@@ -1452,6 +1528,11 @@
                 c.defaut_layout = (els.fieldDefautLayout.value || "").trim();
                 c.collection_url = (els.fieldCollectionUrl.value || "").trim();
                 c.collection_image = (els.fieldCollectionImage.value || "").trim();
+                const recContainer = els.artistRecommendationsContainer;
+                if (recContainer) {
+                    const inputs = recContainer.querySelectorAll("input.artist-recommendation-url");
+                    c.artist_recommendations = Array.prototype.map.call(inputs, function (inp) { return (inp.value || "").trim(); }).filter(Boolean);
+                }
                 c.active = !!els.fieldActive.checked;
                 c.dev_only = !!els.fieldDevOnly.checked;
 
@@ -1712,6 +1793,9 @@
                         const url = (els.fieldCollectionImage && els.fieldCollectionImage.value) || "";
                         if (url) window.open(url, "_blank", "noopener");
                     });
+                }
+                if (els.btnAddRecommendation) {
+                    els.btnAddRecommendation.addEventListener("click", onAddRecommendation);
                 }
 
                 if (els.btnDuplicateCurrent) {
