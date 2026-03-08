@@ -15,10 +15,38 @@
         })();
     </script>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // --- VÉRIFICATION IFRAME ---
+        // On vérifie si la page est chargée en dehors d'une Iframe (window.self === window.top)
+        // On ajoute une exception pour 'localhost' et '127.0.0.1' pour ne pas bloquer le développement local.
+        var isLocalhostIframe = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (window.self === window.top && !isLocalhostIframe) {
+            document.addEventListener("DOMContentLoaded", function () {
+                var app = document.getElementById('configurateur-app') || document.body.firstElementChild;
+                if (app && app.id !== 'out-of-iframe-warning') {
+                    app.style.display = 'none';
+                }
+                var warning = document.getElementById('out-of-iframe-warning');
+                if (warning) {
+                    warning.style.display = 'flex';
+                }
+            });
+        }
+    </script>
 </head>
 <body>
 
-    <div class="app-container">
+    <div id="out-of-iframe-warning" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #fcfcfc; z-index: 9999999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; font-family: sans-serif;">
+        <h1 style="color: #1d355f; margin-bottom: 20px;">Oups ! Vous avez trouvé notre atelier secret 🤫</h1>
+        <p style="color: #333; max-width: 500px; line-height: 1.6; margin-bottom: 30px; font-size: 1.1rem;">
+            Vous êtes actuellement sur le moteur de notre simulateur, hébergé en coulisses. Pour que la magie opère et que vous puissiez ajouter vos créations sur-mesure à votre panier, il faut passer par la porte principale !
+        </p>
+        <a href="https://www.cesarbazaar.com" style="background-color: #1d355f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 1.1rem; transition: background 0.3s;">
+            Retourner sur la boutique officielle
+        </a>
+    </div>
+
+    <div id="configurateur-app" class="app-container">
         <!-- Vue Gallery -->
         <div id="view-gallery" class="view">
             <header>
