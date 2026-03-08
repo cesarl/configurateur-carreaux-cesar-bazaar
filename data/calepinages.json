@@ -140,22 +140,6 @@
     ]
   },
   {
-    "id": "aleatoire_total",
-    "nom": "Pose Aléatoire",
-    "block_size": [
-      1,
-      1
-    ],
-    "matrix": [
-      {
-        "x": 0,
-        "y": 0,
-        "tile": "any",
-        "rot": "random"
-      }
-    ]
-  },
-  {
     "id": "damier",
     "nom": "Damier",
     "block_size": [
@@ -254,10 +238,10 @@
     ]
   },
   {
-    "id": "ligne_alternee",
-    "nom": "Ligne alternée",
+    "id": "ligne_alternee_4",
+    "nom": "Ligne alternée 4",
     "block_size": [
-      2,
+      4,
       1
     ],
     "matrix": [
@@ -271,6 +255,18 @@
         "x": 1,
         "y": 0,
         "tile": 2,
+        "rot": 0
+      },
+      {
+        "x": 2,
+        "y": 0,
+        "tile": 3,
+        "rot": 0
+      },
+      {
+        "x": 3,
+        "y": 0,
+        "tile": 4,
         "rot": 0
       }
     ]
@@ -450,6 +446,22 @@
         "y": 0,
         "tile": "any",
         "rot": "random"
+      }
+    ]
+  },
+  {
+    "id": "aleatoire_no_rotation",
+    "nom": "Aléatoire (sans rotation)",
+    "block_size": [
+      1,
+      1
+    ],
+    "matrix": [
+      {
+        "x": 0,
+        "y": 0,
+        "tile": "any",
+        "rot": "0"
       }
     ]
   },

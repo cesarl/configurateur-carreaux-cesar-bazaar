@@ -12,10 +12,8 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
       "damier_4",
       "damier_4_random",
-      "fresque_bordure",
       "iflip_4"
     ],
     "colors": [
@@ -40,11 +38,9 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "iflip_4"
     ],
     "colors": [
       "WT001",
@@ -66,11 +62,7 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "aleatoire_no_rotation"
     ],
     "colors": [
       "YL008",
@@ -94,14 +86,9 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "damier_2",
+    "defaut_layout": "damier",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier"
     ],
     "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/sunrise-laurie-lecou-tournesol",
