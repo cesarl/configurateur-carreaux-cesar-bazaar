@@ -948,25 +948,55 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
 }
 .layout-selector {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
     justify-content: center;
 }
-.layout-pill {
-    padding: 8px 16px;
+.layout-dropdown {
+    position: relative;
+    width: 100%;
+}
+.layout-dropdown-toggle {
+    width: 100%;
+    padding: 8px 12px;
     border-radius: 999px;
     border: 2px solid var(--border);
     background: white;
     font-size: 0.85rem;
+    text-align: left;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
-.layout-pill:hover {
-    border-color: var(--primary);
+.layout-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 6px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 6px;
+    display: none;
+    z-index: 40;
 }
-.layout-pill.active {
+.layout-dropdown-menu.open {
+    display: block;
+}
+.layout-dropdown-option {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+}
+.layout-dropdown-option:hover {
+    background: var(--bg-color);
+}
+.layout-dropdown-option.active {
     background: var(--primary);
-    border-color: var(--primary);
     color: white;
 }
 .calepinage-zoom-wrap {
@@ -1370,6 +1400,22 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
 }
 .sidebar-recap-details .recap-collection-link:hover {
     text-decoration: underline;
+}
+.sidebar-options {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+.sidebar-options-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0 0 10px 0;
+}
+@media (max-width: 900px) {
+    .sidebar-options {
+        display: none;
+    }
 }
 .sidebar-recap-pill {
     width: 24px;

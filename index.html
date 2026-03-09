@@ -122,7 +122,6 @@
                         <div class="active-colors-row-wrap">
                             <div class="active-colors-row" id="active-colors-row" aria-label="Couleurs des zones du motif"></div>
                             <button type="button" id="btn-reset-collection" class="reset-button reset-button-icon" title="Undo" aria-label="Undo">⟲</button>
-                            <button type="button" id="btn-options-drawer" class="options-drawer-trigger" aria-label="Options">Options</button>
                         </div>
                         <div class="preview-controls-extras" id="preview-controls-extras">
                             <div class="layout-selector" id="layout-selector" aria-label="Disposition du calepinage"></div>
@@ -166,6 +165,29 @@
                         <h4>Récapitulatif</h4>
                         <div id="sidebar-recap-list"></div>
                     </div>
+                    <div class="sidebar-options" id="sidebar-options">
+                        <h4 class="sidebar-options-title">Options de calepinage</h4>
+                        <div class="options-drawer-layout" id="options-drawer-layout"></div>
+                        <div class="options-drawer-zoom" id="options-drawer-zoom">
+                            <label for="options-zoom-slider">Nombre de carreaux</label>
+                            <input type="range" id="options-zoom-slider" min="2" max="20" value="5" aria-label="Zoom grille" />
+                        </div>
+                        <div class="options-drawer-joints">
+                            <label class="options-drawer-checkbox">
+                                <input type="checkbox" id="options-show-joints" aria-label="Afficher les joints" />
+                                <span>Afficher les joints</span>
+                            </label>
+                        </div>
+                        <div class="options-drawer-devmode">
+                            <label class="options-drawer-checkbox">
+                                <input type="checkbox" id="options-dev-mode" aria-label="Activer le mode développeur (afficher les couleurs Test)" />
+                                <span>Mode développeur (afficher les couleurs Test)</span>
+                            </label>
+                            <p id="options-dev-warning" style="display:none; margin-top:4px; font-size:0.9em; color:#b3261e;">
+                                Attention : en mode développeur, le bouton de commande est désactivé et les couleurs en test apparaissent dans le nuancier.
+                            </p>
+                        </div>
+                    </div>
                 </aside>
             </main>
 
@@ -183,34 +205,6 @@
                 <div class="palette-drawer-recap">
                     <h4 class="palette-drawer-recap-title">Récapitulatif</h4>
                     <div id="palette-drawer-recap-list" class="palette-drawer-recap-list"></div>
-                </div>
-            </div>
-
-            <!-- Tiroir mobile : options grille + zoom -->
-            <div id="options-drawer-overlay" class="options-drawer-overlay" aria-hidden="true"></div>
-            <div id="options-drawer" class="options-drawer" aria-hidden="true">
-                <div class="options-drawer-inner">
-                    <h3 class="options-drawer-title">Options</h3>
-                    <div class="options-drawer-layout" id="options-drawer-layout"></div>
-                    <div class="options-drawer-zoom" id="options-drawer-zoom">
-                        <label for="options-zoom-slider">Nombre de carreaux</label>
-                        <input type="range" id="options-zoom-slider" min="2" max="20" value="5" aria-label="Zoom grille" />
-                    </div>
-                    <div class="options-drawer-joints">
-                        <label class="options-drawer-checkbox">
-                            <input type="checkbox" id="options-show-joints" aria-label="Afficher les joints" />
-                            <span>Afficher les joints</span>
-                        </label>
-                    </div>
-                    <div class="options-drawer-devmode">
-                        <label class="options-drawer-checkbox">
-                            <input type="checkbox" id="options-dev-mode" aria-label="Activer le mode développeur (afficher les couleurs Test)" />
-                            <span>Mode développeur (afficher les couleurs Test)</span>
-                        </label>
-                        <p id="options-dev-warning" style="display:none; margin-top:4px; font-size:0.9em; color:#b3261e;">
-                            Attention : en mode développeur, le bouton de commande est désactivé et les couleurs en test apparaissent dans le nuancier.
-                        </p>
-                    </div>
                 </div>
             </div>
 

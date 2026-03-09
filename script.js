@@ -2521,42 +2521,69 @@ function renderActiveColorPills() {
     });
 }
 
-/** Remplit le sélecteur de calepinage (boutons pilules). Survol = preview, clic = valider. Sur mobile le tiroir ne se ferme qu'au clic en dehors. */
+/** Remplit le sélecteur de calepinage (dropdown). Survol d'une option = preview, clic = valider. */
 function renderLayoutSelector() {
     const layoutIds = Array.isArray(currentCollection.layouts) && currentCollection.layouts.length
         ? currentCollection.layouts
         : ["aleatoire"];
     const legacyLabels = { damier: "Damier", solo: "Grille plate" };
-    const makePills = (container) => {
+    const makeDropdown = (container) => {
         if (!container) return;
         container.innerHTML = "";
-        layoutIds.forEach((layoutId) => {
+        const dropdown = document.createElement("div");
+        dropdown.className = "layout-dropdown";
+
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "layout-dropdown-toggle";
+        const currentCalepinage = calepinagesData.find((c) => c.id === currentLayout);
+        const currentLabel = currentCalepinage ? currentCalepinage.nom : (legacyLabels[currentLayout] || currentLayout);
+        toggle.textContent = currentLabel;
+
+        const menu = document.createElement("div");
+        menu.className = "layout-dropdown-menu";
+
+        const buildOption = (layoutId) => {
             const calepinage = calepinagesData.find((c) => c.id === layoutId);
             const label = calepinage ? calepinage.nom : (legacyLabels[layoutId] || layoutId);
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "layout-pill" + (currentLayout === layoutId ? " active" : "");
-            btn.textContent = label;
-            btn.addEventListener("mouseenter", () => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.className = "layout-dropdown-option" + (currentLayout === layoutId ? " active" : "");
+            option.textContent = label;
+            option.addEventListener("mouseenter", () => {
                 renderCalepinageOnly(layoutId);
             });
-            btn.addEventListener("mouseleave", () => {
+            option.addEventListener("mouseleave", () => {
                 renderCalepinageOnly();
             });
-            btn.onclick = () => {
+            option.addEventListener("click", () => {
                 currentLayout = layoutId;
-                renderLayoutSelector();
                 renderCalepinageOnly();
                 renderMockupSlides();
-                if (window.matchMedia("(min-width: 901px)").matches) {
-                    closeOptionsDrawer();
-                }
-            };
-            container.appendChild(btn);
+                renderLayoutSelector();
+            });
+            return option;
+        };
+
+        layoutIds.forEach((layoutId) => {
+            menu.appendChild(buildOption(layoutId));
         });
+
+        toggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.classList.toggle("open");
+        });
+
+        document.addEventListener("click", () => {
+            menu.classList.remove("open");
+        });
+
+        dropdown.appendChild(toggle);
+        dropdown.appendChild(menu);
+        container.appendChild(dropdown);
     };
-    makePills(document.getElementById("layout-selector"));
-    makePills(document.getElementById("options-drawer-layout"));
+    makeDropdown(document.getElementById("layout-selector"));
+    makeDropdown(document.getElementById("options-drawer-layout"));
 }
 
 /** Reconstruit uniquement le calepinage (grille). Si overrideLayout est fourni, l'utilise pour l'affichage sans modifier currentLayout (preview au survol). */
