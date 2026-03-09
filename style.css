@@ -10,6 +10,94 @@ body { margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; b
 /* LAYOUT */
 .app-container { position: relative; width: 100%; height: 100vh; overflow: hidden; }
 
+/* Gate d'accès au simulateur (overlay plein écran déverrouillable avec la touche G) */
+.simulator-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.96), rgba(245, 245, 245, 0.98));
+}
+.simulator-gate-inner {
+    max-width: 960px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: stretch;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+.simulator-gate-image {
+    background-image: url("assets/Full-mur-1.png");
+    background-size: cover;
+    background-position: center;
+    min-height: 260px;
+}
+.simulator-gate-content {
+    padding: 32px 32px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+.simulator-gate-title {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #111827;
+}
+.simulator-gate-text {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #374151;
+}
+.simulator-gate-instruction {
+    margin-top: 10px;
+    font-weight: 600;
+    color: #111827;
+}
+.simulator-gate-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.9em;
+    padding: 0 0.5em;
+    margin: 0 0.15em;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 0.9em;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+.simulator-gate-note {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+@media (max-width: 960px) {
+    .simulator-gate-inner {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+    .simulator-gate-image {
+        height: 220px;
+    }
+    .simulator-gate-content {
+        padding: 24px 20px 20px;
+    }
+}
+
 header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 header h1 { font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px; flex: 1; min-width: 0; }
 header .actions { display: flex; gap: 10px; flex-wrap: wrap; }

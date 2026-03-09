@@ -7,6 +7,12 @@ const ESTIMATED_DELIVERY_DATE = "mi-juin 2026";
 // En production, le <base href="..."> dans index.html s'occupe de pointer vers la bonne URL GitHub Pages.
 const REPO_URL = "";
 
+// Gate d'accès au simulateur (overlay déverrouillable en maintenant "G" 5 s).
+// Mettre cette valeur à false pour désactiver complètement le gate (ex. en production).
+const SIMULATOR_GATE_ENABLED = true;
+const SIMULATOR_GATE_STORAGE_KEY = "cesar-bazaar-simulator-unlocked";
+const SIMULATOR_GATE_HOLD_MS = 5000;
+
 // Indique si la gallery doit inclure les collections marquées comme dev_only ou inactives.
 // Activable via le paramètre d'URL ?dev=1 ou ?dev=true.
 const IS_DEV_GALLERY = (function () {
@@ -92,6 +98,73 @@ const DRAFT_STORAGE_KEY = "cesar-bazaar-drafts";
 
 const CART_QUANTITY_MIN = 3;
 let cartQuantity = CART_QUANTITY_MIN;
+
+function isSimulatorGateUnlocked() {
+    try {
+        return localStorage.getItem(SIMULATOR_GATE_STORAGE_KEY) === "1";
+    } catch (e) {
+        return false;
+    }
+}
+
+function markSimulatorGateUnlocked() {
+    try {
+        localStorage.setItem(SIMULATOR_GATE_STORAGE_KEY, "1");
+    } catch (e) {}
+}
+
+function setupSimulatorGate() {
+    if (!SIMULATOR_GATE_ENABLED) return;
+    const gate = document.getElementById("simulator-gate");
+    const app = document.getElementById("configurateur-app");
+    if (!gate || !app) return;
+
+    if (isSimulatorGateUnlocked()) {
+        gate.style.display = "none";
+        gate.setAttribute("aria-hidden", "true");
+        app.classList.remove("simulator-gated");
+        return;
+    }
+
+    gate.style.display = "flex";
+    gate.setAttribute("aria-hidden", "false");
+    app.classList.add("simulator-gated");
+
+    let holdTimeout = null;
+    let isHolding = false;
+
+    function clearHoldTimer() {
+        if (holdTimeout !== null) {
+            clearTimeout(holdTimeout);
+            holdTimeout = null;
+        }
+        isHolding = false;
+    }
+
+    function unlockGate() {
+        markSimulatorGateUnlocked();
+        gate.style.display = "none";
+        gate.setAttribute("aria-hidden", "true");
+        app.classList.remove("simulator-gated");
+        window.removeEventListener("keydown", onKeyDown);
+        window.removeEventListener("keyup", onKeyUp);
+    }
+
+    function onKeyDown(e) {
+        if (e.key !== "g" && e.key !== "G") return;
+        if (isHolding) return;
+        isHolding = true;
+        holdTimeout = window.setTimeout(unlockGate, SIMULATOR_GATE_HOLD_MS);
+    }
+
+    function onKeyUp(e) {
+        if (e.key !== "g" && e.key !== "G") return;
+        clearHoldTimer();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+}
 
 function loadCalepinageZoom() {
     try {
@@ -871,6 +944,7 @@ function downloadExportSVG() {
 
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
+    setupSimulatorGate();
     loadCalepinageJoints();
     const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
     document.getElementById("view-gallery").style.display = "flex";
