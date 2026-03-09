@@ -506,6 +506,10 @@ path[data-active="true"]:hover,
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
+.sidebar.sidebar-palette-desktop #color-palette {
+    max-height: 500px;
+    overflow-y: auto;
+}
 .sidebar::-webkit-scrollbar {
     width: 6px;
 }
@@ -688,6 +692,11 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
 }
 @media (max-width: 900px) {
     .palette-drawer { display: flex; }
+    /* Sur mobile, on ne montre pas les recommandations d'artiste ni le récap dans le tiroir */
+    .palette-drawer-recommendations,
+    .palette-drawer-recap {
+        display: none !important;
+    }
 }
 
 /* ----- Options drawer (mobile: grille + zoom) ----- */

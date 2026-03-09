@@ -71,6 +71,15 @@ let currentCollection = null;
 let currentColors = {}; // Maps zone id → Color ID (e.g. BL001). Use getHexForColorId() for display.
 /** Couleurs par défaut du SVG de la collection courante (1re recommandation « L'artiste vous recommande »). */
 let defaultCollectionColorsForRecommendations = {};
+/** Historique des états de couleurs pour permettre un undo (pile de snapshots). */
+let colorHistory = [];
+
+function updateUndoButtonState() {
+    const btnReset = document.getElementById("btn-reset-collection");
+    if (!btnReset) return;
+    const hasUndo = colorHistory.length > 0;
+    btnReset.style.display = hasUndo ? "" : "none";
+}
 let activeZone = null;  // La zone qu'on est en train de modifier
 let nuancierData = [];  // Catalogue complet (brut)
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
@@ -318,6 +327,9 @@ function applyRecommendationColors(colorsObj) {
     if (!currentCollection || !colorsObj || typeof colorsObj !== "object") return;
     const zoneIds = Object.keys(currentColors).sort();
     if (!zoneIds.length) return;
+    // Snapshot avant d'appliquer la recommandation pour permettre un undo global
+    colorHistory.push({ ...currentColors });
+    updateUndoButtonState();
     const fallbackId = (nuancierData.find((c) => c.id === "BL001") || nuancierData[0])?.id || "BL001";
     zoneIds.forEach((zoneId) => {
         const colorId = colorsObj[zoneId];
@@ -969,10 +981,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Les brouillons sont conservés par collection (localStorage) : pas de clear pour ne pas perdre les éditions
 });
 
-/** Trie les couleurs pour un ordre progressif type dégradé (HSL : teinte puis luminosité) */
+/** Trie les couleurs pour un ordre progressif type « arc‑en‑ciel » :
+ *  - d'abord les neutres (gris / noirs / blancs) par luminosité
+ *  - puis les couleurs, triées par teinte puis luminosité (HSL)
+ */
 function sortColorsForGradient(colors) {
     const hexToHsl = (hex) => {
-        const n = hex.replace("#", "");
+        const n = normalizeHex(hex).replace("#", "");
         const r = parseInt(n.slice(0, 2), 16) / 255;
         const g = parseInt(n.slice(2, 4), 16) / 255;
         const b = parseInt(n.slice(4, 6), 16) / 255;
@@ -992,6 +1007,19 @@ function sortColorsForGradient(colors) {
     return [...colors].sort((a, b) => {
         const [h1, s1, l1] = hexToHsl(a.hex);
         const [h2, s2, l2] = hexToHsl(b.hex);
+        const isGrey1 = s1 < 8; // très faible saturation → neutre
+        const isGrey2 = s2 < 8;
+
+        // Grouper d'abord tous les neutres ensemble
+        if (isGrey1 && !isGrey2) return -1;
+        if (!isGrey1 && isGrey2) return 1;
+
+        // Pour les neutres uniquement : trier du sombre vers le clair
+        if (isGrey1 && isGrey2) {
+            return l1 - l2;
+        }
+
+        // Pour les couleurs : trier par teinte (H), puis luminosité (L)
         if (Math.abs(h1 - h2) > 1) return h1 - h2;
         return l1 - l2;
     });
@@ -1126,8 +1154,12 @@ function setupNavigation() {
     const btnReset = document.getElementById("btn-reset-collection");
     if (btnReset) {
         btnReset.addEventListener("click", () => {
-            resetCollectionToDefault();
+            undoLastColorChange();
         });
+        // Tooltip accessible "Undo"
+        btnReset.title = "Undo";
+        btnReset.setAttribute("aria-label", "Undo");
+        updateUndoButtonState();
     }
     const btnShare = document.getElementById("btn-share");
     if (btnShare) {
@@ -1153,6 +1185,19 @@ function setupNavigation() {
             downloadExportSVG();
         });
     }
+
+    // Raccourcis clavier : Ctrl+Z (Windows) / Cmd+Z (Mac) pour undo des couleurs
+    document.addEventListener("keydown", (evt) => {
+        const isZ = (evt.key || "").toLowerCase() === "z";
+        const modifier = evt.ctrlKey || evt.metaKey;
+        if (!modifier || !isZ) return;
+        // Laisser le comportement natif dans les champs de saisie
+        const target = evt.target;
+        const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
+        if (tag === "input" || tag === "textarea" || target.isContentEditable) return;
+        evt.preventDefault();
+        undoLastColorChange();
+    });
 
     // Gestion du panier et de la modale de confirmation
     const btnCart = document.getElementById("btn-cart");
@@ -1538,6 +1583,25 @@ function resetCollectionToDefault() {
     applyConfigToUrl();
     // 4. Sauvegarder cet état "défaut SVG" comme nouveau brouillon
     saveDraftToLocal();
+}
+
+/** Annule la dernière modification de couleurs (undo 1 niveau). */
+function undoLastColorChange() {
+    if (!colorHistory.length) return;
+    const previous = colorHistory.pop();
+    if (!previous) return;
+    currentColors = { ...previous };
+    applyCurrentColors();
+    renderActiveColorPills();
+    updateSidebarRecap();
+    updateDrawerRecap();
+    updatePaletteHighlight();
+    updateMoldingWarning();
+    updateUndoButtonState();
+    if (currentCollection) {
+        applyConfigToUrl();
+        saveDraftToLocal();
+    }
 }
 
 function setupMobileViewBar() {
@@ -2849,14 +2913,18 @@ function applyColorToActiveZone(colorId) {
         alert("Sélectionnez d'abord une zone sur le dessin ou une pastille !");
         return;
     }
+    // Snapshot avant modification pour permettre un undo
+    colorHistory.push({ ...currentColors });
+    updateUndoButtonState();
+
     document.documentElement.style.setProperty(`--color-${activeZone}`, getHexForColorId(colorId));
     currentColors[activeZone] = colorId;
     updatePaletteHighlight();
     if (currentCollection) applyConfigToUrl();
     livePreviewRestoreHex = null; // après validation, plus de restauration au survol
     renderActiveColorPills();
-        updateSidebarRecap();
-        updateDrawerRecap();
+    updateSidebarRecap();
+    updateDrawerRecap();
     updateMoldingWarning();
 }
 
@@ -2877,6 +2945,8 @@ function renderInterface() {
         return;
     }
     currentColors = {};
+    colorHistory = [];
+    updateUndoButtonState();
     variants.forEach((v) => extractDefaultColorsFromSvg(svgCache[v]));
     defaultCollectionColorsForRecommendations = { ...currentColors };
     renderCalepinageOnly();
