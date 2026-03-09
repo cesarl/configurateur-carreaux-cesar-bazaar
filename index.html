@@ -315,6 +315,67 @@
         </div>
     </div>
 
+    <!-- Toast d'information mobile : simulateur optimisé pour ordinateur -->
+    <div id="mobile-usage-toast" class="mobile-usage-toast" role="status" aria-live="polite" aria-atomic="true">
+        <div class="mobile-usage-toast-text">
+            <span class="mobile-usage-toast-strong">Ce simulateur est pensé pour un usage sur ordinateur.</span>
+            <br>
+            Il fonctionne sur mobile, mais pour profiter de toutes les fonctionnalités et d'un confort optimal, je vous conseille vivement de l'utiliser sur ordinateur.
+        </div>
+        <button type="button" id="mobile-usage-toast-close" class="mobile-usage-toast-close" aria-label="Fermer ce message">×</button>
+    </div>
+
+    <script>
+        // Affichage d'un petit message sur mobile pour recommander l'usage sur ordinateur.
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                var isMobileViewport = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+                if (!isMobileViewport) return;
+
+                if (window.sessionStorage && sessionStorage.getItem('cb-mobile-usage-toast-dismissed') === '1') {
+                    return;
+                }
+
+                var toast = document.getElementById('mobile-usage-toast');
+                if (!toast) return;
+
+                var closeBtn = document.getElementById('mobile-usage-toast-close');
+                var hideToast = function () {
+                    toast.classList.remove('is-visible');
+                    // Laisse la transition se terminer avant de retirer complètement l'élément
+                    setTimeout(function () {
+                        toast.style.display = 'none';
+                    }, 300);
+                };
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function () {
+                        try {
+                            if (window.sessionStorage) {
+                                sessionStorage.setItem('cb-mobile-usage-toast-dismissed', '1');
+                            }
+                        } catch (e) { }
+                        hideToast();
+                    });
+                }
+
+                // Affiche le toast légèrement après le chargement pour ne pas surprendre l'utilisateur
+                setTimeout(function () {
+                    toast.classList.add('is-visible');
+                }, 600);
+
+                // Disparition automatique au bout de quelques secondes
+                setTimeout(function () {
+                    if (toast.classList.contains('is-visible')) {
+                        hideToast();
+                    }
+                }, 10000);
+            } catch (e) {
+                // En cas de problème, on ne bloque surtout pas le simulateur
+            }
+        });
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     <script src="script.js"></script>
