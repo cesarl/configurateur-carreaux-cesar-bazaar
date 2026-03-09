@@ -166,10 +166,10 @@
                         <div id="sidebar-recap-list"></div>
                     </div>
                     <div class="sidebar-options" id="sidebar-options">
-                        <h4 class="sidebar-options-title">Options de calepinage</h4>
+                        <h4 class="sidebar-options-title">Options</h4>
                         <div class="options-drawer-layout" id="options-drawer-layout"></div>
                         <div class="options-drawer-zoom" id="options-drawer-zoom">
-                            <label for="options-zoom-slider">Nombre de carreaux</label>
+                            <label for="options-zoom-slider">Zoom</label>
                             <input type="range" id="options-zoom-slider" min="2" max="20" value="5" aria-label="Zoom grille" />
                         </div>
                         <div class="options-drawer-joints">
@@ -177,6 +177,45 @@
                                 <input type="checkbox" id="options-show-joints" aria-label="Afficher les joints" />
                                 <span>Afficher les joints</span>
                             </label>
+                        </div>
+                        <div class="options-surface-calc" id="options-surface-calc">
+                            <p class="options-surface-calc-title">Calculer la surface et le nombre de cartons</p>
+                            <p class="options-surface-calc-text" id="surface-calc-text">
+                                Ma surface fait
+                                <label class="options-surface-inline-input">
+                                    <input
+                                        type="number"
+                                        id="surface-width-cm"
+                                        inputmode="decimal"
+                                        min="0"
+                                        step="1"
+                                        placeholder="300"
+                                        aria-label="Longueur en centimètres"
+                                    >
+                                </label>
+                                cm par
+                                <label class="options-surface-inline-input">
+                                    <input
+                                        type="number"
+                                        id="surface-height-cm"
+                                        inputmode="decimal"
+                                        min="0"
+                                        step="1"
+                                        placeholder="260"
+                                        aria-label="Largeur en centimètres"
+                                    >
+                                </label>
+                                cm,<br>
+                                ce qui fait
+                                <span class="options-surface-calc-value" id="surface-calc-area">–</span>
+                                m² soit
+                                <span class="options-surface-calc-value" id="surface-calc-cartons">–</span>
+                                <span class="options-surface-calc-value" id="surface-calc-cartons-label">cartons</span>
+                                (une marge de 10% pour les découpes et la casse éventuelle est incluse dans ce calcul).
+                            </p>
+                            <p class="options-surface-calc-note">
+                                Calcul basé sur un carton de 16 carreaux de 20×20 cm, soit environ 0,64&nbsp;m² par carton. Les valeurs sont arrondies au carton supérieur.
+                            </p>
                         </div>
                         <div class="options-drawer-devmode">
                             <label class="options-drawer-checkbox">

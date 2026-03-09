@@ -108,6 +108,10 @@ const DRAFT_STORAGE_KEY = "cesar-bazaar-drafts";
 const CART_QUANTITY_MIN = 3;
 let cartQuantity = CART_QUANTITY_MIN;
 
+// Surface approximative couverte par un carton
+// (16 carreaux de 20×20 cm → 0,64 m²)
+const CARTON_SURFACE_M2 = 16 * 0.2 * 0.2;
+
 function isSimulatorGateUnlocked() {
     try {
         return localStorage.getItem(SIMULATOR_GATE_STORAGE_KEY) === "1";
@@ -966,6 +970,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupNavigation();
     setupHeaderMenu();
     setupOptionsDrawer();
+    setupSurfaceCalculator();
     setupWorkspaceHeaderScroll();
     if (collection) {
         showCollectionLoadingOverlay();
@@ -1535,6 +1540,68 @@ function setupOptionsDrawer() {
             document.dispatchEvent(new CustomEvent("devmode:changed", { detail: { devMode } }));
         });
     }
+}
+
+function setupSurfaceCalculator() {
+    const widthInput = document.getElementById("surface-width-cm");
+    const heightInput = document.getElementById("surface-height-cm");
+    const areaSpan = document.getElementById("surface-calc-area");
+    const cartonsSpan = document.getElementById("surface-calc-cartons");
+    const cartonsLabelSpan = document.getElementById("surface-calc-cartons-label");
+    const textBlock = document.getElementById("surface-calc-text");
+    if (!widthInput || !heightInput || !areaSpan || !cartonsSpan || !cartonsLabelSpan) {
+        return;
+    }
+
+    const resetDisplay = () => {
+        areaSpan.textContent = "–";
+        cartonsSpan.textContent = "–";
+        cartonsLabelSpan.textContent = "cartons";
+        if (textBlock) {
+            textBlock.classList.remove("has-values");
+        }
+    };
+
+    const formatArea = (valueM2) => {
+        if (!Number.isFinite(valueM2)) return "–";
+        return valueM2.toFixed(2).replace(".", ",");
+    };
+
+    const recalc = () => {
+        const rawW = String(widthInput.value || "").replace(",", ".").trim();
+        const rawH = String(heightInput.value || "").replace(",", ".").trim();
+        const w = parseFloat(rawW);
+        const h = parseFloat(rawH);
+        if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+            resetDisplay();
+            return;
+        }
+
+        const pluralizeCarton = (n) => (n === 1 ? "carton" : "cartons");
+
+        const areaM2 = (w * h) / 10000;
+        // Ajoute 10 % de surface, puis calcule le nombre de cartons sur cette base
+        const areaWithWasteM2 = areaM2 * 1.1;
+        const cartonsWithWaste = CARTON_SURFACE_M2 > 0 ? Math.ceil(areaWithWasteM2 / CARTON_SURFACE_M2) : 0;
+
+        areaSpan.textContent = formatArea(areaM2);
+        if (cartonsWithWaste > 0) {
+            cartonsSpan.textContent = String(cartonsWithWaste);
+            cartonsLabelSpan.textContent = pluralizeCarton(cartonsWithWaste);
+        } else {
+            cartonsSpan.textContent = "–";
+            cartonsLabelSpan.textContent = "cartons";
+        }
+
+        if (textBlock) {
+            textBlock.classList.add("has-values");
+        }
+    };
+
+    widthInput.addEventListener("input", recalc);
+    heightInput.addEventListener("input", recalc);
+
+    resetDisplay();
 }
 
 function setupWorkspaceHeaderScroll() {

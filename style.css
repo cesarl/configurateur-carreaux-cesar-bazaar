@@ -1417,6 +1417,73 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
         display: none;
     }
 }
+.options-surface-calc {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+    font-size: 0.85rem;
+    color: #555;
+}
+.options-surface-calc-title {
+    margin: 0 0 8px 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+}
+.options-surface-calc-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-end;
+    margin-bottom: 6px;
+}
+.options-surface-calc-inputs label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+}
+.options-surface-calc-inputs input {
+    width: 90px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    box-sizing: border-box;
+}
+.options-surface-calc-multiply,
+.options-surface-calc-unit {
+    font-size: 0.85rem;
+    color: #777;
+}
+.options-surface-calc-text {
+    margin: 6px 0 4px 0;
+    line-height: 1.5;
+}
+.options-surface-calc-value {
+    font-weight: 600;
+}
+.options-surface-waste {
+    display: inline;
+}
+.options-surface-inline-input {
+    display: inline-block;
+    margin: 0 2px;
+}
+.options-surface-inline-input input {
+    width: 70px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    box-sizing: border-box;
+}
+.options-surface-calc-note {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #888;
+}
 .sidebar-recap-pill {
     width: 24px;
     height: 24px;
