@@ -488,11 +488,12 @@ path[data-active="true"]:hover,
     z-index: 10;
 }
 
-/* SIDEBAR (DROITE) - Desktop uniquement pour le nuancier */
+/* SIDEBAR (DROITE) - Tiroir pleine hauteur, scroll si le contenu dépasse. */
 .sidebar {
     width: 320px;
     min-width: 320px;
     max-width: 320px;
+    min-height: 0; /* permet le scroll dans le flex */
     background: white;
     border-left: 1px solid var(--border);
     padding: 20px;
@@ -506,9 +507,12 @@ path[data-active="true"]:hover,
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
+/* Section nuancier : au moins 30 % de la hauteur du tiroir, scroll vertical si pas assez de place. */
 .sidebar.sidebar-palette-desktop #color-palette {
-    max-height: 500px;
+    min-height: 30%;
+    max-height: 70%;
     overflow-y: auto;
+    flex-shrink: 0;
 }
 .sidebar::-webkit-scrollbar {
     width: 6px;
