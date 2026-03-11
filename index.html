@@ -64,6 +64,33 @@
                 <h1>Collections</h1>
             </header>
             <main class="gallery-main">
+                <div class="gallery-filters" id="gallery-filters">
+                    <div class="gallery-filters-search">
+                        <input
+                            type="search"
+                            id="gallery-search"
+                            class="gallery-filters-search-input"
+                            placeholder="Rechercher une collection…"
+                            aria-label="Rechercher une collection par nom"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div class="gallery-filters-categories" aria-label="Filtrer par catégorie de collection">
+                        <span class="gallery-filters-label">Catégories :</span>
+                        <label class="gallery-filters-toggle">
+                            <input type="checkbox" id="filter-category-signature" checked>
+                            <span>Signature</span>
+                        </label>
+                        <label class="gallery-filters-toggle">
+                            <input type="checkbox" id="filter-category-classic" checked>
+                            <span>Classiques</span>
+                        </label>
+                        <label class="gallery-filters-toggle">
+                            <input type="checkbox" id="filter-category-unpublished" checked>
+                            <span>Inédites</span>
+                        </label>
+                    </div>
+                </div>
                 <div id="gallery-grid" class="gallery-grid">
                     <!-- Les cartes seront générées dynamiquement -->
                 </div>

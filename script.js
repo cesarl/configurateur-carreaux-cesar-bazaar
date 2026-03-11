@@ -67,6 +67,139 @@ function filterCollectionsForGallery(collections) {
     const isDev = IS_DEV_GALLERY;
     return collections.filter((c) => isCollectionVisibleInGallery(c, isDev));
 }
+
+// --- Filtres de la gallery (accueil du simulateur) ---
+let galleryAllCollections = [];
+let gallerySelectedCategories = new Set(["signature", "classic", "unpublished"]);
+let gallerySearchQuery = "";
+
+function getCollectionCategory(collection) {
+    if (!collection) return "signature";
+    const raw = ((collection.category || "") + "").toLowerCase();
+    if (raw.includes("signature")) return "signature";
+    if (raw.includes("classique") || raw.includes("classic")) return "classic";
+    if (raw.includes("inedit") || raw.includes("inédit") || raw.includes("unpublished")) return "unpublished";
+    // Fallback : si aucune catégorie n'est renseignée ou ne matche, on considère la collection comme « signature »
+    return "signature";
+}
+
+function getFilteredGalleryCollections() {
+    if (!Array.isArray(galleryAllCollections)) return [];
+
+    const query = (gallerySearchQuery || "").trim().toLowerCase();
+
+    // 1) Recherche par nom : s'applique à toutes les collections (ignore les catégories)
+    if (query) {
+        return galleryAllCollections.filter((c) => {
+            const nom = (c.nom || "").toLowerCase();
+            const id = (c.id || "").toLowerCase();
+            const desc = (c.description || "").toLowerCase();
+            return nom.includes(query) || id.includes(query) || desc.includes(query);
+        });
+    }
+
+    // 2) Pas de recherche → filtrage par catégories cochées
+    const activeCategories = Array.from(gallerySelectedCategories);
+    if (!activeCategories.length) {
+        // Aucune catégorie cochée → aucune collection affichée (comportement explicite)
+        return [];
+    }
+
+    return galleryAllCollections.filter((c) => {
+        const cat = getCollectionCategory(c);
+        return activeCategories.includes(cat);
+    });
+}
+
+function renderGalleryGrid() {
+    const galleryGrid = document.getElementById("gallery-grid");
+    if (!galleryGrid) {
+        console.error("Élément #gallery-grid introuvable");
+        return;
+    }
+
+    galleryGrid.innerHTML = "";
+
+    const collections = getFilteredGalleryCollections();
+
+    if (!collections.length) {
+        galleryGrid.innerHTML = "<p style='padding: 20px; text-align: center; color: #666;'>Aucune collection disponible</p>";
+        return;
+    }
+
+    collections.forEach((collection) => {
+        const card = document.createElement("div");
+        card.className = "gallery-card";
+        card.onclick = async () => {
+            saveDraftToLocal(); // sauve la collection affichée avant d'ouvrir une autre (brouillon par collection)
+            showCollectionLoadingOverlay();
+            try {
+                await loadCollection(collection.id, getDraftForCollection(collection.id) || undefined);
+                await waitForMockupOverlayImages();
+                showWorkspace();
+                refreshWorkspaceLayoutAfterVisible();
+            } finally {
+                hideCollectionLoadingOverlay();
+            }
+        };
+
+        const imageUrl = collection.collection_image || "";
+        const title = collection.nom || collection.id || "";
+
+        const imageDiv = document.createElement("div");
+        imageDiv.className = "gallery-card-image";
+        if (imageUrl) {
+            imageDiv.style.backgroundImage = `url('${imageUrl}')`;
+        }
+
+        const overlayDiv = document.createElement("div");
+        overlayDiv.className = "gallery-card-overlay";
+
+        const titleElement = document.createElement("h3");
+        titleElement.className = "gallery-card-title";
+        titleElement.textContent = title;
+
+        overlayDiv.appendChild(titleElement);
+        imageDiv.appendChild(overlayDiv);
+        card.appendChild(imageDiv);
+
+        galleryGrid.appendChild(card);
+    });
+}
+
+function setupGalleryFiltersUI() {
+    const searchInput = document.getElementById("gallery-search");
+    const catSignature = document.getElementById("filter-category-signature");
+    const catClassic = document.getElementById("filter-category-classic");
+    const catUnpublished = document.getElementById("filter-category-unpublished");
+
+    // Valeurs par défaut : toutes les catégories sont actives
+    gallerySelectedCategories = new Set(["signature", "classic", "unpublished"]);
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            gallerySearchQuery = searchInput.value || "";
+            renderGalleryGrid();
+        });
+    }
+
+    const bindCategory = (checkbox, key) => {
+        if (!checkbox) return;
+        checkbox.checked = true;
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+                gallerySelectedCategories.add(key);
+            } else {
+                gallerySelectedCategories.delete(key);
+            }
+            renderGalleryGrid();
+        });
+    };
+
+    bindCategory(catSignature, "signature");
+    bindCategory(catClassic, "classic");
+    bindCategory(catUnpublished, "unpublished");
+}
 let currentCollection = null;
 let currentColors = {}; // Maps zone id → Color ID (e.g. BL001). Use getHexForColorId() for display.
 /** Couleurs par défaut du SVG de la collection courante (1re recommandation « L'artiste vous recommande »). */
@@ -1766,56 +1899,11 @@ async function renderGallery() {
         }
         const collections = await res.json();
         const visibleCollections = filterCollectionsForGallery(collections);
-        const galleryGrid = document.getElementById("gallery-grid");
-        if (!galleryGrid) {
-            console.error("Élément #gallery-grid introuvable");
-            return;
-        }
-        galleryGrid.innerHTML = "";
-        if (visibleCollections.length === 0) {
-            galleryGrid.innerHTML = "<p style='padding: 20px; text-align: center; color: #666;'>Aucune collection disponible</p>";
-            return;
-        }
-        visibleCollections.forEach((collection) => {
-            const card = document.createElement("div");
-            card.className = "gallery-card";
-            card.onclick = async () => {
-                saveDraftToLocal(); // sauve la collection affichée avant d'ouvrir une autre (brouillon par collection)
-                showCollectionLoadingOverlay();
-                try {
-                    await loadCollection(collection.id, getDraftForCollection(collection.id) || undefined);
-                    await waitForMockupOverlayImages();
-                    showWorkspace();
-                    refreshWorkspaceLayoutAfterVisible();
-                } finally {
-                    hideCollectionLoadingOverlay();
-                }
-            };
+        galleryAllCollections = visibleCollections;
 
-            const imageUrl = collection.collection_image || "";
-            const title = collection.nom || collection.id || "";
-
-            // Créer l'élément image
-            const imageDiv = document.createElement("div");
-            imageDiv.className = "gallery-card-image";
-            if (imageUrl) {
-                imageDiv.style.backgroundImage = `url('${imageUrl}')`;
-            }
-
-            // Créer l'overlay avec le titre
-            const overlayDiv = document.createElement("div");
-            overlayDiv.className = "gallery-card-overlay";
-            
-            const titleElement = document.createElement("h3");
-            titleElement.className = "gallery-card-title";
-            titleElement.textContent = title;
-            
-            overlayDiv.appendChild(titleElement);
-            imageDiv.appendChild(overlayDiv);
-            card.appendChild(imageDiv);
-
-            galleryGrid.appendChild(card);
-        });
+        // Initialisation des filtres (UI + état interne), puis rendu de la grille.
+        setupGalleryFiltersUI();
+        renderGalleryGrid();
     } catch (e) {
         console.error("Erreur lors de la génération de la Gallery", e);
     }
