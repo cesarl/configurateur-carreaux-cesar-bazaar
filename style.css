@@ -1353,6 +1353,82 @@ h3 { font-size: 0.9rem; text-transform: uppercase; color: #888; margin-bottom: 1
     font-size: 0.95rem;
     box-sizing: border-box;
 }
+.sidebar-about-collection {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+.sidebar-about-collection-title,
+.sidebar-about-collection .sidebar-about-collection-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0 0 10px 0;
+}
+.sidebar-about-collection-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: #1a1a1a;
+}
+.sidebar-about-collection-desc {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+.sidebar-about-collection-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--primary, #1976d2);
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+.sidebar-about-collection-link:hover {
+    text-decoration: underline;
+}
+.sidebar-about-collection-distribution {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+    font-size: 0.8rem;
+    color: #555;
+}
+.sidebar-about-collection-dist-title {
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    font-size: 0.8rem;
+}
+.sidebar-about-collection-dist-text {
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+.sidebar-about-collection-minis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+.sidebar-about-collection-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 48px;
+}
+.sidebar-about-collection-mini img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 6px;
+    background: #fafafa;
+}
+.sidebar-about-collection-mini-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 2px;
+    color: #333;
+}
 .sidebar-recap {
     margin-top: auto;
     padding-top: 16px;

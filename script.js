@@ -1860,6 +1860,7 @@ async function loadCollection(id, urlColors = null) {
         if (variant) await loadSVG(variant, currentCollection.id);
     }
     renderInterface();
+    updateSidebarAboutCollection();
 
     if (urlColors && Object.keys(urlColors).length > 0) {
         const fallbackId = (nuancierData.find((c) => c.id === "BL001") || nuancierData[0])?.id || "BL001";
@@ -1873,6 +1874,7 @@ async function loadCollection(id, urlColors = null) {
         applyCurrentColors();
         renderActiveColorPills();
         updateSidebarRecap();
+        updateSidebarAboutCollection();
         updateDrawerRecap();
         updatePaletteHighlight();
         updateMoldingWarning();
@@ -2783,6 +2785,58 @@ function updateSidebarRecap() {
         });
         list.appendChild(rowWrap);
     });
+}
+
+/** Remplit le bloc « À propos de la collection » : titre, description, lien, répartition par carton (texte et/ou miniatures avec nombres). */
+function updateSidebarAboutCollection() {
+    const container = document.getElementById("sidebar-about-collection-content");
+    const block = document.getElementById("sidebar-about-collection");
+    if (!container || !block) return;
+    if (!currentCollection) {
+        container.innerHTML = "";
+        return;
+    }
+    const c = currentCollection;
+    const nom = (c.nom || c.id || "").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+    const description = (c.description || "").trim().replace(/</g, "&lt;").replace(/"/g, "&quot;");
+    const collectionUrl = (c.collection_url || "#").replace(/"/g, "&quot;");
+    const textDist = (c.carton_distribution_text || "").trim();
+    const byPattern = c.carton_distribution_by_pattern;
+    const hasByPattern = byPattern && typeof byPattern === "object" && Object.keys(byPattern).some((k) => byPattern[k] > 0);
+    const hasTextDist = textDist.length > 0;
+
+    let html = "";
+    html += `<p class="sidebar-about-collection-name">${nom}</p>`;
+    if (description) html += `<p class="sidebar-about-collection-desc">${description}</p>`;
+    if (collectionUrl && collectionUrl !== "#") {
+        html += `<a href="${collectionUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-about-collection-link">Voir la collection</a>`;
+    }
+
+    if (hasByPattern || hasTextDist) {
+        html += '<div class="sidebar-about-collection-distribution">';
+        html += '<div class="sidebar-about-collection-dist-title">Répartition des motifs par carton</div>';
+        if (hasTextDist) {
+            html += `<p class="sidebar-about-collection-dist-text">${textDist.replace(/</g, "&lt;").replace(/"/g, "&quot;")}</p>`;
+        }
+        if (hasByPattern) {
+            const collectionId = (c.id || "").trim().toUpperCase();
+            const patternKeys = Object.keys(byPattern).filter((k) => byPattern[k] > 0).sort((a, b) => {
+                const na = parseInt(a.replace(/\D/g, ""), 10) || 0;
+                const nb = parseInt(b.replace(/\D/g, ""), 10) || 0;
+                return na - nb;
+            });
+            html += '<div class="sidebar-about-collection-minis">';
+            patternKeys.forEach((varName) => {
+                const count = byPattern[varName];
+                const imgUrl = `${REPO_URL}assets/svg/${collectionId}-${varName}.svg`;
+                html += `<div class="sidebar-about-collection-mini"><img src="${imgUrl}" alt="${varName}" width="40" height="40"/><span class="sidebar-about-collection-mini-count">x${count}</span></div>`;
+            });
+            html += "</div>";
+        }
+        html += "</div>";
+    }
+
+    container.innerHTML = html;
 }
 
 /** Récapitulatif tiroir mobile : fixe en bas, pastille + nom/code par zone (compact) */

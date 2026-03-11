@@ -162,6 +162,18 @@
         .variation-thumb-item.error .label {
             color: var(--error);
         }
+        .carton-distribution-thumbnails .variation-thumb-item {
+            width: 64px;
+        }
+        .carton-distribution-thumbnails .variation-thumb-item input.carton-count {
+            width: 2.5rem;
+            margin-top: 4px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            text-align: center;
+        }
         .variation-thumbnails-error {
             font-size: 0.85rem;
             color: var(--error);
@@ -547,6 +559,15 @@
                         </div>
 
                         <div class="field form-row-full">
+                            <label for="field-carton-distribution-text">Répartition des motifs par carton</label>
+                            <label style="font-weight:normal; font-size:0.85rem;">Détails sur la répartition par carton (texte libre)</label>
+                            <textarea id="field-carton-distribution-text" placeholder="Ex. : 4× motif A, 4× motif B, 4× motif C, 4× motif D par carton."></textarea>
+                            <small>16 carreaux par carton. Optionnel.</small>
+                            <label style="font-weight:normal; font-size:0.85rem; margin-top:10px; display:block;">Nombre de chaque motif par carton</label>
+                            <div id="carton-distribution-thumbnails" class="variation-thumbnails carton-distribution-thumbnails" aria-live="polite"></div>
+                        </div>
+
+                        <div class="field form-row-full">
                             <label for="field-description">Description</label>
                             <textarea id="field-description" placeholder="Texte descriptif pour la collection."></textarea>
                         </div>
@@ -696,6 +717,8 @@
                 els.variationThumbnails = $("variation-thumbnails");
                 els.btnExtractColors = $("btn-extract-colors");
                 els.collectionColorsDisplay = $("collection-colors-display");
+                els.fieldCartonDistributionText = $("field-carton-distribution-text");
+                els.cartonDistributionThumbnails = $("carton-distribution-thumbnails");
                 els.fieldTags = $("field-tags");
                 els.fieldLayoutsOther = $("field-layouts-other");
                 els.layoutsCheckboxes = $("layouts-checkboxes");
@@ -816,6 +839,28 @@
                     copy.colors = copy.colors.map(function (cid) { return String(cid).trim().toUpperCase(); }).filter(Boolean);
                 }
 
+                copy.carton_distribution_text = typeof copy.carton_distribution_text === "string" ? copy.carton_distribution_text.trim() : "";
+                if (copy.carton_distribution_by_pattern != null && typeof copy.carton_distribution_by_pattern === "object" && !Array.isArray(copy.carton_distribution_by_pattern)) {
+                    var byPattern = {};
+                    Object.keys(copy.carton_distribution_by_pattern).forEach(function (key) {
+                        var k = String(key).trim().toUpperCase();
+                        if (!k) return;
+                        var v = copy.carton_distribution_by_pattern[key];
+                        var n = parseInt(v, 10);
+                        if (!isNaN(n) && n >= 0) byPattern[k] = n;
+                    });
+                    copy.carton_distribution_by_pattern = byPattern;
+                } else if (Array.isArray(copy.carton_distribution_by_pattern)) {
+                    var byPatternArr = {};
+                    copy.carton_distribution_by_pattern.forEach(function (n, i) {
+                        var num = parseInt(n, 10);
+                        if (!isNaN(num) && num >= 0) byPatternArr["VAR" + (i + 1)] = num;
+                    });
+                    copy.carton_distribution_by_pattern = byPatternArr;
+                } else {
+                    copy.carton_distribution_by_pattern = {};
+                }
+
                 return copy;
             }
 
@@ -837,6 +882,13 @@
                     if (Array.isArray(c.artist_recommendations) && c.artist_recommendations.length) item.artist_recommendations = c.artist_recommendations.slice();
                     if (c.active === false) item.active = false;
                     if (c.dev_only === true) item.dev_only = true;
+                    if (c.carton_distribution_text && String(c.carton_distribution_text).trim()) item.carton_distribution_text = String(c.carton_distribution_text).trim();
+                    var byPattern = c.carton_distribution_by_pattern;
+                    if (byPattern && typeof byPattern === "object" && Object.keys(byPattern).length > 0) {
+                        var hasNonZero = false;
+                        Object.keys(byPattern).forEach(function (k) { if (byPattern[k] > 0) hasNonZero = true; });
+                        if (hasNonZero) item.carton_distribution_by_pattern = byPattern;
+                    }
                     return item;
                 });
                 return JSON.stringify(out, null, 2);
@@ -1102,7 +1154,7 @@
                 var count = Math.max(1, parseInt(els.fieldVariations.value, 10) || 1);
                 container.innerHTML = "";
                 if (!id) {
-                    container.appendChild(document.createTextNode("Renseignez l’id de la collection pour prévisualiser les SVG."));
+                    container.appendChild(document.createTextNode("Renseignez l\u2019id de la collection pour pr\u00e9visualiser les SVG."));
                     return;
                 }
                 var baseUrl = getVariationThumbnailsBaseUrl();
@@ -1140,6 +1192,64 @@
                     };
                     wrap.appendChild(img);
                     wrap.appendChild(label);
+                    container.appendChild(wrap);
+                }
+            }
+
+            function renderCartonDistributionThumbnails() {
+                var container = els.cartonDistributionThumbnails;
+                if (!container) return;
+                var idx = state.selectedIndex;
+                if (idx == null || idx < 0 || idx >= state.collections.length) {
+                    container.innerHTML = "";
+                    return;
+                }
+                var c = state.collections[idx];
+                var id = (c.id || "").trim();
+                var count = typeof c.variations === "number" ? Math.max(1, c.variations) : 1;
+                var byPattern = c.carton_distribution_by_pattern;
+                if (typeof byPattern !== "object" || Array.isArray(byPattern)) byPattern = {};
+                container.innerHTML = "";
+                if (!id) {
+                    container.appendChild(document.createTextNode("Renseignez l\u2019id de la collection."));
+                    return;
+                }
+                var baseUrl = getVariationThumbnailsBaseUrl();
+                var safeId = id.toUpperCase();
+                for (var i = 1; i <= count; i++) {
+                    var varName = "VAR" + i;
+                    var url = baseUrl + safeId + "-" + varName + ".svg";
+                    var wrap = document.createElement("div");
+                    wrap.className = "variation-thumb-item";
+                    var label = document.createElement("span");
+                    label.className = "label";
+                    label.textContent = varName;
+                    var img = document.createElement("img");
+                    img.alt = safeId + "-" + varName + ".svg";
+                    img.src = url + "?t=" + Date.now();
+                    var input = document.createElement("input");
+                    input.type = "number";
+                    input.min = 0;
+                    input.max = 16;
+                    input.className = "carton-count";
+                    input.setAttribute("data-var", varName);
+                    input.value = byPattern[varName] !== undefined ? String(byPattern[varName]) : "";
+                    input.placeholder = "0";
+                    input.addEventListener("input", function () {
+                        var col = state.collections[state.selectedIndex];
+                        if (!col) return;
+                        if (!col.carton_distribution_by_pattern) col.carton_distribution_by_pattern = {};
+                        var v = this.getAttribute("data-var");
+                        var num = parseInt(this.value, 10);
+                        if (v) {
+                            if (isNaN(num) || num < 0) col.carton_distribution_by_pattern[v] = 0;
+                            else col.carton_distribution_by_pattern[v] = Math.min(16, num);
+                        }
+                        updateJsonPreview();
+                    });
+                    wrap.appendChild(img);
+                    wrap.appendChild(label);
+                    wrap.appendChild(input);
                     container.appendChild(wrap);
                 }
             }
@@ -1358,6 +1468,8 @@
                 els.fieldVariations.value = typeof c.variations === "number" ? String(c.variations) : (Array.isArray(c.variations) ? String(c.variations.length) : "1");
                 renderVariationThumbnails();
                 renderCollectionColorsDisplay();
+                els.fieldCartonDistributionText.value = c.carton_distribution_text || "";
+                renderCartonDistributionThumbnails();
                 els.fieldTags.value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
 
                 const allLayouts = getAllLayoutIdsFromData();
@@ -1536,12 +1648,26 @@
                 c.active = !!els.fieldActive.checked;
                 c.dev_only = !!els.fieldDevOnly.checked;
 
+                c.carton_distribution_text = (els.fieldCartonDistributionText && els.fieldCartonDistributionText.value || "").trim();
+                c.carton_distribution_by_pattern = {};
+                if (els.cartonDistributionThumbnails) {
+                    var cartonInputs = els.cartonDistributionThumbnails.querySelectorAll("input.carton-count");
+                    Array.prototype.forEach.call(cartonInputs, function (inp) {
+                        var v = inp.getAttribute("data-var");
+                        if (!v) return;
+                        var n = parseInt(inp.value, 10);
+                        if (!isNaN(n) && n >= 0) c.carton_distribution_by_pattern[v] = Math.min(16, n);
+                    });
+                }
+
                 setImagePreview(c.collection_image || "");
                 updateDefautLayoutSelect();
                 runValidation();
                 updateJsonPreview();
                 renderCollectionsList();
                 renderVariationThumbnails();
+                renderCartonDistributionThumbnails();
+
             }
 
             function runValidation() {
@@ -1665,7 +1791,9 @@
                     collection_url: "",
                     collection_image: "",
                     active: true,
-                    dev_only: false
+                    dev_only: false,
+                    carton_distribution_text: "",
+                    carton_distribution_by_pattern: {}
                 };
                 state.collections.push(base);
                 state.selectedIndex = state.collections.length - 1;
@@ -1750,6 +1878,7 @@
                 if (els.fieldNom) els.fieldNom.addEventListener("input", applyFormToCollection);
                 if (els.fieldTier) els.fieldTier.addEventListener("input", applyFormToCollection);
                 if (els.fieldDescription) els.fieldDescription.addEventListener("input", applyFormToCollection);
+                if (els.fieldCartonDistributionText) els.fieldCartonDistributionText.addEventListener("input", applyFormToCollection);
                 if (els.fieldVariations) els.fieldVariations.addEventListener("input", function () {
                     applyFormToCollection();
                 });
@@ -1763,7 +1892,7 @@
                     var id = (els.fieldId && els.fieldId.value || "").trim();
                     var count = Math.max(1, parseInt(els.fieldVariations.value, 10) || 1);
                     if (!id) {
-                        showToast("Renseignez l'id de la collection.");
+                        showToast("Renseignez l\u2019id de la collection.");
                         return;
                     }
                     var url = "admin-svg.html?collection=" + encodeURIComponent(id) + "&variations=" + encodeURIComponent(String(count));
@@ -1864,11 +1993,11 @@
                         state.showJsonPreview = !state.showJsonPreview;
                         if (state.showJsonPreview) {
                             els.jsonPreview.style.display = "block";
-                            els.btnTogglePreview.textContent = "Masquer l’aperçu JSON";
+                            els.btnTogglePreview.textContent = "Masquer l\u2019aper\u00e7u JSON";
                             updateJsonPreview();
                         } else {
                             els.jsonPreview.style.display = "none";
-                            els.btnTogglePreview.textContent = "Afficher un aperçu JSON";
+                            els.btnTogglePreview.textContent = "Afficher un aper\u00e7u JSON";
                         }
                     });
                 }
