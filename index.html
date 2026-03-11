@@ -85,18 +85,21 @@
                                     <circle cx="12" cy="7" r="1" fill="currentColor" />
                                 </svg>
                             </button>
-                            <button type="button" id="btn-cart" class="header-cart-trigger" aria-label="Ajouter au panier" title="Ajouter au panier">
-                                <svg class="header-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                                <span class="header-cart-label">Ajouter au panier</span>
-                            </button>
                             <div class="header-cart-qty" aria-label="Quantité">
                                 <button type="button" id="btn-cart-minus" class="header-cart-qty-btn" aria-label="Diminuer la quantité">−</button>
                                 <span id="cart-quantity" class="header-cart-qty-value">3</span>
                                 <button type="button" id="btn-cart-plus" class="header-cart-qty-btn" aria-label="Augmenter la quantité">+</button>
                             </div>
+                            <div id="cart-total-price" style="font-weight: bold; font-size: 0.85rem; color: #1d355f; margin-top: 2px; align-self: center;">
+                                Total HT : Calcul en cours...
+                            </div>
                             <button type="button" id="btn-save-pdf" class="header-save-trigger" aria-label="Télécharger le PDF" title="Sauvegarder (télécharger le PDF)">
                                 <svg class="header-save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                 <span class="header-save-label">Sauvegarder</span>
+                            </button>
+                            <button type="button" id="btn-cart" class="header-cart-trigger" aria-label="Ajouter au panier" title="Ajouter au panier">
+                                <svg class="header-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                                <span class="header-cart-label">Ajouter au panier</span>
                             </button>
                             <span id="dev-mode-header-label" class="dev-mode-header-label" style="display:none; margin-left:8px; font-size:0.85em; color:#b3261e;">
                                 Mode développeur actif : la commande est désactivée.

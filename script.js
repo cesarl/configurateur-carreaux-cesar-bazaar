@@ -107,6 +107,8 @@ const DRAFT_STORAGE_KEY = "cesar-bazaar-drafts";
 
 const CART_QUANTITY_MIN = 3;
 let cartQuantity = CART_QUANTITY_MIN;
+let cartonPrice = 119.00; // Prix TTC par défaut (€/carton)
+let totalPrice = 0;       // Total TTC (non affiché, conservé pour compat)
 
 // Surface approximative couverte par un carton
 // (16 carreaux de 20×20 cm → 0,64 m²)
@@ -1222,6 +1224,18 @@ function setupNavigation() {
     const CART_CANCEL_BTN_TEXT_DEFAULT = cartCancelBtn ? cartCancelBtn.textContent : "";
     let lastCartModalTrigger = null;
 
+    function updatePriceDisplay() {
+        const cartonPriceHt = cartonPrice / 1.2;
+        const totalPriceHt = cartQuantity * cartonPriceHt;
+        const priceDisplayEl = document.getElementById("cart-total-price");
+        if (priceDisplayEl) {
+            priceDisplayEl.textContent = "Total HT : " + totalPriceHt.toLocaleString("fr-FR", {
+                style: "currency",
+                currency: "EUR",
+            });
+        }
+    }
+
     function applyDevModeUiState() {
         const devWarning = document.getElementById("options-dev-warning");
         const devHeaderLabel = document.getElementById("dev-mode-header-label");
@@ -1254,6 +1268,7 @@ function setupNavigation() {
             cartQuantityEl.textContent = `${cartQuantity} ${unitLabel}`;
         }
         if (btnCartMinus) btnCartMinus.disabled = cartQuantity <= CART_QUANTITY_MIN;
+        updatePriceDisplay();
     }
 
     if (btnCartMinus) {
@@ -1271,6 +1286,18 @@ function setupNavigation() {
         });
     }
     updateCartQuantityDisplay();
+
+    window.addEventListener("message", function (event) {
+        if (event && event.data && event.data.type === "SET_CARTON_PRICE") {
+            const price = Number(event.data.price);
+            if (!isNaN(price) && price > 0) {
+                cartonPrice = price;
+                console.log("Prix du carton reçu du parent :", cartonPrice);
+                updatePriceDisplay();
+                updateSidebarAboutCollection();
+            }
+        }
+    });
     applyDevModeUiState();
 
     function openCartConfirmModal(mode = "cart", triggerEl) {
@@ -2804,10 +2831,18 @@ function updateSidebarAboutCollection() {
     const byPattern = c.carton_distribution_by_pattern;
     const hasByPattern = byPattern && typeof byPattern === "object" && Object.keys(byPattern).some((k) => byPattern[k] > 0);
     const hasTextDist = textDist.length > 0;
+    const hasCartonPrice = typeof cartonPrice === "number" && cartonPrice > 0;
 
     let html = "";
     html += `<p class="sidebar-about-collection-name">${nom}</p>`;
-    if (description) html += `<p class="sidebar-about-collection-desc">${description}</p>`;
+    if (description) {
+        html += `<p class="sidebar-about-collection-desc">${description}</p>`;
+    }
+    if (hasCartonPrice) {
+        const priceHt = cartonPrice / 1.2;
+        const priceStr = priceHt.toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+        html += `<p class="sidebar-about-collection-price" style="font-size: 0.9em; margin-top: 4px;">Vendu ${priceStr} HT le carton de 16 carreaux, minimum de commande ${CART_QUANTITY_MIN} cartons.</p>`;
+    }
     if (collectionUrl && collectionUrl !== "#") {
         html += `<a href="${collectionUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-about-collection-link">Voir la collection</a>`;
     }
