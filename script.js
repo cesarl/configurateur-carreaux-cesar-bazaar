@@ -13,17 +13,8 @@ const SIMULATOR_GATE_ENABLED = true;
 const SIMULATOR_GATE_STORAGE_KEY = "cesar-bazaar-simulator-unlocked";
 const SIMULATOR_GATE_HOLD_MS = 5000;
 
-// Indique si la gallery doit inclure les collections marquées comme dev_only ou inactives.
-// Activable via le paramètre d'URL ?dev=1 ou ?dev=true.
-const IS_DEV_GALLERY = (function () {
-    try {
-        const params = new URLSearchParams(window.location.search);
-        const flag = (params.get("dev") || "").toLowerCase();
-        return flag === "1" || flag === "true";
-    } catch (e) {
-        return false;
-    }
-})();
+// Clé de stockage du mode développeur (collections + couleurs de test).
+const DEV_MODE_STORAGE_KEY = "cesar-bazaar-dev-mode";
 
 /** Blocs de texte d'information pour le PDF : règles de commande sur mesure et simulateur. Sans emojis, titres en gras et liens. */
 function getPdfInfoBlocks() {
@@ -54,6 +45,115 @@ function getPdfInfoText() {
     return getPdfInfoBlocks().filter(b => b.type === "para" || b.type === "heading").map(b => b.text).join("\n\n");
 }
 
+function persistDevMode(enabled) {
+    try {
+        localStorage.setItem(DEV_MODE_STORAGE_KEY, enabled ? "1" : "0");
+    } catch (e) {}
+}
+
+function updateUrlDevParam(enabled) {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        if (enabled) {
+            params.set("dev", "true");
+        } else {
+            params.delete("dev");
+        }
+        const search = params.toString();
+        const newUrl = search ? `${window.location.pathname}?${search}${window.location.hash || ""}` : `${window.location.pathname}${window.location.hash || ""}`;
+        window.history.replaceState(window.history.state || {}, "", newUrl);
+    } catch (e) {
+        // En cas d'échec, on ne bloque pas le simulateur
+    }
+}
+
+function applyDevModeGlobalUiState() {
+    const app = document.getElementById("configurateur-app");
+    const badge = document.getElementById("dev-mode-badge");
+    const badgeCheckbox = badge ? badge.querySelector("input[type=\"checkbox\"]") : null;
+    if (app) {
+        app.classList.toggle("dev-mode-active", !!devMode);
+    }
+    if (badge) {
+        badge.style.display = devMode ? "flex" : "none";
+    }
+    if (badgeCheckbox) {
+        badgeCheckbox.checked = !!devMode;
+    }
+}
+
+function setDevMode(newValue, options) {
+    const opts = options || {};
+    const silent = !!opts.silent;
+    const skipUrlUpdate = !!opts.skipUrlUpdate;
+    newValue = !!newValue;
+    if (newValue === devMode && !opts.force) {
+        if (opts.forceUi) {
+            applyDevModeGlobalUiState();
+            document.dispatchEvent(new CustomEvent("devmode:changed", { detail: { devMode } }));
+        }
+        return;
+    }
+    const wasDev = devMode;
+    devMode = newValue;
+    isDevGallery = devMode;
+
+    persistDevMode(devMode);
+    if (!skipUrlUpdate) {
+        updateUrlDevParam(devMode);
+    }
+
+    if (Array.isArray(nuancierData) && typeof renderPalette === "function") {
+        renderPalette(getVisibleNuancier());
+    }
+    if (typeof updateSidebarRecap === "function") {
+        updateSidebarRecap();
+    }
+    if (typeof updateDrawerRecap === "function") {
+        updateDrawerRecap();
+    }
+    if (typeof applyDevModeUiState === "function") {
+        applyDevModeUiState();
+    }
+    applyDevModeGlobalUiState();
+
+    const viewGallery = document.getElementById("view-gallery");
+    const viewWorkspace = document.getElementById("view-workspace");
+    const isGalleryVisible = viewGallery && viewGallery.style.display !== "none" && (!viewWorkspace || viewWorkspace.style.display === "none");
+    if (isGalleryVisible && typeof renderGalleryGrid === "function") {
+        galleryAllCollections = filterCollectionsForGallery(galleryAllCollections || []);
+        renderGalleryGrid();
+    }
+
+    if (!silent && !wasDev && devMode) {
+        alert("Mode développeur activé : les couleurs de test s'affichent dans le nuancier, les collections non publiques sont visibles et le bouton de commande est désactivé.");
+    }
+
+    document.dispatchEvent(new CustomEvent("devmode:changed", { detail: { devMode } }));
+}
+
+function loadDevModeFromStorageAndUrl() {
+    let initial = false;
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const fromUrl = params.get("dev");
+        const storedRaw = localStorage.getItem(DEV_MODE_STORAGE_KEY);
+        if (fromUrl !== null) {
+            const flag = String(fromUrl).toLowerCase();
+            initial = flag === "1" || flag === "true";
+            persistDevMode(initial);
+        } else if (storedRaw != null) {
+            initial = storedRaw === "1" || storedRaw === "true";
+            if (initial) {
+                updateUrlDevParam(true);
+            }
+        }
+    } catch (e) {
+        initial = false;
+    }
+    setDevMode(initial, { silent: true, skipUrlUpdate: true, forceUi: true });
+}
+
 function isCollectionVisibleInGallery(collection, isDevMode) {
     if (!collection) return false;
     const active = collection.active !== false;         // par défaut, true
@@ -64,7 +164,7 @@ function isCollectionVisibleInGallery(collection, isDevMode) {
 
 function filterCollectionsForGallery(collections) {
     if (!Array.isArray(collections)) return [];
-    const isDev = IS_DEV_GALLERY;
+    const isDev = isDevGallery;
     return collections.filter((c) => isCollectionVisibleInGallery(c, isDev));
 }
 
@@ -218,6 +318,7 @@ let nuancierData = [];  // Catalogue complet (brut)
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
 let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
 let devMode = false;       // Mode développeur : inclut les couleurs "Test" et désactive la commande
+let isDevGallery = false;  // Contrôle l'inclusion des collections dev_only / inactives dans la gallery
 let currentLayout = "aleatoire"; // Layout de calepinage (id du calepinage ou "solo")
 let calepinagesData = []; // Calepinages chargés depuis data/calepinages.json
 let collectionsData = []; // Liste complète des collections (avec colors) pour récap "collections qui ont cette couleur"
@@ -412,7 +513,14 @@ function parseConfigFromUrl() {
 /** Met à jour l'URL avec la collection et les couleurs (Color ID par zone, ex. zone-1=BL001). */
 function applyConfigToUrl() {
     if (!currentCollection) return;
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(window.location.search);
+    // On repart de l'URL actuelle en supprimant les anciens paramètres de configuration
+    params.delete("collection");
+    Array.from(params.keys()).forEach((key) => {
+        if (key.startsWith("zone-")) {
+            params.delete(key);
+        }
+    });
     params.set("collection", currentCollection.id);
     Object.entries(currentColors).forEach(([zone, colorId]) => {
         if (colorId) params.set(zone, colorId);
@@ -1095,9 +1203,35 @@ function downloadExportSVG() {
 
 // Démarrage
 document.addEventListener("DOMContentLoaded", async () => {
+    const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
+    loadDevModeFromStorageAndUrl();
     setupSimulatorGate();
     loadCalepinageJoints();
-    const { collection, colors } = parseConfigFromUrl(); // Doit être avant loadData pour showAllColors
+    // Bandeau global de mode développeur
+    (function setupDevModeBanner() {
+        const existing = document.getElementById("dev-mode-badge");
+        if (existing) {
+            applyDevModeGlobalUiState();
+            return;
+        }
+        const badge = document.createElement("div");
+        badge.id = "dev-mode-badge";
+        badge.className = "dev-mode-badge";
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = devMode;
+        checkbox.addEventListener("change", () => {
+            setDevMode(checkbox.checked);
+        });
+        const text = document.createElement("span");
+        text.textContent = "Developer mode";
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        badge.appendChild(label);
+        document.body.appendChild(badge);
+        applyDevModeGlobalUiState();
+    })();
     document.getElementById("view-gallery").style.display = "flex";
     document.getElementById("view-workspace").style.display = "none";
     await loadData();
@@ -1178,6 +1312,16 @@ function getVisibleNuancier() {
     });
 }
 
+// Indique si une couleur est considérée comme « publique » dans le nuancier (hors mode développeur).
+function isColorPublic(colorId) {
+    if (!colorId) return false;
+    const idUpper = String(colorId).trim().toUpperCase();
+    const color = nuancierData.find((c) => String(c.id || "").trim().toUpperCase() === idUpper);
+    if (!color) return false;
+    // Une couleur est non publique si son flag publique est explicitement à false
+    return color.publique !== false;
+}
+
 /** Retourne les collections qui contiennent la couleur donnée (Color ID). Utilise collectionsData.colors. */
 function getCollectionsForColor(colorId) {
     if (!colorId || !Array.isArray(collectionsData)) return [];
@@ -1226,8 +1370,11 @@ async function loadData() {
                         ? (c.Hex ? "#" + String(c.Hex).replace(/^#/, "") : "")
                         : (c.hex || "")) || "";
                 const etatRaw = hasNewFormat && c.Etat ? String(c.Etat).toLowerCase().trim() : (c.etat || "").toLowerCase().trim();
+                // Interprétation des couleurs "dev only" :
+                // - Nouveau format : seules les couleurs avec Etat === "test" sont non publiques (dev only).
+                // - Ancien format : on respecte le champ explicite c.publique (false = non publique).
                 const publique = hasNewFormat
-                    ? (etatRaw ? etatRaw === "validé" : true)
+                    ? (etatRaw === "test" ? false : true)
                     : (c.publique !== false);
                 return {
                     id,
@@ -1624,8 +1771,6 @@ function openOptionsDrawer() {
         if (slider) slider.value = String(calepinageZoom);
         const jointsCheckbox = document.getElementById("options-show-joints");
         if (jointsCheckbox) jointsCheckbox.checked = showJoints;
-        const devCheckbox = document.getElementById("options-dev-mode");
-        if (devCheckbox) devCheckbox.checked = devMode;
         updateOptionsDrawerZoomVisibility();
     }
 }
@@ -1658,8 +1803,6 @@ function setupOptionsDrawer() {
     const overlay = document.getElementById("options-drawer-overlay");
     const slider = document.getElementById("options-zoom-slider");
     const jointsCheckbox = document.getElementById("options-show-joints");
-    const devCheckbox = document.getElementById("options-dev-mode");
-    const devWarning = document.getElementById("options-dev-warning");
     if (trigger) trigger.addEventListener("click", openOptionsDrawer);
     if (overlay) overlay.addEventListener("click", closeOptionsDrawer);
     if (slider) {
@@ -1677,27 +1820,6 @@ function setupOptionsDrawer() {
             showJoints = jointsCheckbox.checked;
             saveCalepinageJoints();
             applyShowJointsToGrid();
-        });
-    }
-    if (devCheckbox) {
-        devCheckbox.checked = devMode;
-        devCheckbox.addEventListener("change", () => {
-            const newValue = devCheckbox.checked;
-            const wasFalse = !devMode && newValue;
-            devMode = newValue;
-            if (devWarning) {
-                devWarning.style.display = devMode ? "" : "none";
-            }
-            if (wasFalse && devMode) {
-                alert("Mode développeur activé : les couleurs 'Test' s'affichent dans le nuancier et le bouton de commande est désactivée.");
-            }
-            // Met à jour nuancier + récap + header (bouton panier / label)
-            renderPalette(getVisibleNuancier());
-        updateSidebarRecap();
-        updateDrawerRecap();
-            // Le header est géré par setupNavigation -> on force la mise à jour de son état devMode
-            // via un événement personnalisé pour éviter le couplage direct.
-            document.dispatchEvent(new CustomEvent("devmode:changed", { detail: { devMode } }));
         });
     }
 }
@@ -1918,7 +2040,7 @@ async function loadCollection(id, urlColors = null) {
     let found = collections.find(c => c.id.toLowerCase() === String(id).toLowerCase()) || collections.find(c => c.id === id);
 
     // 2. Si non trouvée OU pas visible dans la gallery actuelle, on bascule sur une collection visible
-    if (!found || !isCollectionVisibleInGallery(found, IS_DEV_GALLERY)) {
+    if (!found || !isCollectionVisibleInGallery(found, isDevGallery)) {
         if (!visibleCollections.length) {
             alert("Aucune collection disponible");
             showGallery();
@@ -2997,8 +3119,6 @@ function updateArtistRecommendations() {
     const recommendations = currentCollection && Array.isArray(currentCollection.artist_recommendations)
         ? currentCollection.artist_recommendations.filter((url) => url && String(url).trim())
         : [];
-    const hasDefaultStrip = !!defaultColors;
-    const hasAnyRecommendations = hasDefaultStrip || recommendations.length > 0;
 
     function addStrip(container, colorsObj, ariaLabel) {
         const strip = document.createElement("button");
@@ -3016,27 +3136,44 @@ function updateArtistRecommendations() {
         container.appendChild(strip);
     }
 
+    function isCombinationPublic(colorsObj) {
+        const ids = Object.values(colorsObj).filter(Boolean);
+        if (!ids.length) return false;
+        // Si le nuancier n'est pas encore chargé, on ne filtre pas les combinaisons
+        if (!Array.isArray(nuancierData) || !nuancierData.length) return true;
+        return ids.every((cid) => isColorPublic(cid));
+    }
+
     function fillList(container) {
-        if (!container) return;
+        if (!container) return 0;
         container.innerHTML = "";
+        let added = 0;
+        const showAllVariations = !!devMode;
         if (defaultColors) {
-            addStrip(container, defaultColors, "Appliquer les couleurs par défaut du motif");
+            if (showAllVariations || isCombinationPublic(defaultColors)) {
+                addStrip(container, defaultColors, "Appliquer les couleurs par défaut du motif");
+                added++;
+            }
         }
         recommendations.forEach((url) => {
             const colors = parseRecommendationUrl(url);
             if (Object.keys(colors).length === 0) return;
+            if (!showAllVariations && !isCombinationPublic(colors)) return;
             addStrip(container, colors, "Appliquer cette combinaison de couleurs");
+            added++;
         });
+        return added;
     }
 
-    fillList(drawerList);
-    fillList(sidebarList);
+    const addedDrawer = fillList(drawerList);
+    const addedSidebar = fillList(sidebarList);
+    const hasAnyDisplayed = (addedDrawer + addedSidebar) > 0;
     if (sidebarWrap) {
-        sidebarWrap.setAttribute("aria-hidden", hasAnyRecommendations ? "false" : "true");
+        sidebarWrap.setAttribute("aria-hidden", hasAnyDisplayed ? "false" : "true");
     }
     const drawerSection = document.getElementById("palette-drawer-recommendations");
     if (drawerSection) {
-        drawerSection.style.display = hasAnyRecommendations ? "" : "none";
+        drawerSection.style.display = hasAnyDisplayed ? "" : "none";
     }
 }
 
