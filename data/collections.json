@@ -23,7 +23,13 @@
       "BW002"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/medina-terracotta-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469053011-AJEAUMTICOR1XYB903FF/medina-par-bleu-cobalt-carreaux-de-ciment-708365.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469053011-AJEAUMTICOR1XYB903FF/medina-par-bleu-cobalt-carreaux-de-ciment-708365.jpg?format=500w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 4,
+      "VAR2": 4,
+      "VAR3": 4,
+      "VAR4": 4
+    }
   },
   {
     "id": "Dunes",
@@ -47,7 +53,14 @@
       "BL017"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/dune-bleu-cobalt",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469137901-ILWN4HWAK9CXY98JCHPI/dune-par-bleu-cobalt-carreaux-de-ciment-435783.gif"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720469137901-ILWN4HWAK9CXY98JCHPI/dune-par-bleu-cobalt-carreaux-de-ciment-435783.gif",
+    "carton_distribution_text": "4 motifs de chaque par carton",
+    "carton_distribution_by_pattern": {
+      "VAR1": 4,
+      "VAR2": 4,
+      "VAR3": 4,
+      "VAR4": 4
+    }
   },
   {
     "id": "fleurs-roda",
