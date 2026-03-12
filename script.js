@@ -139,6 +139,7 @@ function loadDevModeFromStorageAndUrl() {
         const fromUrl = params.get("dev");
         const storedRaw = localStorage.getItem(DEV_MODE_STORAGE_KEY);
         if (fromUrl !== null) {
+            console.log("fromUrl", fromUrl);
             const flag = String(fromUrl).toLowerCase();
             initial = flag === "1" || flag === "true";
             persistDevMode(initial);
@@ -364,6 +365,12 @@ function markSimulatorGateUnlocked() {
 
 function setupSimulatorGate() {
     if (!SIMULATOR_GATE_ENABLED) return;
+    // Si le mode développeur est actif, on ne montre jamais le gate.
+    // On marque également le gate comme « déverrouillé » pour cette session.
+    if (devMode) {
+        markSimulatorGateUnlocked();
+        return;
+    }
     const gate = document.getElementById("simulator-gate");
     const app = document.getElementById("configurateur-app");
     if (!gate || !app) return;
