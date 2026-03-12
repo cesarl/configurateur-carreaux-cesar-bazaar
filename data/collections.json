@@ -582,11 +582,12 @@
       "aleatoire",
       "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "fresque_bordure",
+      "iflip_4"
     ],
-    "colors": []
+    "colors": [],
+    "dev_only": true
   },
   {
     "id": "brocoli",
