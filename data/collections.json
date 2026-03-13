@@ -5,7 +5,6 @@
     "description": "Best-seller de la maison.",
     "tier": "standard_20x20",
     "variations": 4,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -13,6 +12,7 @@
       "damier_4_random",
       "iflip_4"
     ],
+    "category": "signature",
     "colors": [
       "OR008",
       "WT001",
@@ -34,7 +34,6 @@
     "description": "Le ver des sables !",
     "tier": "standard_20x20",
     "variations": 4,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -42,6 +41,7 @@
       "damier_4_random",
       "iflip_4"
     ],
+    "category": "signature",
     "colors": [
       "WT001",
       "BL017"
@@ -62,12 +62,12 @@
     "description": "Vive les fleurs.",
     "tier": "standard_20x20",
     "variations": 16,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
       "aleatoire_no_rotation"
     ],
+    "category": "signature",
     "colors": [
       "YL008",
       "RD001",
@@ -86,11 +86,11 @@
     "description": "Une nouvelle pepitte.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
     ],
+    "category": "signature",
     "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/sunrise-laurie-lecou-tournesol",
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/82fabab0-fc80-4feb-a456-8cb5851c4f37/CESARBAZAAR-FALL25-075-ezgif.com-resize.webp?format=500w"
@@ -101,7 +101,6 @@
     "description": "Carreaux de ciment dessiné par Alex Roda à Madrid.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "damier_2",
     "layouts": [
       "aleatoire",
@@ -109,6 +108,7 @@
       "damier_2_random",
       "iflip_2"
     ],
+    "category": "signature",
     "colors": [
       "WT000",
       "PP002",
@@ -129,12 +129,12 @@
     "description": "Collection rétro qui rend hommage aux années 60.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier",
       "iflip_1"
     ],
+    "category": "signature",
     "colors": [
       "YL001",
       "BK008",
@@ -154,7 +154,6 @@
     "description": "Ha la belle époque où j'avais le temps de dessiner 🥰",
     "tier": "standard_20x20",
     "variations": 10,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -163,6 +162,7 @@
       "damier_10_random",
       "iflip_10"
     ],
+    "category": "signature",
     "colors": [
       "WT000",
       "GN003",
@@ -180,11 +180,11 @@
     "description": "Au clair de la lune.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "Miroir_2",
     "layouts": [
       "Miroir_2"
     ],
+    "category": "signature",
     "colors": [
       "WT000",
       "BL028",
@@ -205,7 +205,6 @@
     "description": "Des lianes qui se déploient chez vous.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "Liane_1",
     "layouts": [
       "Liane_1",
@@ -216,6 +215,7 @@
       "iflip_1",
       "iflip_2"
     ],
+    "category": "signature",
     "colors": [
       "GN002",
       "GN005",
@@ -234,7 +234,6 @@
     "description": "Les carreaux en s’assemblant, se répondent, s’entrelacent, créant de nouvelles formes géométriques, de nouvelles courbes.",
     "tier": "standard_20x20",
     "variations": 4,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -242,6 +241,7 @@
       "damier_4_random",
       "iflip_4"
     ],
+    "category": "signature",
     "colors": [
       "YL003",
       "OR011",
@@ -264,10 +264,6 @@
     "description": "La douce odeur du safran.",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "damier_4",
     "layouts": [
       "aleatoire",
@@ -298,7 +294,6 @@
     "description": "Collection Continuum.",
     "tier": "standard_20x20",
     "variations": 3,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -308,6 +303,7 @@
       "fresque_bordure",
       "iflip_3"
     ],
+    "category": "signature",
     "colors": [
       "BL026",
       "WT000",
@@ -324,7 +320,6 @@
     "description": "Collection Intérieur.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -332,6 +327,7 @@
       "damier_2",
       "iflip_2"
     ],
+    "category": "signature",
     "colors": [
       "RD009",
       "WT000"
@@ -349,7 +345,6 @@
     "description": "Collection Oranger.",
     "tier": "standard_20x20",
     "variations": 3,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -358,6 +353,7 @@
       "damier_3_random",
       "iflip_3"
     ],
+    "category": "signature",
     "colors": [
       "GN002",
       "BL006",
@@ -373,10 +369,6 @@
     "description": "Collection Papyrus.",
     "tier": "standard_20x20",
     "variations": 3,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -402,11 +394,11 @@
     "description": "Collection Serpent MB.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
     ],
+    "category": "signature",
     "colors": [
       "RD009",
       "PP015"
@@ -423,11 +415,11 @@
     "description": "Collection Opale.",
     "tier": "standard_20x20",
     "variations": 6,
-    "category": "signature",
     "defaut_layout": "opale",
     "layouts": [
       "opale"
     ],
+    "category": "signature",
     "colors": [
       "WT001",
       "BW002",
@@ -451,11 +443,11 @@
     "description": "Collection Onda.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
     ],
+    "category": "signature",
     "colors": [
       "BL019",
       "WT000"
@@ -469,11 +461,11 @@
     "description": "Collection Cala Morell.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
     ],
+    "category": "signature",
     "colors": [
       "BL014",
       "RD011",
@@ -488,10 +480,6 @@
     "description": "Collection Slip.",
     "tier": "standard_20x20",
     "variations": 3,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -517,10 +505,6 @@
     "description": "Collection Envolée.",
     "tier": "standard_20x20",
     "variations": 3,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -540,7 +524,6 @@
     "description": "Collection Quique.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -550,6 +533,7 @@
       "fresque_bordure",
       "iflip_4"
     ],
+    "category": "signature",
     "colors": [],
     "dev_only": true
   },
@@ -559,10 +543,6 @@
     "description": "Collection Brocoli.",
     "tier": "standard_20x20",
     "variations": 6,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -585,10 +565,6 @@
     "description": "Collection Finis Terrae Angolo.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -608,10 +584,6 @@
     "description": "Collection Finis Terrae Linea.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -631,10 +603,6 @@
     "description": "Collection Finis Terrae Punto.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -654,7 +622,6 @@
     "description": "Collection Palm Beach.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -664,6 +631,7 @@
       "fresque_bordure",
       "iflip_4"
     ],
+    "category": "signature",
     "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/palm-beach-rose-orange",
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720369182334-GG0BA3Q0672L99AOI08T/PalmBeach1.jpg",
@@ -678,7 +646,6 @@
     "description": "Collection Secret Garden.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -686,6 +653,7 @@
       "damier_2_random",
       "iflip_2"
     ],
+    "category": "signature",
     "colors": [
       "RD009",
       "GN019",
@@ -704,7 +672,6 @@
     "description": "Collection Tiznit",
     "tier": "standard_20x20",
     "variations": 4,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -712,6 +679,7 @@
       "damier_4_random",
       "ligne_alternee_4"
     ],
+    "category": "signature",
     "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/tiznit-ze-monsta-design",
     "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720472819305-TS51ZFA0WS091Q05KGZE/tiznit-par-audrey-abbal-duteille-carreaux-de-ciment-554875.jpg",
@@ -728,7 +696,6 @@
     "description": "Collection Tulipe.",
     "tier": "standard_20x20",
     "variations": 2,
-    "category": "signature",
     "defaut_layout": "damier_2",
     "layouts": [
       "Miroir_2",
@@ -737,6 +704,7 @@
       "damier_2_motifs",
       "damier_2_random"
     ],
+    "category": "signature",
     "colors": [
       "OR008",
       "OR002",
@@ -756,7 +724,6 @@
     "description": "Collection Fruits.",
     "tier": "standard_20x20",
     "variations": 8,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -765,6 +732,7 @@
       "damier_8_random",
       "iflip_8"
     ],
+    "category": "new",
     "colors": [
       "YL001",
       "YL008",
@@ -792,7 +760,6 @@
     "description": "Collection Ciel.",
     "tier": "standard_20x20",
     "variations": 4,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -802,6 +769,7 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "category": "signature",
     "colors": []
   },
   {
@@ -810,7 +778,6 @@
     "description": "Collection Nature adorée.",
     "tier": "standard_20x20",
     "variations": 4,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -820,6 +787,7 @@
       "damier_4_random",
       "fresque_bordure"
     ],
+    "category": "signature",
     "colors": []
   },
   {
@@ -828,7 +796,6 @@
     "description": "Collection Fleur Wodarz.",
     "tier": "standard_20x20",
     "variations": 1,
-    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -838,6 +805,7 @@
       "fresque_bordure",
       "iflip_4"
     ],
+    "category": "signature",
     "colors": [
       "OR011",
       "YL005",
