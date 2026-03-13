@@ -315,7 +315,8 @@ function updateUndoButtonState() {
     btnReset.style.display = hasUndo ? "" : "none";
 }
 let activeZone = null;  // La zone qu'on est en train de modifier
-let nuancierData = [];  // Catalogue complet (brut)
+let nuancierData = [];  // Catalogue complet (brut, format normalisé interne)
+let rawNuancierSource = null; // Copie brute du JSON nuancier pour export complet
 let colorNameMap = {};  // Mapping de noms CSS -> hex (colorMatch.json)
 let showAllColors = false; // true si ?nuancier=complet ou ?allColors=1
 let devMode = false;       // Mode développeur : inclut les couleurs "Test" et désactive la commande
@@ -1359,6 +1360,7 @@ async function loadData() {
     try {
         const res = await fetch(`${REPO_URL}data/nuancier.json`);
         const rawNuancier = await res.json();
+        rawNuancierSource = Array.isArray(rawNuancier) ? rawNuancier : null;
         // Adaptation au nouveau format du JSON couleurs (Color_ID, "Nom couleur", Hex, RAL, Etat)
         // + compatibilité avec l'ancien format (id, nom, hex, ral, pantone, publique, famille)
         nuancierData = Array.isArray(rawNuancier)
@@ -2830,6 +2832,12 @@ function renderActiveColorPills() {
         pill.style.backgroundColor = getHexForColorId(currentColors[zoneId]);
         pill.setAttribute("aria-label", `Zone ${zoneId} : choisir couleur`);
         pill.onclick = () => selectActiveZone(zoneId);
+        // En mode développeur : clic droit sur une pastille = éditeur de couleur avancé
+        pill.addEventListener("contextmenu", (e) => {
+            if (!devMode) return;
+            e.preventDefault();
+            openDevColorEditorForZone(zoneId);
+        });
         row.appendChild(pill);
     });
 }
@@ -3341,6 +3349,272 @@ function applyColorToActiveZone(colorId) {
     updateSidebarRecap();
     updateDrawerRecap();
     updateMoldingWarning();
+}
+
+// --- Outils développeur : éditeur de couleur + export complet du nuancier ---
+
+function buildUpdatedRawNuancier() {
+    // Si on a la source brute, on la clone et on applique les hex depuis nuancierData
+    if (Array.isArray(rawNuancierSource) && rawNuancierSource.length) {
+        const mapById = {};
+        nuancierData.forEach((c) => {
+            const id = (c.id || "").trim();
+            if (!id) return;
+            mapById[id] = c;
+        });
+        const cloned = rawNuancierSource.map((item) => {
+            const hasNewFormat =
+                typeof item.Color_ID !== "undefined" ||
+                typeof item["Nom couleur"] !== "undefined" ||
+                typeof item.Hex !== "undefined" ||
+                typeof item.RAL !== "undefined";
+            const id = hasNewFormat ? (item.Color_ID || "") : (item.id || "");
+            const match = id && mapById[id] ? mapById[id] : null;
+            if (!match) return item;
+            const next = { ...item };
+            const cleanHex = normalizeHex(match.hex || "").replace(/^#/, "");
+            if (hasNewFormat) {
+                next.Hex = cleanHex;
+            } else {
+                next.hex = cleanHex;
+            }
+            return next;
+        });
+        return cloned;
+    }
+    // Fallback : on reconstruit uniquement avec le nouveau format
+    return nuancierData.map((c) => ({
+        Color_ID: c.id || "",
+        "Nom couleur": c.nom || "",
+        Etat: c.etat || "",
+        RAL: c.ral || "",
+        Hex: normalizeHex(c.hex || "").replace(/^#/, "")
+    }));
+}
+
+async function copyFullNuancierJsonToClipboard() {
+    try {
+        const updated = buildUpdatedRawNuancier();
+        const json = JSON.stringify(updated, null, 2);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(json);
+        } else {
+            // Fallback : fenêtre avec le JSON sélectionnable
+            const win = window.open("", "_blank");
+            if (win) {
+                win.document.write("<pre>" + json.replace(/</g, "&lt;") + "</pre>");
+                win.document.close();
+            } else {
+                alert("Impossible d'accéder au presse‑papiers. Un nouvel onglet avec le JSON a été ouvert (si bloqué, vérifiez votre navigateur).");
+            }
+        }
+    } catch (e) {
+        console.error("Erreur lors de la copie du nuancier complet", e);
+        alert("Erreur lors de la copie du nuancier complet. Voir la console pour le détail.");
+    }
+}
+
+function openDevColorEditorForZone(zoneId) {
+    if (!zoneId || !currentColors[zoneId]) return;
+    const colorId = currentColors[zoneId];
+    const colorInfo = nuancierData.find((c) => (c.id || "").toUpperCase() === String(colorId).toUpperCase());
+    const currentHex = getHexForColorId(colorId);
+
+    // Création overlay + boîte
+    let overlay = document.getElementById("dev-color-editor-overlay");
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "dev-color-editor-overlay";
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.background = "transparent";
+        overlay.style.zIndex = "99999";
+        overlay.style.display = "flex";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+            }
+        });
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = "";
+
+    const box = document.createElement("div");
+    box.style.background = "#ffffff";
+    box.style.padding = "16px 20px";
+    box.style.borderRadius = "8px";
+    box.style.boxShadow = "0 10px 30px rgba(0,0,0,0.25)";
+    box.style.maxWidth = "360px";
+    box.style.width = "100%";
+    box.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    box.style.fontSize = "14px";
+
+    const title = document.createElement("h2");
+    title.textContent = "Éditeur de couleur (dev)";
+    title.style.margin = "0 0 8px 0";
+    title.style.fontSize = "16px";
+    title.style.fontWeight = "600";
+
+    const subtitle = document.createElement("div");
+    subtitle.style.marginBottom = "10px";
+    subtitle.innerHTML =
+        `Zone <strong>${zoneId}</strong> · Code <strong>${colorId}</strong>` +
+        (colorInfo && colorInfo.nom ? ` · ${colorInfo.nom}` : "") +
+        (colorInfo && colorInfo.ral ? ` · ${colorInfo.ral}` : "");
+
+    const swatch = document.createElement("div");
+    swatch.style.width = "100%";
+    swatch.style.height = "40px";
+    swatch.style.borderRadius = "6px";
+    swatch.style.marginBottom = "10px";
+    swatch.style.border = "1px solid #ddd";
+    swatch.style.background = currentHex;
+
+    const controlsRow = document.createElement("div");
+    controlsRow.style.display = "flex";
+    controlsRow.style.gap = "8px";
+    controlsRow.style.alignItems = "center";
+    controlsRow.style.marginBottom = "8px";
+
+    const colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.value = normalizeHex(currentHex);
+    colorInput.style.width = "44px";
+    colorInput.style.height = "32px";
+    colorInput.style.padding = "0";
+    colorInput.style.border = "none";
+    colorInput.style.background = "none";
+
+    const hexInput = document.createElement("input");
+    hexInput.type = "text";
+    hexInput.value = normalizeHex(currentHex);
+    hexInput.style.flex = "1";
+    hexInput.style.padding = "6px 8px";
+    hexInput.style.borderRadius = "4px";
+    hexInput.style.border = "1px solid #ccc";
+    hexInput.placeholder = "#rrggbb";
+
+    controlsRow.appendChild(colorInput);
+    controlsRow.appendChild(hexInput);
+
+    const infoText = document.createElement("p");
+    infoText.style.margin = "0 0 10px 0";
+    infoText.style.fontSize = "12px";
+    infoText.style.color = "#555";
+    infoText.innerHTML = "Les modifications sont locales à cette page. Le bouton « Copier nuancier.json » mettra à jour le JSON complet dans votre presse‑papiers.";
+
+    const buttonsRow = document.createElement("div");
+    buttonsRow.style.display = "flex";
+    buttonsRow.style.justifyContent = "space-between";
+    buttonsRow.style.gap = "8px";
+    buttonsRow.style.marginTop = "4px";
+
+    const leftButtons = document.createElement("div");
+    leftButtons.style.display = "flex";
+    leftButtons.style.gap = "8px";
+
+    const btnApply = document.createElement("button");
+    btnApply.type = "button";
+    btnApply.textContent = "Appliquer à la zone";
+    btnApply.style.padding = "6px 10px";
+    btnApply.style.borderRadius = "4px";
+    btnApply.style.border = "none";
+    btnApply.style.background = "#1d355f";
+    btnApply.style.color = "#fff";
+    btnApply.style.cursor = "pointer";
+
+    const btnClose = document.createElement("button");
+    btnClose.type = "button";
+    btnClose.textContent = "Fermer";
+    btnClose.style.padding = "6px 10px";
+    btnClose.style.borderRadius = "4px";
+    btnClose.style.border = "1px solid #ccc";
+    btnClose.style.background = "#fff";
+    btnClose.style.cursor = "pointer";
+
+    leftButtons.appendChild(btnApply);
+    leftButtons.appendChild(btnClose);
+
+    const btnCopyAll = document.createElement("button");
+    btnCopyAll.type = "button";
+    btnCopyAll.textContent = "Copier nuancier.json";
+    btnCopyAll.style.padding = "6px 10px";
+    btnCopyAll.style.borderRadius = "4px";
+    btnCopyAll.style.border = "1px solid #b3261e";
+    btnCopyAll.style.background = "#fff5f4";
+    btnCopyAll.style.color = "#b3261e";
+    btnCopyAll.style.cursor = "pointer";
+    btnCopyAll.title = "Copier le nuancier complet mis à jour dans le presse‑papiers";
+
+    buttonsRow.appendChild(leftButtons);
+    buttonsRow.appendChild(btnCopyAll);
+
+    box.appendChild(title);
+    box.appendChild(subtitle);
+    box.appendChild(swatch);
+    box.appendChild(controlsRow);
+    box.appendChild(infoText);
+    box.appendChild(buttonsRow);
+    overlay.appendChild(box);
+
+    function applyLiveHex(newHex) {
+        const norm = normalizeHex(newHex);
+        swatch.style.background = norm;
+        colorInput.value = norm;
+        hexInput.value = norm;
+        // Met à jour l'entrée nuancier correspondante
+        if (colorInfo) {
+            colorInfo.hex = norm;
+        }
+        // Applique visuellement à la zone sans pousser d'undo supplémentaire
+        document.documentElement.style.setProperty(`--color-${zoneId}`, norm);
+        // Les recaps utilisent getHexForColorId → on met à jour nuancierData, puis on refresh
+        updateSidebarRecap();
+        updateDrawerRecap();
+        renderActiveColorPills();
+        updatePaletteHighlight();
+    }
+
+    colorInput.addEventListener("input", () => {
+        applyLiveHex(colorInput.value);
+    });
+
+    hexInput.addEventListener("change", () => {
+        let v = hexInput.value.trim();
+        if (!v) return;
+        if (!v.startsWith("#")) v = "#" + v;
+        if (!/^#[0-9a-fA-F]{6}$/.test(normalizeHex(v))) {
+            alert("Hex invalide. Utilisez le format #rrggbb.");
+            hexInput.value = normalizeHex(currentHex);
+            return;
+        }
+        applyLiveHex(v);
+    });
+
+    btnApply.addEventListener("click", () => {
+        // On repasse par la fonction canonique pour créer une entrée d'historique
+        applyColorToActiveZone(colorId);
+        if (overlay.parentNode) {
+            document.body.removeChild(overlay);
+        }
+    });
+
+    btnClose.addEventListener("click", () => {
+        if (overlay.parentNode) {
+            document.body.removeChild(overlay);
+        }
+    });
+
+    btnCopyAll.addEventListener("click", async () => {
+        await copyFullNuancierJsonToClipboard();
+        if (overlay.parentNode) {
+            document.body.removeChild(overlay);
+        }
+    });
+
+    overlay.style.display = "flex";
 }
 
 function applyCurrentColors() {
