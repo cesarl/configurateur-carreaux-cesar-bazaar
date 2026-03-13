@@ -1999,9 +1999,51 @@ function showGallery() {
     document.getElementById("view-workspace").style.display = "none";
 }
 
+function maybeShowWorkspaceOnboarding() {
+    let alreadyShown = false;
+    try {
+        if (window.localStorage && localStorage.getItem("cb-workspace-onboarding-3d-shown") === "1") {
+            alreadyShown = true;
+        }
+    } catch (e) {
+        // Si localStorage pose problème, on ne bloque pas l'app.
+    }
+    if (alreadyShown) return;
+
+    const el = document.getElementById("workspace-onboarding");
+    if (!el) return;
+    const closeBtn = document.getElementById("workspace-onboarding-dismiss");
+
+    const hide = () => {
+        el.style.display = "none";
+        try {
+            if (window.localStorage) {
+                localStorage.setItem("cb-workspace-onboarding-3d-shown", "1");
+            }
+        } catch (e) { }
+    };
+
+    el.style.display = "block";
+    el.setAttribute("aria-hidden", "false");
+
+    if (closeBtn && !closeBtn._cbOnboardingBound) {
+        closeBtn._cbOnboardingBound = true;
+        closeBtn.addEventListener("click", hide);
+    }
+
+    // Sécurité : auto-disparition au bout de quelques secondes si l'utilisateur ne clique pas.
+    setTimeout(() => {
+        if (el.style.display !== "none") {
+            hide();
+        }
+    }, 12000);
+}
+
 function showWorkspace() {
     document.getElementById("view-gallery").style.display = "none";
     document.getElementById("view-workspace").style.display = "flex";
+    // Onboarding léger : petite bulle qui explique la vue 3D, affichée une seule fois.
+    maybeShowWorkspaceOnboarding();
 }
 
 function showCollectionLoadingOverlay() {
