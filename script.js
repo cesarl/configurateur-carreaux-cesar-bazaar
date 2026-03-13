@@ -3238,7 +3238,7 @@ function updateMoldingWarning() {
     }
 }
 
-/** Met à jour la surbrillance du nuancier (couleur de la zone active) et scroll mobile vers cette couleur */
+/** Met à jour la surbrillance du nuancier (couleur de la zone active) et scroll pour que le nuancier soit visible avec la couleur sélectionnée au centre */
 function updatePaletteHighlight() {
     const activeColorId = activeZone ? currentColors[activeZone] : null;
     const swatches = document.querySelectorAll("#color-palette .color-swatch, #color-palette-drawer .color-swatch");
@@ -3257,30 +3257,52 @@ function updatePaletteHighlight() {
             { zone: activeZone, recherché: activeColorId, dansLeTiroir: drawerIds }
         );
     }
-    // Desktop : scroll de la sidebar pour mettre la couleur sélectionnée au plus haut
+    // Desktop : scroll de la sidebar pour que le nuancier soit visible et la couleur au centre (sans jamais scroller vers le bas si la couleur est déjà visible)
     if (window.matchMedia("(min-width: 901px)").matches && activeColorId) {
         const sidebar = document.querySelector(".sidebar");
         const selectedSwatch = document.querySelector("#color-palette .color-swatch.selected");
+        const palette = document.getElementById("color-palette");
         if (sidebar && selectedSwatch) {
             requestAnimationFrame(() => {
-                const sidebarRect = sidebar.getBoundingClientRect();
-                const swatchRect = selectedSwatch.getBoundingClientRect();
-                const swatchTopRelative = swatchRect.top - sidebarRect.top + sidebar.scrollTop;
-                sidebar.scrollTop = Math.max(0, swatchTopRelative - 20);
+                requestAnimationFrame(() => {
+                    const sidebarRect = sidebar.getBoundingClientRect();
+                    const swatchRect = selectedSwatch.getBoundingClientRect();
+                    const swatchVisible = swatchRect.top >= sidebarRect.top - 4 && swatchRect.bottom <= sidebarRect.bottom + 4;
+                    const swatchH = swatchRect.height;
+                    const swatchTopRelative = swatchRect.top - sidebarRect.top + sidebar.scrollTop;
+                    let targetSidebarScroll = swatchTopRelative - sidebar.clientHeight / 2 + swatchH / 2;
+                    targetSidebarScroll = Math.max(0, Math.min(targetSidebarScroll, sidebar.scrollHeight - sidebar.clientHeight));
+                    // Ne jamais scroller la sidebar vers le bas au clic (remonter seulement), pour éviter le scroll down étrange au clic viewport
+                    if (targetSidebarScroll <= sidebar.scrollTop) {
+                        sidebar.scrollTop = Math.min(targetSidebarScroll, sidebar.scrollTop);
+                    }
+                    if (palette && palette.contains(selectedSwatch) && palette.scrollHeight > palette.clientHeight) {
+                        const swatchOffsetInPalette = selectedSwatch.offsetTop;
+                        const targetPaletteScroll = swatchOffsetInPalette - palette.clientHeight / 2 + selectedSwatch.offsetHeight / 2;
+                        const paletteMaxScroll = palette.scrollHeight - palette.clientHeight;
+                        const paletteScrollClamped = Math.max(0, Math.min(targetPaletteScroll, paletteMaxScroll));
+                        // Ne pas scroller le bloc nuancier vers le bas non plus (même logique que la sidebar)
+                        if (paletteScrollClamped <= palette.scrollTop) {
+                            palette.scrollTop = paletteScrollClamped;
+                        }
+                    }
+                });
             });
         }
     }
-    // Mobile : scroll du tiroir pour amener la couleur sélectionnée au centre
+    // Mobile : scroll horizontal du tiroir pour amener la couleur sélectionnée au centre
     if (window.matchMedia("(max-width: 900px)").matches && activeColorId) {
         const drawerBody = document.querySelector(".palette-drawer-body");
         const selectedSwatch = document.querySelector("#color-palette-drawer .color-swatch.selected");
         if (drawerBody && selectedSwatch) {
             requestAnimationFrame(() => {
-                const bodyRect = drawerBody.getBoundingClientRect();
-                const swatchRect = selectedSwatch.getBoundingClientRect();
-                const centerOffset = (bodyRect.width - swatchRect.width) / 2;
-                const newScroll = drawerBody.scrollLeft + (swatchRect.left - bodyRect.left) - centerOffset;
-                drawerBody.scrollLeft = Math.max(0, newScroll);
+                requestAnimationFrame(() => {
+                    const bodyRect = drawerBody.getBoundingClientRect();
+                    const swatchRect = selectedSwatch.getBoundingClientRect();
+                    const centerOffset = (bodyRect.width - swatchRect.width) / 2;
+                    const newScroll = drawerBody.scrollLeft + (swatchRect.left - bodyRect.left) - centerOffset;
+                    drawerBody.scrollLeft = Math.max(0, newScroll);
+                });
             });
         }
     }
