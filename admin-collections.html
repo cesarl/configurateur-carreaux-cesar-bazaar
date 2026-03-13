@@ -1803,7 +1803,7 @@
                 showToast("Nouvelle collection ajoutée.");
             }
 
-            function loadCollections() {
+            function loadCollections(targetId) {
                 els.btnLoad.disabled = true;
                 fetch("data/collections.json")
                     .then(function (res) {
@@ -1816,7 +1816,18 @@
                         }
                         state.rawCollections = data.slice();
                         state.collections = data.map(normalizeCollection);
+                        // Par défaut, on sélectionne la première collection,
+                        // mais si un id est passé en argument (?collection=ID), on essaie de la sélectionner.
                         state.selectedIndex = state.collections.length ? 0 : null;
+                        if (targetId && state.collections.length) {
+                            const target = String(targetId).toLowerCase().trim();
+                            const idx = state.collections.findIndex(function (c) {
+                                return String(c.id || "").toLowerCase().trim() === target;
+                            });
+                            if (idx !== -1) {
+                                state.selectedIndex = idx;
+                            }
+                        }
                         renderCollectionsList();
                         renderEditor();
                         updateJsonPreview();
@@ -2008,6 +2019,17 @@
                 loadStoredDevMode();
                 attachEvents();
                 loadCalepinages();
+                // Si un paramètre ?collection=ID est présent dans l'URL, on charge
+                // les collections automatiquement et on sélectionne cet ID.
+                try {
+                    const params = new URLSearchParams(window.location.search || "");
+                    const targetId = params.get("collection");
+                    if (targetId) {
+                        loadCollections(targetId);
+                    }
+                } catch (e) {
+                    // En cas de problème, on ne bloque pas l'interface
+                }
                 renderCollectionsList();
             }
 

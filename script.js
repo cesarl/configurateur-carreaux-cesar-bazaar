@@ -1528,6 +1528,7 @@ function setupNavigation() {
     function applyDevModeUiState() {
         const devWarning = document.getElementById("options-dev-warning");
         const devHeaderLabel = document.getElementById("dev-mode-header-label");
+        const editCollectionBtn = document.getElementById("collection-edit-dev-btn");
         if (btnCart) {
             if (devMode) {
                 btnCart.style.display = "none";
@@ -1540,6 +1541,9 @@ function setupNavigation() {
         }
         if (devWarning) {
             devWarning.style.display = devMode ? "" : "none";
+        }
+        if (editCollectionBtn) {
+            editCollectionBtn.style.display = devMode ? "" : "none";
         }
     }
 
@@ -2068,6 +2072,34 @@ async function loadCollection(id, urlColors = null) {
     if (collectionLink) {
         collectionLink.textContent = currentCollection.nom;
         collectionLink.href = currentCollection.collection_url || "#";
+        // Bouton édition collection (mode développeur uniquement)
+        let editBtn = document.getElementById("collection-edit-dev-btn");
+        if (!editBtn) {
+            editBtn = document.createElement("button");
+            editBtn.id = "collection-edit-dev-btn";
+            editBtn.type = "button";
+            editBtn.textContent = "Edit collection";
+            editBtn.style.marginLeft = "8px";
+            editBtn.style.fontSize = "0.8rem";
+            editBtn.style.padding = "4px 8px";
+            editBtn.style.borderRadius = "4px";
+            editBtn.style.border = "1px solid #b3261e";
+            editBtn.style.background = "#fff5f4";
+            editBtn.style.color = "#b3261e";
+            editBtn.style.cursor = "pointer";
+            editBtn.title = "Ouvrir l'admin pour cette collection (dev)";
+            const header = collectionLink.parentElement;
+            if (header && header.insertBefore) {
+                header.insertBefore(editBtn, collectionLink.nextSibling);
+            }
+        }
+        editBtn.style.display = devMode ? "" : "none";
+        editBtn.onclick = () => {
+            if (!currentCollection || !currentCollection.id) return;
+            const id = encodeURIComponent(currentCollection.id);
+            const url = `${REPO_URL}admin-collections.html?collection=${id}`;
+            window.open(url, "_blank", "noopener");
+        };
     }
     const modalCollectionLink = document.getElementById("cart-confirm-collection-link");
     if (modalCollectionLink && collectionLink) {
