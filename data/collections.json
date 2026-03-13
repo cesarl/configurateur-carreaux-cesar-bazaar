@@ -5,10 +5,7 @@
     "description": "Best-seller de la maison.",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -37,10 +34,7 @@
     "description": "Le ver des sables !",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -68,10 +62,7 @@
     "description": "Vive les fleurs.",
     "tier": "standard_20x20",
     "variations": 16,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -95,10 +86,7 @@
     "description": "Une nouvelle pepitte.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
@@ -113,10 +101,7 @@
     "description": "Carreaux de ciment dessiné par Alex Roda à Madrid.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier_2",
     "layouts": [
       "aleatoire",
@@ -144,10 +129,7 @@
     "description": "Collection rétro qui rend hommage aux années 60.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier",
@@ -172,10 +154,7 @@
     "description": "Ha la belle époque où j'avais le temps de dessiner 🥰",
     "tier": "standard_20x20",
     "variations": 10,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -201,10 +180,7 @@
     "description": "Au clair de la lune.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "Miroir_2",
     "layouts": [
       "Miroir_2"
@@ -229,10 +205,7 @@
     "description": "Des lianes qui se déploient chez vous.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "Liane_1",
     "layouts": [
       "Liane_1",
@@ -261,10 +234,7 @@
     "description": "Les carreaux en s’assemblant, se répondent, s’entrelacent, créant de nouvelles formes géométriques, de nouvelles courbes.",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -328,10 +298,7 @@
     "description": "Collection Continuum.",
     "tier": "standard_20x20",
     "variations": 3,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -357,10 +324,7 @@
     "description": "Collection Intérieur.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -385,10 +349,7 @@
     "description": "Collection Oranger.",
     "tier": "standard_20x20",
     "variations": 3,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -441,10 +402,7 @@
     "description": "Collection Serpent MB.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
@@ -465,10 +423,7 @@
     "description": "Collection Opale.",
     "tier": "standard_20x20",
     "variations": 6,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "opale",
     "layouts": [
       "opale"
@@ -496,10 +451,7 @@
     "description": "Collection Onda.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
@@ -517,10 +469,7 @@
     "description": "Collection Cala Morell.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier",
     "layouts": [
       "damier"
@@ -591,10 +540,7 @@
     "description": "Collection Quique.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -708,10 +654,7 @@
     "description": "Collection Palm Beach.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -735,10 +678,7 @@
     "description": "Collection Secret Garden.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -764,10 +704,7 @@
     "description": "Collection Tiznit",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -791,10 +728,7 @@
     "description": "Collection Tulipe.",
     "tier": "standard_20x20",
     "variations": 2,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "damier_2",
     "layouts": [
       "Miroir_2",
@@ -822,10 +756,7 @@
     "description": "Collection Fruits.",
     "tier": "standard_20x20",
     "variations": 8,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -861,10 +792,7 @@
     "description": "Collection Ciel.",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -882,10 +810,7 @@
     "description": "Collection Nature adorée.",
     "tier": "standard_20x20",
     "variations": 4,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
@@ -903,10 +828,7 @@
     "description": "Collection Fleur Wodarz.",
     "tier": "standard_20x20",
     "variations": 1,
-    "tags": [
-      "Intemporel",
-      "Abstrait"
-    ],
+    "category": "signature",
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",

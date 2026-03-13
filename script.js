@@ -171,7 +171,7 @@ function filterCollectionsForGallery(collections) {
 
 // --- Filtres de la gallery (accueil du simulateur) ---
 let galleryAllCollections = [];
-let gallerySelectedCategories = new Set(["signature", "classic", "unpublished"]);
+let gallerySelectedCategories = new Set(["signature", "classic", "new"]);
 let gallerySearchQuery = "";
 
 function getCollectionCategory(collection) {
@@ -179,7 +179,17 @@ function getCollectionCategory(collection) {
     const raw = ((collection.category || "") + "").toLowerCase();
     if (raw.includes("signature")) return "signature";
     if (raw.includes("classique") || raw.includes("classic")) return "classic";
-    if (raw.includes("inedit") || raw.includes("inédit") || raw.includes("unpublished")) return "unpublished";
+    if (
+        raw.includes("inedit") ||
+        raw.includes("inédit") ||
+        raw.includes("inedite") ||
+        raw.includes("inédite") ||
+        raw.includes("inedites") ||
+        raw.includes("inédites") ||
+        raw.includes("new")
+    ) {
+        return "new";
+    }
     // Fallback : si aucune catégorie n'est renseignée ou ne matche, on considère la collection comme « signature »
     return "signature";
 }
@@ -188,28 +198,45 @@ function getFilteredGalleryCollections() {
     if (!Array.isArray(galleryAllCollections)) return [];
 
     const query = (gallerySearchQuery || "").trim().toLowerCase();
+    const categoryOrder = { signature: 0, classic: 1, new: 2 };
+
+    // Index dans galleryAllCollections = ordre du JSON (conservé à l'intérieur d'une catégorie)
+    const indexOfCollection = new Map();
+    galleryAllCollections.forEach((c, i) => { indexOfCollection.set(c, i); });
+
+    function sortByCategoryThenJsonOrder(a, b) {
+        const ca = getCollectionCategory(a);
+        const cb = getCollectionCategory(b);
+        const oa = Object.prototype.hasOwnProperty.call(categoryOrder, ca) ? categoryOrder[ca] : 999;
+        const ob = Object.prototype.hasOwnProperty.call(categoryOrder, cb) ? categoryOrder[cb] : 999;
+        if (oa !== ob) return oa - ob;
+        return (indexOfCollection.get(a) ?? 0) - (indexOfCollection.get(b) ?? 0);
+    }
 
     // 1) Recherche par nom : s'applique à toutes les collections (ignore les catégories)
     if (query) {
-        return galleryAllCollections.filter((c) => {
-            const nom = (c.nom || "").toLowerCase();
-            const id = (c.id || "").toLowerCase();
-            const desc = (c.description || "").toLowerCase();
-            return nom.includes(query) || id.includes(query) || desc.includes(query);
-        });
+        return galleryAllCollections
+            .filter((c) => {
+                const nom = (c.nom || "").toLowerCase();
+                const id = (c.id || "").toLowerCase();
+                const desc = (c.description || "").toLowerCase();
+                return nom.includes(query) || id.includes(query) || desc.includes(query);
+            })
+            .sort(sortByCategoryThenJsonOrder);
     }
 
     // 2) Pas de recherche → filtrage par catégories cochées
     const activeCategories = Array.from(gallerySelectedCategories);
     if (!activeCategories.length) {
-        // Aucune catégorie cochée → aucune collection affichée (comportement explicite)
         return [];
     }
 
-    return galleryAllCollections.filter((c) => {
+    const filtered = galleryAllCollections.filter((c) => {
         const cat = getCollectionCategory(c);
         return activeCategories.includes(cat);
     });
+
+    return filtered.sort(sortByCategoryThenJsonOrder);
 }
 
 function renderGalleryGrid() {
@@ -272,10 +299,10 @@ function setupGalleryFiltersUI() {
     const searchInput = document.getElementById("gallery-search");
     const catSignature = document.getElementById("filter-category-signature");
     const catClassic = document.getElementById("filter-category-classic");
-    const catUnpublished = document.getElementById("filter-category-unpublished");
+    const catNew = document.getElementById("filter-category-new");
 
     // Valeurs par défaut : toutes les catégories sont actives
-    gallerySelectedCategories = new Set(["signature", "classic", "unpublished"]);
+    gallerySelectedCategories = new Set(["signature", "classic", "new"]);
 
     if (searchInput) {
         searchInput.addEventListener("input", () => {
@@ -299,7 +326,7 @@ function setupGalleryFiltersUI() {
 
     bindCategory(catSignature, "signature");
     bindCategory(catClassic, "classic");
-    bindCategory(catUnpublished, "unpublished");
+    bindCategory(catNew, "new");
 }
 let currentCollection = null;
 let currentColors = {}; // Maps zone id → Color ID (e.g. BL001). Use getHexForColorId() for display.

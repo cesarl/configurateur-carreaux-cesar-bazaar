@@ -303,6 +303,11 @@
             color: #5f6368;
             border-color: #e0e7ff;
         }
+        .badge-category {
+            background: #e8f0fe;
+            color: #1a73e8;
+            border-color: #c3d4ff;
+        }
         .thumb {
             width: 40px;
             height: 40px;
@@ -487,7 +492,7 @@
                 </div>
                 <div class="toolbar-group">
                     <label for="search-input">Recherche</label>
-                    <input id="search-input" type="search" placeholder="nom, id, tags…" autocomplete="off">
+                    <input id="search-input" type="search" placeholder="nom, id, catégorie…" autocomplete="off">
                 </div>
                 <div class="toolbar-group">
                     <label class="toggle">
@@ -573,9 +578,14 @@
                         </div>
 
                         <div class="field">
-                            <label for="field-tags">Tags</label>
-                            <input id="field-tags" type="text" placeholder="Intemporel, Abstrait…">
-                            <small>Liste séparée par des virgules. Exemple : <code>Intemporel, Abstrait</code>.</small>
+                            <label for="field-category">Catégorie</label>
+                            <select id="field-category">
+                                <option value="">(non renseignée)</option>
+                                <option value="signature">Signature</option>
+                                <option value="classic">Classique</option>
+                                <option value="new">Inédite</option>
+                            </select>
+                            <small>Une seule catégorie par collection. Utilisée pour le tri et les filtres dans la gallery.</small>
                         </div>
                         <div class="field">
                             <label for="field-layouts-other">Layouts supplémentaires</label>
@@ -711,6 +721,7 @@
                 els.fieldNom = $("field-nom");
                 els.fieldTier = $("field-tier");
                 els.fieldDescription = $("field-description");
+                els.fieldCategory = $("field-category");
                 els.fieldVariations = $("field-variations");
                 els.btnRefreshVariations = $("btn-refresh-variations");
                 els.btnEditVariations = $("btn-edit-variations");
@@ -719,7 +730,6 @@
                 els.collectionColorsDisplay = $("collection-colors-display");
                 els.fieldCartonDistributionText = $("field-carton-distribution-text");
                 els.cartonDistributionThumbnails = $("carton-distribution-thumbnails");
-                els.fieldTags = $("field-tags");
                 els.fieldLayoutsOther = $("field-layouts-other");
                 els.layoutsCheckboxes = $("layouts-checkboxes");
                 els.fieldDefautLayout = $("field-defaut-layout");
@@ -790,6 +800,7 @@
                 copy.nom = copy.nom || "";
                 copy.description = copy.description || "";
                 copy.tier = copy.tier || "";
+                copy.category = (copy.category || "").trim();
 
                 if (typeof copy.variations === "number" && copy.variations >= 1) {
                     copy.variations = Math.max(1, Math.floor(copy.variations));
@@ -800,16 +811,6 @@
                     copy.variations = Math.max(1, arr.length);
                 } else {
                     copy.variations = 1;
-                }
-
-                if (Array.isArray(copy.tags)) {
-                    copy.tags = copy.tags.map(function (t) {
-                        return typeof t === "string" ? t.trim() : t;
-                    }).filter(Boolean);
-                } else if (typeof copy.tags === "string") {
-                    copy.tags = copy.tags.split(",").map(function (t) { return t.trim(); }).filter(Boolean);
-                } else {
-                    copy.tags = [];
                 }
 
                 if (Array.isArray(copy.layouts)) {
@@ -872,10 +873,10 @@
                         description: c.description || "",
                         tier: c.tier || "",
                         variations: typeof c.variations === "number" ? c.variations : (Array.isArray(c.variations) ? c.variations.length : 1),
-                        tags: Array.isArray(c.tags) ? c.tags.slice() : [],
                         defaut_layout: c.defaut_layout || "",
                         layouts: Array.isArray(c.layouts) ? c.layouts.slice() : []
                     };
+                    if (c.category) item.category = c.category;
                     if (Array.isArray(c.colors)) item.colors = c.colors.slice();
                     if (c.collection_url) item.collection_url = c.collection_url;
                     if (c.collection_image) item.collection_image = c.collection_image;
@@ -968,7 +969,7 @@
                         if (!active || devOnly) continue;
                     }
                     if (term) {
-                        const haystack = ((c.id || "") + " " + (c.nom || "") + " " + (Array.isArray(c.tags) ? c.tags.join(" ") : "")).toLowerCase();
+                        const haystack = ((c.id || "") + " " + (c.nom || "") + " " + (c.category || "")).toLowerCase();
                         if (!haystack.includes(term)) continue;
                     }
                     indices.push(i);
@@ -1108,13 +1109,11 @@
                         metaLine.appendChild(badgeDev);
                     }
 
-                    if (Array.isArray(c.tags) && c.tags.length) {
-                        c.tags.slice(0, 3).forEach(function (tag) {
-                            const tagBadge = document.createElement("span");
-                            tagBadge.className = "badge badge-tag";
-                            tagBadge.textContent = tag;
-                            metaLine.appendChild(tagBadge);
-                        });
+                    if (c.category) {
+                        const catBadge = document.createElement("span");
+                        catBadge.className = "badge badge-category";
+                        catBadge.textContent = c.category;
+                        metaLine.appendChild(catBadge);
                     }
 
                     row.appendChild(mainLine);
@@ -1470,7 +1469,7 @@
                 renderCollectionColorsDisplay();
                 els.fieldCartonDistributionText.value = c.carton_distribution_text || "";
                 renderCartonDistributionThumbnails();
-                els.fieldTags.value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
+                els.fieldCategory.value = c.category || "";
 
                 const allLayouts = getAllLayoutIdsFromData();
                 const selectedLayouts = Array.isArray(c.layouts) ? c.layouts.slice() : [];
@@ -1623,8 +1622,8 @@
                 c.nom = (els.fieldNom.value || "").trim();
                 c.tier = (els.fieldTier.value || "").trim();
                 c.description = (els.fieldDescription.value || "").trim();
+                c.category = (els.fieldCategory.value || "").trim();
                 c.variations = Math.max(1, parseInt(els.fieldVariations.value, 10) || 1);
-                c.tags = normalizeArrayFromField(els.fieldTags.value, { uppercase: false });
 
                 const checkboxes = els.layoutsCheckboxes ? els.layoutsCheckboxes.querySelectorAll("input[type='checkbox']") : [];
                 const selectedLayouts = [];
@@ -1784,8 +1783,8 @@
                     nom: "",
                     description: "",
                     tier: "standard_20x20",
+                    category: "signature",
                     variations: 1,
-                    tags: [],
                     defaut_layout: "aleatoire",
                     layouts: ["aleatoire"],
                     collection_url: "",
@@ -1910,7 +1909,7 @@
                     window.open(url, "_blank", "noopener,noreferrer");
                 });
                 if (els.btnExtractColors) els.btnExtractColors.addEventListener("click", runExtractColorsForCurrent);
-                if (els.fieldTags) els.fieldTags.addEventListener("input", applyFormToCollection);
+                if (els.fieldCategory) els.fieldCategory.addEventListener("change", applyFormToCollection);
                 if (els.fieldLayoutsOther) els.fieldLayoutsOther.addEventListener("input", function () {
                     onLayoutsChanged();
                 });
