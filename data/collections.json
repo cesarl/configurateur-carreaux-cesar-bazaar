@@ -117,14 +117,12 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "damier_2",
     "layouts": [
       "aleatoire",
       "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier_2_random",
+      "iflip_2"
     ],
     "colors": [
       "WT000",
@@ -134,7 +132,11 @@
       "RD006"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/go-par-alex-roda",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471203124-RM7VVWXGC24O9Q4GB0OZ/geo-par-alex-roda-carreaux-de-ciment-910122.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471203124-RM7VVWXGC24O9Q4GB0OZ/geo-par-alex-roda-carreaux-de-ciment-910122.jpg?format=500w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 8,
+      "VAR2": 8
+    }
   },
   {
     "id": "sixties",
@@ -146,14 +148,10 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "damier_2",
+    "defaut_layout": "damier",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier",
+      "iflip_1"
     ],
     "colors": [
       "YL001",
@@ -163,7 +161,10 @@
       "WT000"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/alexandra-pascual-retros-annees-60",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1674031395808-Z079ASZ341GDGXSTM1X2/test.jpg"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1674031395808-Z079ASZ341GDGXSTM1X2/test.jpg",
+    "carton_distribution_by_pattern": {
+      "VAR1": 16
+    }
   },
   {
     "id": "Abstract",
@@ -178,11 +179,10 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "aleatoire_no_rotation",
+      "damier_10",
+      "damier_10_random",
+      "iflip_10"
     ],
     "colors": [
       "WT000",
@@ -192,7 +192,8 @@
       "YL001"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/abstract-par-csar-bazaar",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720467617036-NR8GUV0N0BDOLVRLYEX3/abstract-par-cesar-bazaar-carreaux-de-ciment-999229.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720467617036-NR8GUV0N0BDOLVRLYEX3/abstract-par-cesar-bazaar-carreaux-de-ciment-999229.jpg?format=500w",
+    "carton_distribution_text": "1 motif de chaque plus mix de de 6 motifs."
   },
   {
     "id": "clair-de-lune",
@@ -204,14 +205,9 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "Miroir_2",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "Miroir_2"
     ],
     "colors": [
       "WT000",
@@ -221,7 +217,11 @@
       "RD061"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/clair-de-lune-berenice-milon",
-    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c20f1fc5036825a6a7cd9a/1770353515830/carreaux-de-ciment-artisanaux+53.jpg?format=500w"
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c20f1fc5036825a6a7cd9a/1770353515830/carreaux-de-ciment-artisanaux+53.jpg?format=500w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 8,
+      "VAR2": 8
+    }
   },
   {
     "id": "lianes",
@@ -233,14 +233,15 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "Liane_1",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "Liane_1",
+      "Liane_2",
+      "Liane_3",
+      "Miroir_2",
+      "damier",
+      "iflip_1",
+      "iflip_2"
     ],
     "colors": [
       "GN002",
@@ -248,7 +249,11 @@
       "WT000"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/lianes-baptiste-vandaele",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/323af0a6-a0bd-4158-8fa6-a6f9c29dd769/SESSION+09-145.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/323af0a6-a0bd-4158-8fa6-a6f9c29dd769/SESSION+09-145.jpg?format=500w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 4,
+      "VAR2": 12
+    }
   },
   {
     "id": "pannequin",
@@ -263,11 +268,9 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "iflip_4"
     ],
     "colors": [
       "YL003",
@@ -276,7 +279,14 @@
       "GN008"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/formes-expressives-blandine-pannequin",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg"
+    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1699306309115-463FW7KH4447X9VIRDN8/CESAR-0920.jpg?format=1500w&content-type=image%2Fjpeg",
+    "carton_distribution_text": "4 carreaux de chaque",
+    "carton_distribution_by_pattern": {
+      "VAR1": 4,
+      "VAR2": 4,
+      "VAR3": 4,
+      "VAR4": 4
+    }
   },
   {
     "id": "Safran",
@@ -288,14 +298,13 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "damier_4",
     "layouts": [
       "aleatoire",
-      "damier_2",
+      "aleatoire_no_rotation",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "iflip_4"
     ],
     "colors": [
       "WT000",
@@ -305,7 +314,13 @@
       "OR008"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/safran-terracotta-bleu-cobalt",
-    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/689f5a6186322825a8bd56b3/1755273825888/safran-par-bleu-cobalt-carreaux-de-ciment-550456.jpg?format=500w"
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/689f5a6186322825a8bd56b3/1755273825888/safran-par-bleu-cobalt-carreaux-de-ciment-550456.jpg?format=500w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 4,
+      "VAR2": 4,
+      "VAR3": 4,
+      "VAR4": 4
+    }
   },
   {
     "id": "continuum",
@@ -320,11 +335,11 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "aleatoire_no_rotation",
+      "damier_3",
+      "damier_3_motifs",
+      "fresque_bordure",
+      "iflip_3"
     ],
     "colors": [
       "BL026",
@@ -333,7 +348,8 @@
       "GN024"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/continuum-studio-helioscope-vert",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/db34a655-a40b-4b01-8271-f66aabd40a34/carreaux-de-ciment-artisanaux+12.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/db34a655-a40b-4b01-8271-f66aabd40a34/carreaux-de-ciment-artisanaux+12.jpg?format=500w",
+    "carton_distribution_text": "5 carreaux de chaque + 1 aléatoire"
   },
   {
     "id": "interieur",
@@ -348,18 +364,20 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
+      "aleatoire_no_rotation",
       "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "iflip_2"
     ],
     "colors": [
       "RD009",
       "WT000"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/interieur-julie-bouche-blan-rose",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466702738-SCNABMZD8ZKI4ESM4BBT/interieur-par-julie-bouchet-carreaux-de-ciment-436031.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720466702738-SCNABMZD8ZKI4ESM4BBT/interieur-par-julie-bouchet-carreaux-de-ciment-436031.jpg?format=500w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 8,
+      "VAR2": 8
+    }
   },
   {
     "id": "oranger",
@@ -374,11 +392,10 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "aleatoire_no_rotation",
+      "damier_3_motifs",
+      "damier_3_random",
+      "iflip_3"
     ],
     "colors": [
       "GN002",
@@ -386,7 +403,8 @@
       "YL001"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/oranger-fanny-liennart",
-    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c1bd951a73a84203c95cc7/1764667736220/oranger1.jpg?format=500w"
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/67c1bd951a73a84203c95cc7/1764667736220/oranger1.jpg?format=500w",
+    "carton_distribution_text": "5 carreaux de chaque et 1 aléatoire"
   },
   {
     "id": "papyrus",
@@ -403,9 +421,9 @@
       "aleatoire",
       "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "fresque_bordure",
+      "iflip_4"
     ],
     "colors": [
       "WT000",
@@ -414,7 +432,8 @@
       "GN011"
     ],
     "collection_url": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/b410e293-0202-4f5c-941b-a12ff218da9f/Justine_Deltang_Papyrus_textless.jpg?format=500w",
+    "active": false
   },
   {
     "id": "serpent-mb",
@@ -435,7 +454,10 @@
       "PP015"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/serpent-marie-blanche-huet-rose-violet",
-    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1720468385861-JP59ZVXBLFB3PN6E49QK/serpent-par-marie-blanche-huet-carreaux-de-ciment-181355.jpg?content-type=image%2Fjpeg"
+    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/1720468385861-JP59ZVXBLFB3PN6E49QK/serpent-par-marie-blanche-huet-carreaux-de-ciment-181355.jpg?content-type=image%2Fjpeg",
+    "artist_recommendations": [
+      "http://127.0.0.1:5501/index.html?collection=serpent-mb&zone-1=BW001&zone-2=PP008"
+    ]
   },
   {
     "id": "opale",
@@ -447,14 +469,9 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "opale",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "damier_4_random",
-      "fresque_bordure",
-      "iflip_4"
+      "opale"
     ],
     "colors": [
       "WT001",
@@ -463,7 +480,15 @@
       "BK000"
     ],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/carreaux-de-ciment-opale-marie-blanche-huet",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471570973-3XE11TKB2KOM82QINBC2/opale-par-marie-blanche-huet-carreaux-de-ciment-539641.png?format=800w"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720471570973-3XE11TKB2KOM82QINBC2/opale-par-marie-blanche-huet-carreaux-de-ciment-539641.png?format=800w",
+    "carton_distribution_by_pattern": {
+      "VAR1": 1,
+      "VAR2": 2,
+      "VAR3": 4,
+      "VAR4": 4,
+      "VAR6": 4,
+      "VAR5": 1
+    }
   },
   {
     "id": "onda",
@@ -475,14 +500,9 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "damier",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "damier_4_random",
-      "fresque_bordure",
-      "iflip_4"
+      "damier"
     ],
     "colors": [
       "BL019",
@@ -501,14 +521,9 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "damier",
     "layouts": [
-      "aleatoire",
-      "damier_2",
-      "damier_4",
-      "damier_4_random",
-      "fresque_bordure",
-      "iflip_4"
+      "damier"
     ],
     "colors": [
       "BL014",
@@ -520,7 +535,7 @@
   },
   {
     "id": "slip",
-    "nom": "Slip",
+    "nom": "Moule bite 360",
     "description": "Collection Slip.",
     "tier": "standard_20x20",
     "variations": 3,
@@ -531,18 +546,21 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "aleatoire_no_rotation",
+      "damier_3",
+      "damier_3_motifs",
+      "damier_3_random",
+      "iflip_3"
     ],
     "colors": [
       "BL027",
       "OR007",
       "BL029",
       "GN028"
-    ]
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/moule-bite-nullanus",
+    "collection_image": "https://images.squarespace-cdn.com/content/62aa0fad790ae54c0b65723b/5d997364-9c9e-4ae7-b766-79e5feaf0fa8/nullanus.jpeg?content-type=image%2Fjpeg",
+    "carton_distribution_text": "5 carreaux de chaque + 1 aléatoire"
   },
   {
     "id": "envolee",
@@ -557,15 +575,15 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "damier_4_random",
-      "fresque_bordure",
-      "iflip_4"
+      "aleatoire_no_rotation",
+      "damier_3",
+      "damier_3_random",
+      "iflip_3"
     ],
     "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/envolee-lauren-roman-violet-abstrait",
-    "collection_image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrEY9wU44B3kNNiz1ANWpyZ-pPOivttc-7aA&s"
+    "collection_image": "https://static1.squarespace.com/static/62aa0fad790ae54c0b65723b/62aa10b1115cc82ebeb1b61c/66f2c62c9377f73ed36445da/1767608442156/lenvolee-par-lauren-roman-carreaux-de-ciment-842992.jpg?format=500w",
+    "carton_distribution_text": "5 carreaux de chaque plus 1 aléatoire"
   },
   {
     "id": "quique",
@@ -628,13 +646,15 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier"
     ],
-    "colors": []
+    "colors": [
+      "GN022",
+      "OR002",
+      "WT000"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/fini-terrae-orange-vert",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720432995487-58YMSFZJJ4WXBBJAH0X7/TM-ANGOLO2.jpg"
   },
   {
     "id": "finis-terrae-linea",
@@ -649,13 +669,15 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier"
     ],
-    "colors": []
+    "colors": [
+      "GN022",
+      "OR002",
+      "WT000"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/fini-terrae-orange-vert",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720432508943-WN8EQ79M0MWCN6A7SLBK/TM-LINEA3.jpg?format=500w"
   },
   {
     "id": "finis-terrae-punto",
@@ -670,13 +692,15 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier"
     ],
-    "colors": []
+    "colors": [
+      "GN022",
+      "OR002",
+      "WT000"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/fini-terrae-orange-vert",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720432808760-JY7V22DX771A0F0TDU57/TM-PUNTO11.jpg?format=500w"
   },
   {
     "id": "palm-beach",
@@ -699,7 +723,11 @@
     ],
     "colors": [],
     "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/palm-beach-rose-orange",
-    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720369182334-GG0BA3Q0672L99AOI08T/PalmBeach1.jpg"
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720369182334-GG0BA3Q0672L99AOI08T/PalmBeach1.jpg",
+    "carton_distribution_by_pattern": {
+      "VAR1": 8,
+      "VAR2": 8
+    }
   },
   {
     "id": "secret-garden",
@@ -714,18 +742,26 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier_2_motifs",
+      "damier_2_random",
+      "iflip_2"
     ],
-    "colors": []
+    "colors": [
+      "RD009",
+      "GN019",
+      "GN018"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/secret-garden-zoe-wodarz-coeur-plante-vert",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720472424632-1335EN5KKK9FZ5EB88WV/secret-garden-par-zoe-wodarz-carreaux-de-ciment-549545.jpg",
+    "carton_distribution_by_pattern": {
+      "VAR1": 8,
+      "VAR2": 8
+    }
   },
   {
     "id": "tiznit",
     "nom": "Tiznit",
-    "description": "Collection Tiznit.",
+    "description": "Collection Tiznit",
     "tier": "standard_20x20",
     "variations": 4,
     "tags": [
@@ -735,13 +771,19 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "ligne_alternee_4"
     ],
-    "colors": []
+    "colors": [],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/tiznit-ze-monsta-design",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/1720472819305-TS51ZFA0WS091Q05KGZE/tiznit-par-audrey-abbal-duteille-carreaux-de-ciment-554875.jpg",
+    "carton_distribution_by_pattern": {
+      "VAR1": 4,
+      "VAR2": 4,
+      "VAR3": 4,
+      "VAR4": 4
+    }
   },
   {
     "id": "tulipe",
@@ -753,16 +795,26 @@
       "Intemporel",
       "Abstrait"
     ],
-    "defaut_layout": "aleatoire",
+    "defaut_layout": "damier_2",
     "layouts": [
+      "Miroir_2",
       "aleatoire",
       "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "damier_2_motifs",
+      "damier_2_random"
     ],
-    "colors": []
+    "colors": [
+      "OR008",
+      "OR002",
+      "RD006",
+      "YL003"
+    ],
+    "collection_url": "https://www.cesarbazaar.fr/boutique-carreaux-de-ciment/p/tulipe-atelier-moeli-sylvie-maillard",
+    "collection_image": "https://images.squarespace-cdn.com/content/v1/62aa0fad790ae54c0b65723b/74c2dfd3-9fc1-4485-b656-ddc03b91cd08/carreaux+de+ciment+cesar+bazaar+-+fall+2025+020.webp",
+    "carton_distribution_by_pattern": {
+      "VAR1": 8,
+      "VAR2": 8
+    }
   },
   {
     "id": "fruits-roda",
@@ -777,11 +829,10 @@
     "defaut_layout": "aleatoire",
     "layouts": [
       "aleatoire",
-      "damier_2",
-      "damier_4",
-      "iflip_4",
-      "damier_4_random",
-      "fresque_bordure"
+      "aleatoire_no_rotation",
+      "damier_8",
+      "damier_8_random",
+      "iflip_8"
     ],
     "colors": [
       "YL001",
@@ -789,9 +840,20 @@
       "GN026",
       "RD001",
       "RD005",
-      "GN018",
+      "GN008",
       "BL027"
-    ]
+    ],
+    "collection_image": "./assets/img/fruits-roda.png",
+    "carton_distribution_by_pattern": {
+      "VAR1": 2,
+      "VAR2": 2,
+      "VAR3": 2,
+      "VAR4": 2,
+      "VAR5": 2,
+      "VAR6": 2,
+      "VAR7": 2,
+      "VAR8": 2
+    }
   },
   {
     "id": "ciel",
@@ -850,14 +912,15 @@
       "aleatoire",
       "damier_2",
       "damier_4",
-      "iflip_4",
       "damier_4_random",
-      "fresque_bordure"
+      "fresque_bordure",
+      "iflip_4"
     ],
     "colors": [
       "OR011",
       "YL005",
       "WT000"
-    ]
+    ],
+    "active": false
   }
 ]
